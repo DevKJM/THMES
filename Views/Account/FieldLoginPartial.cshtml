@@ -1,0 +1,85 @@
+﻿@using JSMES.WebUI.Alpha.App_GlobalResources
+@model JSMES.WebUI.Alpha.ViewModels.TowLoginViewMode
+
+@using (Html.BeginForm("FieldLogin", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+{                                    
+    using(Html.DevExtreme().ValidationGroup()) 
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="sidebar-title">
+                @(Html.DevExtreme().LookupFor(m=>m.fieldloginViewModel.Department)
+                .ID("loginDepartment")
+                    .Value(Model.fieldloginViewModel.Department)
+                    .ValueExpr("SYSCODE")
+                    .DisplayExpr("SYSCODENAME")
+                    .DataSource(d => d.WebApi()
+                                    .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("DEPARTMENT_LIST")
+                                .LoadParams(new { Culture = new JS("function() { return locale; }") })
+                            )
+                    .ShowPopupTitle(false)
+                    .Placeholder("부서를 선택해주세요.")
+                    .OnValueChanged("loginDepartment_OnValueChanged")
+                    .ShowClearButton(true)
+                )
+                                                
+        <br />
+            @(Html.DevExtreme().LookupFor(m=>m.fieldloginViewModel.FieldUserId)
+                    .ID("loginFieldUserId")
+                    .Value(Model.fieldloginViewModel.FieldUserId)
+                    .DataSource(d => d.WebApi()
+                                    .Controller("COMA001WebApi").Key("EMPCODE")
+                                .LoadAction("HR_FIELD_LIST")
+                                .LoadParams(new { Culture = new JS("function() { return locale; }") })
+                                .OnBeforeSend("loginFieldUserId_OnBeforeSend")
+                            )
+                            .ActiveStateEnabled(true)
+                    .DisplayExpr("EMPNAME")
+                    .ValueExpr("EMPCODE")
+                    .ShowPopupTitle(false)
+                    .Placeholder("사용자를 선택해주세요.")
+                    .ItemTemplate(@<text>                                        
+                        <div class="product">
+                            <% if (EMPPHOTO == null) { %>  
+                                    <img style="height: 35px;width: 35px;float: left;margin-right:5px;" src="@Url.Content("~/")Content/Images/Avatar/default_user.png">
+                            <% }else{ %>  
+                                    <img style="height: 35px;width: 35px;float: left;margin-right:5px;" class="img-circle" src="@Url.Content("~/")<%- EMPPHOTO  %>">
+                                <% } %>  
+                            <div style="line-height:35px;"><%- EMPNAME %></div>
+                        </div>
+                    </text>)
+                )
+        </div>
+        <div class="sidebar-title">
+            <button type="submit" class="btn btn-primary block full-width m-b">@LabelText.LOGIN</button>
+        </div>
+    }
+                                    
+}
+
+<script>    
+    function loginDepartment_OnValueChanged(e){
+        $('#loginFieldUserId').dxLookup('instance').getDataSource().reload();
+        $('#loginFieldUserId').dxLookup('instance').open();
+    }
+
+    function loginFieldUserId_OnBeforeSend(method, ajaxOptions){
+        if (method == "load") {
+            var departmentLookup = $('#loginDepartment').dxLookup('instance');            
+            ajaxOptions.data.DEPARTMENT_CODE = departmentLookup.option('value');
+        }
+    }
+
+    $('.btn-group .btn').each(function() {
+        if ($(this).find('input').attr('id') == locale) {
+            $(this).addClass('active');
+        }
+    });
+
+    $('.btn-group .btn').on('click', function(e) { // On the click event for each button
+        var selectedCulture = $(this).children('input').attr('id');
+        changeLang(selectedCulture);
+    });
+    
+</script>

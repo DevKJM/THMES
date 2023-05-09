@@ -1,0 +1,86 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCF;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<PRCF043_LIST>()
+                .ID("grdWIPHistory")
+                .DataSource(d => d.WebApi().Controller("PRCF043WebApi").Key("SERIALNUMBER"))
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.WORKDATE).Format(Format.ShortDate)
+                        .SelectedFilterOperation(FilterOperations.Between)
+                        .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date }).SortOrder(SortOrder.Desc);
+                    columns.AddFor(m => m.LOTNUMBER);
+                    columns.AddFor(m => m.SERIALNUMBER).SortOrder(SortOrder.Asc);
+                    columns.AddFor(m => m.CARTYPE);
+                    columns.AddFor(m => m.COLOR);
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.PROCESSCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("PROCESSCODE")
+                            .LoadAction("PROCESS_LIST"))
+                            .DisplayExpr("PROCESSNAME")
+                            .ValueExpr("PROCESSCODE")
+                        );
+                    columns.AddFor(m => m.NEXTPROCESSCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("PROCESSCODE")
+                            .LoadAction("PROCESS_LIST"))
+                            .DisplayExpr("PROCESSNAME")
+                            .ValueExpr("PROCESSCODE")
+                        );
+                    columns.AddFor(m => m.TRANSCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                           .Controller("COMA001WebApi").Key("TRANSCODE")
+                           .LoadAction("TRANSACTION_LIST"))
+                           .DisplayExpr("TRANSNAME")
+                           .ValueExpr("TRANSCODE")
+                         );
+                    columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.ORDERNUMBER);
+                    columns.AddFor(m => m.ORDERSEQUENCE);
+                    columns.AddFor(m => m.WORKER);
+                    columns.AddFor(m => m.MEMO);
+                })
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .ShowRowLines(true)
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                .Option("IGNORE_AUTOWIDTH", new object[] { "WORKDATE", "LOTNUMBER", "SERIALNUMBER", "PARTNUMBER", "PRODUCTNAME", "PROCESSCODE", "NEXTPROCESSCODE", "TRANSCODE", "QUANTITY", "ORDERNUMBER", "ORDERSEQUENCE", "WORKER", "MEMO" })
+                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                .OnInitialized("grdDefectHistory_onInitialized")
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdDefectHistory_onInitialized(e) {
+        userCustomGrid(e);
+    }
+
+</script>

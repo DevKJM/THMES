@@ -1,0 +1,1087 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAH;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Infrastructure.DBA;
+@using JSMES.WebUI.Alpha.Infrastructure.Enums;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAB;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        <div class="col-lg-3 col-sm-3">
+            <div id="form-container">
+                @using (Html.BeginForm())
+                {
+                    @(Html.DevExtreme().Form<QUAH051_LIST>()
+                        .ID("formInfo")
+                        .ColCount(2)
+                        .OnContentReady("formInfo_OnContentReady")
+                        .ScrollingEnabled(false)
+                        .Items(items =>
+                        {
+                        items.AddSimpleFor(m=>m.INSPECTDATE)
+                                .Editor(e => e
+                                    .DateBox()
+                                    .Type(DateBoxType.Date)
+                                    .Value(DateTime.Today)
+                                    .OnValueChanged("function(e) {  var gDate = Globalize.parseDate(Globalize.dateFormatter({date:'long'})(e.value) + ' ' + Globalize.dateFormatter({time:'long'})($('#formInfo').dxForm('instance').option('formData.INSPECTTIME')), {datetime:'long'}); tempINSPECTDATE = gDate; $('#grdSampleInspection').dxDataGrid('instance').refresh(); }")
+                                    .Width("100%")
+                                )
+                                .Label(T => T.Text(LabelText.INSPECTDATE))
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.INSPECTTIME)
+                                .Editor(e => e
+                                    .DateBox()
+                                    .Type(DateBoxType.Time)
+                                    .Value(new JS("new Date(new Date().getFullYear(), new Date().getMonth()+1, new Date().getDate(), new Date().getHours(),0,0)"))
+                                    .Width("100%")
+                                    .OnValueChanged("function(e) { currentWORKTIME = Globalize.dateFormatter({time:'short'})(e.value); }")
+                                )
+                                .Label(T => T.Text("검사시간"))
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.PROCESSCODE).Visible(false);
+                        items.AddSimpleFor(m=>m.PARTNUMBER)
+                                    .Editor(e => e.DropDownBox()
+                                        .DataSource(d => d.WebApi().Controller("QUAH051WebApi")
+                                            .Key("PARTNUMBER")
+                                            .LoadAction("PARTNUMBER_LIST")
+                                            .OnBeforeSend("Partnumber_OnBeforeSend")
+                                        )
+                                        .DropDownOptions(c => c.Width(500))
+                                        .ContentTemplate(new TemplateName("EmbeddedDataPartGridSingle"))
+                                        .DisplayExpr("PRODUCTNAME")
+                                        .ValueExpr("PARTNUMBER")
+                                        .Placeholder("Select a value...")
+                                        .OnValueChanged("itemPart_valueChanged")
+                                    )
+                                .ValidationRules(r => r
+                                    .AddRequired()
+                                    .Message("Partnumber is required")
+                                )
+                                    .Name("PRODUCTNAME")
+                                    .Label(T => T.Text(LabelText.PRODUCTNAME))
+                                    .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.INSPECTOR)
+                                .Editor(e => e.TagBox()
+                                    .Placeholder(LabelText.ANSWERPLEASESELECTHR)
+                                    .DataSource(d => d.WebApi().Controller("QUAH051WebApi")
+                                        .Key("EMPCODE")
+                                        .LoadAction("WORKHR_LIST")
+                                    )
+                                    .DisplayExpr("EMPNAME")
+                                    .ValueExpr("EMPNAME")
+                                    .HideSelectedItems(true)
+                                )
+                                .Name("INSPECTOR")
+                                .Label(T => T.Text(LabelText.INSPECTOR))
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.INSPECTCODE)
+                             .Editor(e => e.SelectBox()
+                                        .DataSource(d => d.WebApi().Controller("QUAH051WebApi")
+                                            .Key("INSPECTCODE")
+                                            .LoadAction("getInspItemMaster"))
+                                        .DisplayExpr("INSPECTNAME")
+                                        .ValueExpr("INSPECTCODE")
+                                        .OnValueChanged("inspectCode_valueChanged")
+                                    ).ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.DISPLAYSEQUENCE)
+                                .Visible(false)
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.INSPECTUNIT)
+                                    .Editor(e => e.SelectBox()
+                                        .DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                            .Key("SYSCODE")
+                                            .LoadAction("UNITCODE_LIST")
+                                            .OnBeforeSend("Partnumber_OnBeforeSend"))
+                                        .DisplayExpr("SYSCODENAME")
+                                        .ValueExpr("SYSCODE")
+                                    ).ColSpan(1).Visible(false);
+
+                        items.AddSimpleFor(m=>m.SPECCLASS)
+                                .Visible(false)
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.DATATYPE)
+                                .Visible(false)
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.INSPECTTYPE)
+                                .Visible(false)
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.SPEC)
+                                .Visible(true)
+                                .Editor(e=>e.TextBox().ReadOnly(true))
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.CSL)
+                                .Visible(false)
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.USL)
+                                .Visible(false)
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.LSL)
+                                .Visible(false)
+                                .ColSpan(1);
+
+                        items.AddSimpleFor(m=>m.MEMO)
+                                .Template(@<text><img style="width:100%;height:100%;" id="partImage" /></text>)                                    
+                                    .Label(T => T.Text("사진"))
+                                    .ColSpan(2);
+
+
+                            })
+                    )
+
+                    @(Html.DevExtreme().Form()
+                            .ColCount(2)
+                            .ScrollingEnabled(false)
+                            .Items(items =>
+                            {             
+                                
+                                items.AddButton().ColSpan(1)
+                                    .HorizontalAlignment(HorizontalAlignment.Left)
+                                    .ButtonOptions(b => b.Text("측정 시작")
+                                        .Icon("add")
+                                        .ID("btnAdd")
+                                        .Width("100%")
+                                        .StylingMode(ButtonStylingMode.Contained)
+                                        .Type(ButtonType.Normal)
+                                        .OnClick("btnAdd_OnClick")
+                                );
+                                
+                                items.AddButton().ColSpan(1)
+                                    .HorizontalAlignment(HorizontalAlignment.Left)
+                                    .ButtonOptions(b => b.Text("측정 종료")
+                                        .Icon("check")
+                                        .ID("btnSave")
+                                        .Width("100%")
+                                        .StylingMode(ButtonStylingMode.Contained)
+                                        .Type(ButtonType.Success)
+                                        .OnClick("btnSave_OnClick")
+                                    );
+
+                                                                
+                                items.AddButton().ColSpan(2)
+                                    .HorizontalAlignment(HorizontalAlignment.Left)
+                                    .ButtonOptions(b => b.Text("측정 취소")
+                                        .Icon("close")
+                                        .ID("btnCancel")
+                                        .Width("100%")
+                                        .StylingMode(ButtonStylingMode.Contained)
+                                        .Type(ButtonType.Default)
+                                        .OnClick("btnCancel_OnClick")
+                                        .Disabled(true)
+                                    );
+                            }
+                        ));
+                }
+            </div>
+        </div>
+        <div class="col-lg-3 col-sm-3">
+            @using (Html.BeginForm())
+                {
+                    @(Html.DevExtreme().Form()
+                            .ID("formSpec1")
+                            .ColCount(1)
+                            .ScrollingEnabled(false)
+                            .Items(items =>
+                            {
+                                                            
+                             
+                                items.AddSimple()
+                                    .Template(@<text><img style="width:100%;height:350px;" id="inspectImage" /></text>)                                    
+                                    .Label(T => T.Text("검사 이미지"))
+                                    .ColSpan(1);  
+
+                                items.AddSimple().ColSpan(1)
+                                        .Name("INBOUNDINSPECTION")
+                                        .Template(@<text>
+                                            @(Html.DevExtreme()
+                                                .DataGrid<QUAB051A_LIST>()
+                                                .ID("grdINBOUNDINSPECTION")
+                                                    .DataSource(d => d.WebApi().Controller("QUAH051WebApi").Key("DISPLAYSEQUENCE").LoadAction("getInspectItem").OnBeforeSend("grdINBOUNDINSPECTION_OnBeforeSend"))
+                                                    .Sorting(s=>s.Mode(GridSortingMode.None))
+                                                .Columns(columns =>
+                                                {
+                                                    columns.AddFor(m => m.DISPLAYSEQUENCE).AllowEditing(false).SortOrder(SortOrder.Asc).Width(100).Caption("차수");
+                                                    columns.AddFor(m => m.USL).Visible(false);
+                                                    columns.AddFor(m => m.LSL).Visible(false);
+                                                    columns.AddFor(m => m.DATATYPE).Visible(false);
+                                                    columns.AddFor(m => m.SPECCLASS).Visible(false);
+                                                    columns.AddFor(m => m.UCL).Visible(false);
+                                                    columns.AddFor(m => m.LCL).Visible(false);
+                                                    columns.AddFor(m => m.CSL).Visible(false);
+                                                    columns.AddFor(m => m.INSPECTIONRESULT).ShowEditorAlways(true)
+                                                            .Alignment(HorizontalAlignment.Right)
+                                                            .Caption("측정 결과")
+                                                            .DataType(GridColumnDataType.Number)
+                                                            .Format(f=>f.Type(Format.Decimal).Precision(2))
+                                                            ;
+                                                })
+                                                .Summary(s=>s.TotalItems(t=> { 
+                                                                                t.Add().SummaryType(SummaryType.Avg).Column("INSPECTIONRESULT").Name("INSPECTIONRESULT");
+                                                                                t.Add().Name("INSPECTIONRESULT").SummaryType(SummaryType.Avg).Column("INSPECTIONRESULT")
+                                                                                    .CustomizeText("grdINBOUNDINSPECTION_totalItem_CustomizeText");
+                                                                            }).RecalculateWhileEditing(true))
+                                                .OnCellClick("grdINBOUNDINSPECTION_OnCellClick")
+                                                .OnToolbarPreparing("grdINBOUNDINSPECTION_OnToolbarPreparing")
+                                                .OnCellPrepared("grdINBOUNDINSPECTION_OnCellPrepared")
+                                                //.RemoteOperations(true)
+                                                .Paging(p => p.PageSize(25).Enabled(true))
+                                                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                .AllowColumnResizing(true)
+                                                .RowAlternationEnabled(true)
+                                                .NoDataText("")
+                                                    .ShowRowLines(true)
+                                                .Editing(e =>
+                                                {
+                                                    e.Mode(GridEditMode.Batch)
+                                                        .AllowUpdating(new JS("iudAuth()"));
+
+                                                    e.UseIcons(true);
+                                                })
+                                                .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true)).ElementAttr("class", "dx-dxdatagrid-no-highlight-outline")
+                                            )
+                                        </text>).Label(d => d.Text(LabelText.INSPECTLIST));
+                              
+                            })
+                    )
+                }
+        </div>
+    
+     <div class="col-lg-6 col-sm-6">
+            @using (Html.BeginForm())
+                {
+                    @(Html.DevExtreme().Form()
+                            .ID("formSpec")
+                            .Width("100%")
+                            .ScrollingEnabled(false)
+                            .Items(items =>
+                            {                                
+                                items.AddSimple()
+                                        .Name("SampleInspection")
+                                        .Template(@<text>
+                                             @(Html.DevExtreme().DataGrid<QUAH051B_LIST>()
+                                                .ID("grdSampleInspection")
+                                                    .DataSource(d => d.WebApi()
+                                                                .Controller("QUAH051WebApi")
+                                                                .Key("INSPECTCODE", "INSPECTDATE")
+                                                                .LoadAction("getSampleInspectionList")
+                                                                .OnBeforeSend("grdSampleInspection_onBeforeSend")
+                                                                .OnLoaded("function(e) { tempPARTNUMBER = '';tempPROCESSCODE = ''; tempINSPECTDATE = '';}")
+                                                            )
+                                                            
+                                                .Sorting(s=>s.Mode(GridSortingMode.None))
+                                                .Columns(columns =>
+                                                {
+                                                    columns.AddFor(m => m.INSPECTCODE).AllowEditing(false).Width(150)
+                                                        .Lookup(l => l.DataSource(d => d.WebApi()
+                                                            .Controller("MSTL002WebApi")
+                                                            .LoadAction("getInspectItem")
+                                                            .Key("INSPECTCODE")
+                                                        )
+                                                        .ValueExpr("INSPECTCODE")
+                                                        .DisplayExpr("INSPECTNAME")
+                                                        .AllowClearing(true)
+                                                    );
+                                                    columns.AddFor(m => m.SPEC).AllowEditing(false).Width(100);
+                                                    columns.AddFor(m => m.INSPECTUNIT).Width(80)
+                                                        .Lookup(lookup => lookup
+                                                            .DataSource(d => d.WebApi()
+                                                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                                                .LoadAction("INSPECTUNIT_LIST"))
+                                                            .DisplayExpr("SYSCODENAME")
+                                                            .ValueExpr("SYSCODE")
+                                                        );                                                    
+                                                    columns.AddFor(m => m.WORKDATE).AllowEditing(false).Visible(true).Caption("검사 시간").Width(100).Format(f=>f.Type(Format.ShortTime)).SortOrder(SortOrder.Desc);
+                                                    columns.AddFor(m => m.DATATYPE).Visible(false);
+                                                    columns.AddFor(m => m.SPECCLASS).Visible(false);
+                                                    columns.AddFor(m => m.USL).Visible(false);
+                                                    columns.AddFor(m => m.LSL).Visible(false);
+                                                    columns.AddFor(m => m.CSL).Visible(false);
+                                                    columns.AddFor(m => m.UCL).Visible(false);
+                                                    columns.AddFor(m => m.LCL).Visible(false);
+                                                    columns.AddFor(m => m.RESULT).AllowEditing(true).Width(60).Caption("결과");
+                                                    columns.AddFor(m => m.INSPECTVALUE1).Visible(true).Width(80).Caption("1");
+                                                    columns.AddFor(m => m.INSPECTVALUE2).Visible(true).Width(80).Caption("2");
+                                                    columns.AddFor(m => m.INSPECTVALUE3).Visible(true).Width(80).Caption("3");
+                                                    columns.AddFor(m => m.INSPECTVALUE4).Visible(true).Width(80).Caption("4");
+                                                    columns.AddFor(m => m.INSPECTVALUE5).Visible(true).Width(80).Caption("5");
+                                                    columns.AddFor(m => m.INSPECTVALUE6).Visible(true).Width(80).Caption("6");
+                                                    columns.AddFor(m => m.INSPECTVALUE7).Visible(true).Width(80).Caption("7");
+                                                    columns.AddFor(m => m.INSPECTVALUE8).Visible(true).Width(80).Caption("8");
+                                                    columns.AddFor(m => m.INSPECTVALUE9).Visible(true).Width(80).Caption("9");
+                                                    columns.AddFor(m => m.INSPECTVALUE10).Visible(true).Width(80).Caption("10");
+                                                    columns.AddFor(m => m.INSPECTVALUE11).Visible(true).Width(80).Caption("11");
+                                                    columns.AddFor(m => m.INSPECTVALUE12).Visible(true).Width(80).Caption("12");
+                                                    columns.AddFor(m => m.INSPECTVALUE13).Visible(true).Width(80).Caption("13");
+                                                    columns.AddFor(m => m.INSPECTVALUE14).Visible(true).Width(80).Caption("14");
+                                                    columns.AddFor(m => m.INSPECTVALUE15).Visible(true).Width(80).Caption("15");
+                                                    columns.AddFor(m => m.INSPECTVALUE16).Visible(true).Width(80).Caption("16");
+                                                    columns.AddFor(m => m.INSPECTVALUE17).Visible(true).Width(80).Caption("17");
+                                                    columns.AddFor(m => m.INSPECTVALUE18).Visible(true).Width(80).Caption("18");
+                                                    columns.AddFor(m => m.INSPECTVALUE19).Visible(true).Width(80).Caption("19");
+                                                    columns.AddFor(m => m.INSPECTVALUE20).Visible(true).Width(80).Caption("20");
+                                                    columns.AddFor(m => m.INSPECTVALUE21).Visible(true).Width(80).Caption("21");
+                                                    columns.AddFor(m => m.INSPECTVALUE22).Visible(true).Width(80).Caption("22");
+                                                    columns.AddFor(m => m.INSPECTVALUE23).Visible(true).Width(80).Caption("23");
+                                                    columns.AddFor(m => m.INSPECTVALUE24).Visible(true).Width(80).Caption("24");
+                                                    columns.AddFor(m => m.INSPECTVALUE25).Visible(true).Width(80).Caption("25");
+                                                    columns.AddFor(m => m.INSPECTVALUE26).Visible(true).Width(80).Caption("26");
+                                                    columns.AddFor(m => m.INSPECTVALUE27).Visible(true).Width(80).Caption("27");
+                                                    columns.AddFor(m => m.INSPECTVALUE28).Visible(true).Width(80).Caption("28");
+                                                    columns.AddFor(m => m.INSPECTVALUE29).Visible(true).Width(80).Caption("29");
+                                                    columns.AddFor(m => m.INSPECTVALUE30).Visible(true).Width(80).Caption("30");
+                                                })                                                                                                    
+                                                .SearchPanel(c => c.Visible(false))
+                                                .RemoteOperations(true)
+                                                .ShowRowLines(true)
+                                                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                .AllowColumnResizing(true)
+                                                .RowAlternationEnabled(true)
+                                                .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                                                .OnInitialized("grdSampleInspection_OnInitialized")
+                                                .OnToolbarPreparing("grdSampleInspection_OnToolbarPreparing")    
+                                                .OnCellPrepared("grdSampleInspection_OnCellPrepared")
+                                            )
+                                        </text>).Label(d => d.Text("검사 결과 목록"));
+                            })
+                    )
+                }
+        </div>
+    </div>
+</div>
+
+@*품번 선택*@
+@using (Html.DevExtreme().NamedTemplate("EmbeddedDataPartGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                                                  .ID("grdPartList")
+                                                  .DataSource(new JS(@"component.option(""dataSource"")"))
+                                                  .Columns(columns =>
+                                                  {
+                                                      columns.AddFor(m => m.PRODUCTNAME);                                                      
+                                                  })
+                                                  .HoverStateEnabled(true)
+                                                    .Paging(p => p.PageSize(10))
+                                                    .FilterRow(f => f.Visible(true))
+                                                    .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                                                    .Height(400)
+                                                    .Selection(s => s.Mode(SelectionMode.Single))
+                                                  .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                                                  .OnSelectionChanged(@<text>
+                                                    function(selectedItems) {
+                                                        var haskey;
+                                                        var keys = selectedItems.selectedRowKeys;
+                                                        console.log(selectedItems);
+
+                                                        if(typeof keys !== undefined && keys.length > 0)
+                                                        {
+                                                            haskey = true;
+                                                        }
+
+                                                        if (haskey != undefined)
+                                                            component.option("value", haskey ? keys[0] : null);
+
+                                                        if(typeof keys !== 'undefined' && keys.length > 0) {
+                                                                component.close();
+                                                        }
+                                                    }
+                                                </text>)
+    )
+}
+
+@Html.Partial("_DropdownPartial")
+
+@(Html.DevExtreme().LoadPanel()
+                      .ID("loadPanel")
+                      .ShadingColor("rgba(0,0,0,0.4)")
+                      .Message(LabelText.WAITMESSAGE)
+                      .Visible(false)
+                      .ShowIndicator(true)
+                      .ShowPane(true)
+                      .Shading(true)
+                      .CloseOnOutsideClick(false)
+)
+
+<script>
+
+    var sampleCount;
+
+    function itemPart_valueChanged(e) {
+
+        if (e.value != null) {
+            var partnum = e.value;
+            $('#formInfo').dxForm('instance').updateData('INSPECTCODE', null);
+            $('#formInfo').dxForm('instance').updateData('INSPECTCODE', "INSP010");
+
+            var gDate = Globalize.parseDate(Globalize.dateFormatter({date:"long"})($('#formInfo').dxForm('instance').option("formData.INSPECTDATE")) + " " + Globalize.dateFormatter({time:"long"})($('#formInfo').dxForm('instance').option("formData.INSPECTTIME")), {datetime:"long"});
+
+            tempPARTNUMBER = partnum;
+            tempPROCESSCODE = globalProcessCode;
+            tempINSPECTDATE = gDate;
+
+            $("#grdSampleInspection").dxDataGrid("instance").cancelEditData();
+            $("#grdSampleInspection").dxDataGrid("instance").refresh();
+
+            var param = $.param({ partnumber: partnum, processcode: globalProcessCode, inspecttype: "C"});
+
+            $.ajax({
+                url: '@Url.Action("getInspectSpecImg", "MSTL052WebApi", new { httproute = "DefaultApi", })' + "?" + param,
+                type: 'GET',
+                success: function (data) {
+                    if (data != null) {
+                        var FileGUID = data.INSPECTIMAGEID;
+                        GetPhoto(FileGUID);
+                    }
+                },
+                error: function (e) {
+                    showError(this, e);
+                }
+            });
+                
+            var param = $.param({ partnumber: partnum });
+
+            $.ajax({
+                url: '@Url.Action("getPart", "QUAH051WebApi", new { httproute = "DefaultApi", })' + "?" + param,
+                type: 'GET',
+                success: function (data) {
+                    var imageSrc = '';
+
+                    if (data.ATTACHMENTFOLDERID != null) {
+                        imageSrc = rootURL +"Content/Files/Attachments/" + data.ATTACHMENTFOLDERID + "/" +
+                            data.REVISIONID + "/" + data.REVISIONNO + "/" + data.FILENAME;
+            
+                        $("#partImage").attr("src", imageSrc);                   
+                    }                  
+                },
+                error: function (e) {
+                    showError(this, e);
+                }
+            });                
+
+        }
+    }
+    
+    function GetPhoto(guid) {
+        var CheckMAKER = $.param({
+
+            FolderID: guid,
+            rootURL: rootURL
+
+        });
+
+        $.ajax({
+            url: '@Url.Action("getPhoto", "QUAG021WebApi", new { httproute = "DefaultApi" })',
+            async: false,
+            data: CheckMAKER,
+            type: 'GET',
+            success: function (data) {
+                if (data.length > 0) {
+                    $("#inspectImage").attr("src", data[0]);                    
+                }
+                else
+                {
+                    $("#inspectImage").attr("src", "");                    
+                }
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+
+    function inspectCode_valueChanged(e) {
+
+        if(e.value != null) {            
+            var partnumber = $('#formInfo').dxForm('instance').option('formData.PARTNUMBER');
+            var processCode = globalProcessCode;
+            var inspectDate = Globalize.dateFormatter({date:'medium'})($('#formInfo').dxForm('instance').option('formData.INSPECTDATE'));
+            var inspectTime = Globalize.dateFormatter({time:'short'})($('#formInfo').dxForm('instance').option('formData.INSPECTTIME'));        
+
+            var param = $.param({ partnumber: partnumber, processcode: processCode, inspectDate: inspectDate, inspectTime: inspectTime });
+
+            $.ajax({
+                url: '@Url.Action("getSampleInspection", "QUAH051WebApi", new { httproute = "DefaultApi", })' + "?" + param,
+                type: 'GET',
+                success: function (data) {
+                    if (data.length == 0) {
+                        $('#formInfo').dxForm('instance').option('formData.DISPLAYSEQUENCE', null);
+                 
+                        $('#formInfo').dxForm('instance').option('formData.INSPECTUNIT', null);
+                        $('#formInfo').dxForm('instance').option('formData.SPECCLASS', null);
+                        $('#formInfo').dxForm('instance').option('formData.DATATYPE', null);
+                        $('#formInfo').dxForm('instance').option('formData.INSPECTTYPE', null);
+                        $('#formInfo').dxForm('instance').option('formData.SPEC', null);
+
+                        $('#formInfo').dxForm('instance').option('formData.CSL', null);
+                        $('#formInfo').dxForm('instance').option('formData.USL', null);
+                        $('#formInfo').dxForm('instance').option('formData.LSL', null);
+                        $('#formInfo').dxForm('instance').option('formData.UCL', null);
+                        $('#formInfo').dxForm('instance').option('formData.LCL', null);
+                    } else {
+                        $('#formInfo').dxForm('instance').option('formData.DISPLAYSEQUENCE', data[0].DISPLAYSEQUENCE);
+                 
+                        $('#formInfo').dxForm('instance').option('formData.INSPECTUNIT', data[0].INSPECTUNIT);
+                        $('#formInfo').dxForm('instance').option('formData.SPECCLASS', data[0].SPECCLASS);
+                        $('#formInfo').dxForm('instance').option('formData.DATATYPE',  data[0].DATATYPE);
+                        $('#formInfo').dxForm('instance').option('formData.INSPECTTYPE', data[0].INSPECTTYPE);
+                        $('#formInfo').dxForm('instance').option('formData.SPEC', data[0].SPEC);
+
+                        $('#formInfo').dxForm('instance').option('formData.CSL', data[0].CSL);
+                        $('#formInfo').dxForm('instance').option('formData.USL', data[0].USL);
+                        $('#formInfo').dxForm('instance').option('formData.LSL', data[0].LSL);
+                        $('#formInfo').dxForm('instance').option('formData.UCL', data[0].UCL);
+                        $('#formInfo').dxForm('instance').option('formData.LCL', data[0].LCL);
+                    }                
+                },
+                error: function (e) {
+                    showError(this, e);
+                }
+            });
+        } else {
+            $('#formInfo').dxForm('instance').option('formData.DISPLAYSEQUENCE', null);
+                 
+            $('#formInfo').dxForm('instance').option('formData.INSPECTUNIT', null);
+            $('#formInfo').dxForm('instance').option('formData.SPECCLASS', null);
+            $('#formInfo').dxForm('instance').option('formData.DATATYPE', null);
+            $('#formInfo').dxForm('instance').option('formData.INSPECTTYPE', null);
+            $('#formInfo').dxForm('instance').option('formData.SPEC', null);
+
+            $('#formInfo').dxForm('instance').option('formData.CSL', null);
+            $('#formInfo').dxForm('instance').option('formData.USL', null);
+            $('#formInfo').dxForm('instance').option('formData.LSL', null);
+            $('#formInfo').dxForm('instance').option('formData.UCL', null);
+            $('#formInfo').dxForm('instance').option('formData.LCL', null);
+        }
+    }
+
+    
+    function Partnumber_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            ajaxOptions.data.processCode = globalProcessCode;
+        }
+    }
+
+    var contains = function(needle) {
+        var findNaN = needle !== needle;
+        var indexOf;
+
+        if(!findNaN && typeof Array.prototype.indexOf === 'function') {
+            indexOf = Array.prototype.indexOf;
+        } else {
+            indexOf = function(needle) {
+                var i = -1, index = -1;
+
+                for(i = 0; i < this.length; i++) {
+                    var item = this[i];
+
+                    if((findNaN && item !== item) || item === needle) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                return index;
+            };
+        }
+
+        return indexOf.call(this, needle) > -1;
+    };
+
+    function btnRemove_OnClick(e) {
+        setRefresh();
+    }
+
+    function setRefresh() {
+        var form = $('#formInfo').dxForm('instance');
+        form.beginUpdate();
+
+        form.updateData("INSPECTDATE", new Date());
+        form.updateData("CARTYPE", null);
+        form.updateData("PRODUCTNAME", null);
+        form.updateData("PARTNUMBER", null);
+        form.updateData("INSPECTOR", null);
+
+        if ($('#grdPartList').dxDataGrid('instance') != undefined) {
+            $('#grdPartList').dxDataGrid('instance').clearSelection();
+        }
+
+        var validate = form.validate();
+
+        if (validate.brokenRules.length > 0) {
+            validate.brokenRules.forEach(function (e) {
+                e.validator.reset();
+            });
+        }
+
+        form.endUpdate();
+    }
+    
+    function btnAdd_OnClick(e) {
+        
+        var INSPECTDATE = $('#formInfo').dxForm('instance').option('formData.INSPECTDATE'); 
+        var INSPECTTIME = $('#formInfo').dxForm('instance').option('formData.INSPECTTIME'); 
+        var PARTNUMBER = $('#formInfo').dxForm('instance').option('formData.PARTNUMBER'); 
+        var INSPECTCODE = $('#formInfo').dxForm('instance').option('formData.INSPECTCODE'); 
+        var INSPECTOR = $('#formInfo').dxForm('instance').option('formData.INSPECTOR'); 
+
+        var USL = $('#formInfo').dxForm('instance').option('formData.USL'); 
+        var LSL = $('#formInfo').dxForm('instance').option('formData.LSL'); 
+        var SPECCLASS = $('#formInfo').dxForm('instance').option('formData.SPECCLASS'); 
+        var SPEC = $('#formInfo').dxForm('instance').option('formData.SPEC'); 
+
+        if (INSPECTDATE == null) {
+            DevExpress.ui.dialog.alert('품명을 선택해주세요.', "warning");
+            return;
+        }
+
+        if (INSPECTTIME == null) {
+            DevExpress.ui.dialog.alert('검사 항목을 선택해주세요.', "warning");
+            return;
+        }
+
+        if (PARTNUMBER == null) {
+            DevExpress.ui.dialog.alert('품명을 선택해주세요.', "warning");
+            return;
+        }
+
+        if (INSPECTCODE == null) {
+            DevExpress.ui.dialog.alert('검사 항목을 선택해주세요.', "warning");
+            return;
+        }
+
+        if (INSPECTOR == null) {
+            DevExpress.ui.dialog.alert('검사자를 선택해주세요..', "warning");
+            return;
+        }
+
+        if (SPEC == null) {
+            DevExpress.ui.dialog.alert('등록 된 규격이 없습니다.', "warning");
+            return;
+        }
+
+        var result = false;
+
+        if (SPECCLASS == "B") {
+            if (LSL != null && e.value != null)
+                result = true;
+        } else if (SPECCLASS == "L") {
+            if (USL == null && LSL != null)
+                result = true;
+        } else if (SPECCLASS == "U") {
+            if (USL != null && LSL == null)
+                result = true;
+        }
+
+        if (result) {
+            DevExpress.ui.dialog.alert('선택된 검사 항목에 규격에 문제가 있습니다. 규격을 확인해주세요..', "warning");
+            return;
+        }                
+
+        $("#grdINBOUNDINSPECTION").dxDataGrid("instance").refresh();
+        $("#formInfo").dxForm("instance").option("disabled", true);
+        $("#btnAdd").dxButton("instance").option("disabled", true);
+        $("#btnCancel").dxButton("instance").option("disabled", false);
+    }
+
+    
+    var tempPARTNUMBER;
+    var tempPROCESSCODE;
+    var tempINSPECTDATE;
+
+    function btnSave_OnClick(e) {
+
+        var proc = globalProcessCode;
+
+        if (proc == undefined || proc == null) {
+            DevExpress.ui.dialog.alert('@LabelText.QUASTIONPLEASECHOOSEPROCESS', "warning");
+            return;
+        }
+
+        var savefield = "SAMPLE" ;
+        var grid = $('#grdINBOUNDINSPECTION').dxDataGrid('instance');
+        var cnt = grid.totalCount();
+
+        if (cnt <= 0) {
+            DevExpress.ui.dialog.alert('조회된 검사 항목이 없습니다.', "warning");
+            return;
+        }
+
+        var resultchk = false;
+
+        for (var Index = 0; Index < cnt; Index++) {
+            var result = grid.cellValue(Index, 'INSPECTIONRESULT');
+            if (result == null) {
+                resultchk = true;
+                break;
+            }
+        }
+
+        if (resultchk) {
+            DevExpress.ui.dialog.alert("빈 측정값이 있습니다.", "warning");
+            return;
+        }
+
+        var result = DevExpress.ui.dialog.confirm('@LabelText.QUESTIONINSERT', "Confirm changes");
+        result.done(function(dialogResult) {
+            if (!dialogResult) {
+                return;
+            } else {
+
+                var gDate = Globalize.parseDate(Globalize.dateFormatter({date:"long"})($('#formInfo').dxForm('instance').option("formData.INSPECTDATE")) + " " + Globalize.dateFormatter({time:"long"})($('#formInfo').dxForm('instance').option("formData.INSPECTTIME")), {datetime:"long"});
+
+                var aJsonArray = new Array();
+                var aJson = new Object();
+
+                var USL = $('#formInfo').dxForm('instance').option('formData.USL'); 
+                var LSL = $('#formInfo').dxForm('instance').option('formData.LSL'); 
+                var SPECCLASS = $('#formInfo').dxForm('instance').option('formData.SPECCLASS'); 
+                var result = 'NG';
+
+                var totalSummary = grid.getTotalSummaryValue("INSPECTIONRESULT")
+
+                if (SPECCLASS == "B") {
+                    if (LSL <= totalSummary && totalSummary <= USL)
+                        result = "OK";
+                } else if (SPECCLASS == "L") {
+                    if (LSL <= totalSummary)
+                        result = "OK";
+                } else if (SPECCLASS == "U") {
+                    if (totalSummary <= USL)
+                        result = "OK";
+                }
+
+                for (var Index = 0; Index < cnt; Index++) {
+                    aJson = new Object();
+                    aJson.PLANTCODE = 'P001'
+                    aJson.INSPECTCODE = $('#formInfo').dxForm('instance').option("formData.INSPECTCODE");
+                    aJson.USL = grid.cellValue(Index, "USL");
+                    aJson.LSL = grid.cellValue(Index, "LSL");
+                    aJson.MEMO = grid.cellValue(Index, "DATATYPE");
+                    aJson.SPECCLASS = grid.cellValue(Index, "SPECCLASS");
+                    aJson.UCL = grid.cellValue(Index, "UCL");
+                    aJson.LCL = grid.cellValue(Index, "LCL");
+                    aJson.CSL = grid.cellValue(Index, "CSL");
+                    aJson.INSPECTVALUE = grid.cellValue(Index, "INSPECTIONRESULT");
+                    aJson.INSPECTDATE = gDate;
+                    aJson.INSPECTVALUE_TEXT = "";
+                    aJson.INSPECTRESULT = result//grid.cellValue(Index, "RESULT" + col.toString());
+                    aJson.INSPECTORDER = grid.cellValue(Index, "DISPLAYSEQUENCE");
+                    aJson.INSPECTOR = $('#formInfo').dxForm('instance').option("formData.INSPECTOR").toString();
+                    aJson.CREATEDATE = gDate;
+                    aJsonArray.push(aJson);
+                }
+
+                var data = new Object();
+                data.data = JSON.stringify(aJsonArray);
+                data.PLANTCODE = "";
+                data.PROCESSCODE = proc;
+                data.EQUIPMENTCODE = "-";
+                data.LOTNUMBER = "";
+                data.INSPECTOR =  $('#formInfo').dxForm('instance').option("formData.INSPECTOR").toString();
+                data.PARTNUMBER = $('#formInfo').dxForm('instance').option("formData.PARTNUMBER");
+
+                tempPARTNUMBER = data.PARTNUMBER;
+                tempPROCESSCODE = proc;
+                tempINSPECTDATE = gDate;
+
+                $("#loadPanel").dxLoadPanel("instance").show();
+
+                $.ajax({
+                    url: '@Url.Action("postSample", "QUAH051WebApi", new {httproute = "DefaultApi"})',
+                    type: 'POST',
+                    data: data,
+                    success: function() {
+                        $("#grdSampleInspection").dxDataGrid("instance").refresh();
+
+                        var form = $('#formInfo').dxForm('instance');
+                        form.updateData('INSPECTCODE', null);
+                        form.updateData('PARTNUMBER', null);
+                        var part = form.getEditor('PARTNUMBER');
+                        part.option("value", null);
+                        form.updateData('INSPECTOR', null);
+                        form.updateData('SPEC', null);
+        
+                        $("#partImage").attr("src", "");
+                        $("#inspectImage").attr("src", "");
+
+                        $("#formInfo").dxForm("instance").option("disabled", false);
+                        $("#btnAdd").dxButton("instance").option("disabled", false);
+                        $("#btnCancel").dxButton("instance").option("disabled", true);
+                        $("#grdPartList").dxDataGrid("instance").clearSelection();
+                        $("#grdINBOUNDINSPECTION").dxDataGrid("instance").cancelEditData();
+                        $("#grdINBOUNDINSPECTION").dxDataGrid("instance").refresh();
+            
+                        $("#loadPanel").dxLoadPanel("instance").hide();
+                        DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);                        
+                    },
+                    error: function (ex) {
+                        $("#loadPanel").dxLoadPanel("instance").hide();
+                    }
+                });
+            }
+        });
+    } 
+
+    function btnCancel_OnClick(e) {
+
+         var result = DevExpress.ui.dialog.confirm("측정 취소 하시겠습니까? 입력한 값이 사라집니다.", "Confirm changes");
+                result.done(function(dialogResult) {
+                    if (!dialogResult) {
+                        return;
+                    } else {               
+                        var form = $('#formInfo').dxForm('instance');
+                        form.updateData('INSPECTCODE', null);
+                        form.updateData('PARTNUMBER', null);
+                        var part = form.getEditor('PARTNUMBER');
+                        part.option("value", null);
+                        form.updateData('INSPECTOR', null);
+                        form.updateData('SPEC', null);
+        
+                        $("#partImage").attr("src", "");
+                        $("#inspectImage").attr("src", "");
+
+                        $("#formInfo").dxForm("instance").option("disabled", false);
+                        $("#btnAdd").dxButton("instance").option("disabled", false);
+                        $("#btnCancel").dxButton("instance").option("disabled", true);
+                        $("#grdPartList").dxDataGrid("instance").clearSelection();
+                        $("#grdINBOUNDINSPECTION").dxDataGrid("instance").cancelEditData();
+                        $("#grdINBOUNDINSPECTION").dxDataGrid("instance").refresh();                        
+                    }
+                });
+    }
+
+    function grdSampleInspection_OnToolbarPreparing(e) {
+        var toolbarItems = e.toolbarOptions.items;
+        $.each(toolbarItems,
+            function(_, item) {
+                if (item.name === "saveButton" || item.name == "revetButton" || item.name == "addRowButton") {
+                    // Change the item options here
+                    item.visible = false;
+                }
+            });
+    }
+    
+    function grdINBOUNDINSPECTION_OnToolbarPreparing(e) {
+        var toolbarItems = e.toolbarOptions.items;
+        $.each(toolbarItems,
+            function(_, item) {
+                if (item.name === "saveButton") {
+                    // Change the item options here
+                    item.visible = false;
+                }
+            });
+    }
+
+    function grdSampleInspection_OnInitialized(e) {
+
+    }
+    
+    function initDateColumnHeader() {
+
+    }
+
+    function setResult() {
+        var grd = $("#grdSampleInspection").dxDataGrid("instance");
+        var cnt = grd.totalCount();
+
+        var totResult = true;
+
+        for (var Index = 0; Index < cnt; Index++) {
+            totResult = true;
+            for (var col = 1; col <= sampleCount; col++) {
+                var result = grd.cellValue(Index, 'RESULT' + col.toString());
+                if (result != 'OK') {
+                    totResult = false;
+                    break;
+                }
+            }
+            if (totResult) {
+                grd.cellValue(Index, 'RESULT', 'OK');
+            } else {
+                grd.cellValue(Index, 'RESULT', 'NG');
+            }
+        }
+
+    }
+
+    $(function () {
+        $("#formInfo").dxForm("instance").updateData("PROCESSCODE", globalProcessCode);
+
+        $.ajax({
+            url: '@Url.Action("getSampleCount", "QUAH051WebApi", new { httproute = "DefaultApi", })',
+            type: 'GET',
+            async: false,
+            success: function (data) {
+                var cnt = data.data[0].CNT;
+                var maxcnt = data.data[0].MAXCNT;
+                if (isNaN(cnt) == false)
+                    sampleCount = Number(cnt) > Number(maxcnt) ? Number(maxcnt) : Number(cnt);
+                else
+                    sampleCount = Number(maxcnt);
+
+                var grid = $('#grdSampleInspection').dxDataGrid('instance');
+
+                for (var i = 30; i >= sampleCount; i--) {
+                    var field = "INSPECTVALUE" + (i + 1);
+                    grid.deleteColumn(field);
+                }
+
+                $('#formInfo').dxForm('instance').updateData('TOTALSAMPLECOUNT', sampleCount);
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+        
+        checkGlobalProcess();
+    });
+
+    ///// 프레스공정만 사용 하드코딩
+    function formInfo_OnContentReady(e) {
+        
+    }
+
+    function grdSampleInspection_onBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            if (tempPARTNUMBER == null) {
+                ajaxOptions.data.PARTNUMBER = "";
+                ajaxOptions.data.PROCESSCODE = "";
+                ajaxOptions.data.INSPECTDATE = "";
+            } else {                
+                ajaxOptions.data.PARTNUMBER = tempPARTNUMBER;
+                ajaxOptions.data.PROCESSCODE = tempPROCESSCODE;
+                if (tempINSPECTDATE != "") {
+                    ajaxOptions.data.INSPECTDATE = tempINSPECTDATE.toJSON();
+                } else {
+                    ajaxOptions.data.INSPECTDATE = "";
+                }                    
+            }
+        }
+    }
+
+    
+    function grdINBOUNDINSPECTION_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+
+            var PARTNUMBER = $('#formInfo').dxForm('instance').option("formData.PARTNUMBER");
+            var INSPECTDATE = Globalize.parseDate(Globalize.dateFormatter({date:"long"})($('#formInfo').dxForm('instance').option("formData.INSPECTDATE")) + " " + Globalize.dateFormatter({time:"long"})($('#formInfo').dxForm('instance').option("formData.INSPECTTIME")), {datetime:"long"});
+
+            if (PARTNUMBER == null) {
+                ajaxOptions.data.PARTNUMBER = "";
+                ajaxOptions.data.PROCESSCODE = "";
+                ajaxOptions.data.INSPECTDATE = "";
+            } else {
+                ajaxOptions.data.PARTNUMBER = PARTNUMBER;
+                ajaxOptions.data.PROCESSCODE = globalProcessCode;
+                ajaxOptions.data.INSPECTDATE = INSPECTDATE.toJSON();
+            }
+        }
+    }
+
+    function grdINBOUNDINSPECTION_INSPECTIONRESULT_CalculateCellValue(e) { 
+        if(e.INSPECTIONRESULT) {
+            var result = false;
+
+            if (e.SPECCLASS == "B") {
+                if (e.LSL <= e.INSPECTIONRESULT && e.INSPECTIONRESULT <= e.USL)
+                    result = true;
+            } else if (e.SPECCLASS == "L") {
+                if (e.LSL <= e.INSPECTIONRESULT)
+                    result = true;
+            } else if (e.SPECCLASS == "U") {
+                if (e.INSPECTIONRESULT <= e.USL)
+                    result = true;
+            }
+
+            if (result) {
+                e.INSPECTIONJUDGMENT = '양품';
+            } else {
+                e.INSPECTIONJUDGMENT = '불량';
+            }
+                
+        }
+        
+        return e.INSPECTIONRESULT; 
+    }
+
+    function grdINBOUNDINSPECTION_OnCellClick(e) {
+        $(e.cellElement).find("input").select();
+    }
+
+    function grdINBOUNDINSPECTION_OnCellPrepared(e) {
+        if (e.rowType === "data" && e.column.dataField === "INSPECTIONJUDGMENT") {
+            e.cellElement.css("color", e.data.INSPECTIONJUDGMENT == "양품" ? "" : "red");
+        }
+
+        if (e.rowType == 'totalFooter') {  
+           var summaryItem = e.cellElement.find('.dx-datagrid-summary-item');  
+           if (summaryItem.length > 0) {  
+               $.each(summaryItem, function(_, item) {  
+
+                   if (($(item).text()).includes("OK") || ($(item).text()).includes("NG")) {
+                       if (($(item).text()).includes("NG")) {
+                            $(item).html("<span style='color:red;'>" + $(item).text() + "</span>")                             
+                        }
+                        else {
+                            $(item).html("<span'>" + $(item).text() + "</span>")  
+                        }                       
+                   } else {
+                       $(item).html("<span'>" + $(item).text() + "</span>")                         
+                   }                  
+               });  
+           }  
+       }  
+    }
+
+    function grdSampleInspection_OnCellPrepared(e) {
+        if (e.rowType === "data" && e.column.dataField === "RESULT") {
+            e.cellElement.css("color", e.data.RESULT == "OK" ? "" : "red");
+        }
+    }
+    
+    function grdINBOUNDINSPECTION_totalItem_CustomizeText(e) {
+        var USL = $('#formInfo').dxForm('instance').option('formData.USL'); 
+        var LSL = $('#formInfo').dxForm('instance').option('formData.LSL'); 
+        var SPECCLASS = $('#formInfo').dxForm('instance').option('formData.SPECCLASS'); 
+        var result = false;;
+
+        if (SPECCLASS == "B") {
+            if (LSL <= e.value && e.value <= USL)
+                result = true;
+        } else if (SPECCLASS == "L") {
+            if (LSL <= e.value)
+                result = true;
+        } else if (SPECCLASS == "U") {
+            if (e.value <= USL)
+                result = true;
+        }
+
+        if (result)
+            return '판정 : ' + 'OK';
+        else
+            return '판정 : ' + 'NG';
+    }
+
+</script>
+
+<style>
+    .dx-gallery-item-image {
+        height: 100%;
+    }
+</style>

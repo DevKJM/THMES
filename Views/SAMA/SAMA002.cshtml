@@ -1,0 +1,177 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTA
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-primary" role="alert">
+              마스터 디테일 상세 (템플릿)
+            </div>
+            
+                @(Html.DevExtreme().DataGrid<WorkcenterMaster>()
+                  .ID("grdWorkCenterMaster")
+                  .DataSource(d => d.WebApi().Controller("MSTA003WebApi").Key("WORKCENTERID"))
+                  .Columns(columns =>
+                  {
+                        columns.AddFor(m => m.WORKCENTERCODE);
+                        columns.AddFor(m => m.WORKCENTERNAME);
+                  })
+                  .AllowColumnResizing(true)
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p=>p.PageSize(25).Enabled(true))
+                  .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+                  .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+                  .ShowRowLines(true)
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                        e.Mode(GridEditMode.Batch)
+                        .AllowUpdating(true)
+                        .AllowAdding(true)
+                        .AllowDeleting(true)
+                    )
+                  .RowAlternationEnabled(true)
+                  .Export(e=>e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                            .MasterDetail(m => m
+                                  .Enabled(true)
+                                  .Template(new TemplateName("gridError-details"))
+                              )
+                )
+        </div>
+    </div>
+</div>
+
+
+@using (Html.DevExtreme().NamedTemplate("gridError-details"))
+{
+    @(Html.DevExtreme().TabPanel()
+          .FocusStateEnabled(false)
+          .ElementAttr("class", "tabPanel-orders")
+          .Items(items =>
+          {
+                items.Add()
+                  .Title("상세 데이터 + 그리드")
+                  .Template(new TemplateName("gridError-details-tabDetail+ListTemplate"))
+                  .Option("tabExtras", new JS("data"))
+                  ;
+
+              items.Add()
+                  .Title("상세 데이터")
+                  .Template(new TemplateName("gridError-details-tabDetailTemplate"))
+                  .Option("tabExtras", new JS("data"))
+                  ;
+
+              items.Add()
+                  .Title("그리드")
+                  .Template(new TemplateName("gridError-details-tabDetaiListTemplate"))
+                  .Option("tabExtras", new JS("data"));
+          })
+        )
+}
+
+@using (Html.DevExtreme().NamedTemplate("gridError-details-tabDetail+ListTemplate"))
+{
+    var formItemTemplate = "<%= editorOptions.value %>";
+
+    @(Html.DevExtreme().Form<WorkcenterMaster>()
+          .ElementAttr("class", "detail-form form-container")
+          .FormData(new JS("tabExtras"))
+          .ColCount(2)
+          .ShowColonAfterLabel(false)
+          .Items(items =>
+          {
+              items.AddSimpleFor(w => w.PROCESSCODE).Template(formItemTemplate);
+              items.AddSimpleFor(w => w.PLANTCODE).Template(formItemTemplate);
+              items.AddSimpleFor(w => w.MEMO).Template(formItemTemplate);
+              items.AddSimpleFor(w => w.USEYN).Template(formItemTemplate);
+            })
+        )
+
+        @(Html.DevExtreme().DataGrid<PlantMaster>()
+          .ID(new JS("'gridContainer-PlantDBGrid-' + tabExtras.PLANTCODE"))
+          .ElementAttr("class", "detail-grid")
+          .ShowBorders(true)
+          .ColumnAutoWidth(true)
+          .DataSource(d => d.WebApi()
+              .Controller("COMA001WebApi")
+              .LoadAction("PLANT_LIST")
+              .LoadParams(new
+              {
+                    PlantCode = new JS("function() { return tabExtras.PLANTCODE; }"),
+                    Culture = new JS("function() { return locale; }")
+              })
+          )
+          .Paging(p => p.PageSize(5))
+          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+          .Columns(columns =>
+          {
+              columns.AddFor(m => m.PLANTID);
+              columns.AddFor(m => m.PLANTCODE);
+              columns.AddFor(m => m.PLANTNAME);
+          })
+        )
+}
+
+@using (Html.DevExtreme().NamedTemplate("gridError-details-tabDetailTemplate"))
+{
+    var formItemTemplate = "<%= editorOptions.value %>";
+
+    @(Html.DevExtreme().Form<WorkcenterMaster>()
+          .ElementAttr("class", "detail-form form-container")
+          .FormData(new JS("tabExtras"))
+          .ColCount(2)
+          .Items(items =>
+          {
+              items.AddSimpleFor(w => w.PROCESSCODE).Template(formItemTemplate);
+              items.AddSimpleFor(w => w.PLANTCODE).Template(formItemTemplate);
+              items.AddSimpleFor(w => w.MEMO).Template(formItemTemplate);
+              items.AddSimpleFor(w => w.USEYN).Template(formItemTemplate);
+            })
+        )
+}
+
+
+@using (Html.DevExtreme().NamedTemplate("gridError-details-tabDetaiListTemplate"))
+{
+    @(Html.DevExtreme().DataGrid<PlantMaster>()
+          .ID(new JS("'gridContainer-PlantDBGrid-' + tabExtras.PLANTCODE"))
+          .ElementAttr("class", "detail-grid")
+          .ShowBorders(true)
+          .ColumnAutoWidth(true)
+          .DataSource(d => d.WebApi()
+              .Controller("COMA001WebApi")
+              .LoadAction("PLANT_LIST")
+              .LoadParams(new
+              {
+                    PlantCode = new JS("function() { return tabExtras.PLANTCODE; }"),
+                    Culture = new JS("function() { return locale; }")
+              })
+          )
+          .Paging(p => p.PageSize(5))
+          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+          .Columns(columns =>
+          {
+              columns.AddFor(m => m.PLANTID);
+              columns.AddFor(m => m.PLANTCODE);
+              columns.AddFor(m => m.PLANTNAME);
+          })
+        )
+}

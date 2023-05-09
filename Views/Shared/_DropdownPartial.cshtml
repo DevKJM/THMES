@@ -1,0 +1,55 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPLANT"))
+{
+    @(Html.DevExtreme().DropDownBox()
+        .ID("ddbPlant")
+        .Value(new JS("data.PLANTCODE"))
+        .ValueExpr("PLANTCODE")
+        .DisplayExpr("PLANTNAME")
+        .DataSource(d => d.WebApi().Controller("MSTA001WebApi").Key("PLANTCODE"))
+        .AcceptCustomValue(true)
+        .OnValueChanged(@<text>
+            function(e){
+                setValue(e.value[0]);
+            }
+            </text>)
+        .OnOpened(@<text>
+        function (e) {
+                e.component.content().parent().width(350);
+
+                var trans = e.component.content().parent().css('transform');
+                var matrix = trans.replace(/[^0-9\-.,]/g, '').split(',');
+                var vLeft = 350 - (window.innerWidth - matrix[4]);
+                if (vLeft > 0) {
+                    e.component.content().parent().css('left', -(vLeft + 5));
+                }
+            }
+        </text>)
+        .ContentTemplate(new TemplateName("EmbeddedPLANTSingle"))
+    )
+}
+
+@using(Html.DevExtreme().NamedTemplate("EmbeddedPLANTSingle")) {
+    @(Html.DevExtreme().DataGrid<PlantMaster>()
+        .ID("grdPlantSingle")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns => {
+            columns.AddFor(m=>m.PLANTCODE);
+            columns.AddFor(m=>m.PLANTNAME);
+        })
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"component.option(""value"")"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var keys = selectedItems.selectedRowKeys;
+                component.option("value", keys);
+            }
+        </text>)
+    )
+}

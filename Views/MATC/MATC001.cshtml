@@ -1,0 +1,197 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MAT.MATC;
+
+@{
+    ViewBag.Title = "Main";
+
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @*<div id="tabs" class="animated">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs ">
+                    <li>
+                        <a class="nav-link active" data-toggle="tab" href="#tab-side-1">
+                            <i class="fa fa-bookmark"> 자재실사</i>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link" data-toggle="tab" href="#tab-side-2" hidden="true">
+                            <i class="fa fa-wrench"> 제품실사</i>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div id="tab-side-1" class="tab-pane active">*@
+            @(Html.DevExtreme().DataGrid<MATC001_LIST>()
+                  .ID("grdSurveyHis")
+                  .DataSource(d => d.WebApi()
+                      .Controller("MATC001WebApi")
+                      .LoadAction("get_survey_mat")
+                      .Key("SERIALNUMBER")
+                      .OnBeforeSend("grdSurveyHis_OnBeforeSend")
+                      .UpdateAction("put_mat")
+                  )
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.PLANTCODE).Visible(false);
+                      columns.AddFor(m => m.WAREHOUSECODE).Visible(false);
+                      columns.AddFor(m => m.SURVEYSEQUENCE).Visible(false);
+                      columns.AddFor(m => m.PARTNUMBER);
+                      columns.AddFor(m => m.MATERIALNAME);
+                      columns.AddFor(m => m.MATERIALTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("MATERIALTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.PRODUCTTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("PRODUCTTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.LOTNUMBER);
+                      columns.AddFor(m => m.SERIALNUMBER).Visible(false);
+                      columns.AddFor(m => m.SAFETYINVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(3));
+                      columns.AddFor(m => m.INVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(3));
+                      columns.AddFor(m => m.UNITCODE)
+                          .Lookup(lookup => lookup
+                              .DataSource(d => d.WebApi()
+                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                  .LoadAction("UNITCODE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.SURVEYQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(3))
+                          //.CssClass("ColumnsAutomatic")
+                          .SetCellValue("setUserValue");
+                      columns.AddFor(m => m.SURVEYDATE).Format(f => f.Type(Format.ShortDate)).AllowFiltering(false);
+                      columns.AddFor(m => m.SURVEYWORKER)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("EMPCODE")
+                              .LoadAction("HR_LIST"))
+                              .DisplayExpr("EMPNAME")
+                              .ValueExpr("EMPCODE")
+                          );
+                  })
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                  //.StateStoring(s => s.Enabled(true).StorageKey("MATC001_grdSurveyHis").Type(StateStoringType.LocalStorage))
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                  {
+                      e.Mode(GridEditMode.Batch)
+                          .AllowUpdating(new JS("iudAuth()"));
+                      e.StartEditAction(GridStartEditAction.Click);
+                  })
+                  .RowAlternationEnabled(true)
+                  .Export(e=>e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  .OnInitialized("grdSurveyHis_OnInitialized")
+                  //.OnKeyDown("grdSurveyHis_OnKeyDown")
+                  //.OnEditorPrepared("grdSurveyHis_OnEditorPrepared")
+                  .Option("KEY_FIELD", new object[]
+                  {
+                      "PLANTCODE", "WAREHOUSECODE", "SURVEYSEQUENCE", "PARTNUMBER", "MATERIALNAME",
+                      "MATERIALTYPE", "PRODUCTTYPE", "LOTNUMBER", "SERIALNUMBER", "UNITCODE", "SAFETYINVENTQUANTITY",
+                      "INVENTQUANTITY", "SURVEYDATE", "SURVEYWORKER"
+                  })
+                  .Option("USE_REQUIRED_HEADER", true)
+
+                  )
+        </div>
+        <!--설정-->
+        @*<div id="tab-side-2" class="tab-pane">
+                            tab2
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+    </div>
+</div>
+
+    <script>
+    function grdSurveyHis_OnKeyDown(e) {
+        if (e && e.jQueryEvent && e.jQueryEvent.key === "Enter") {
+            e.jQueryEvent.stopPropagation();
+            e.jQueryEvent.preventDefault();
+            e.component.instance().editCell(++this.count, 2);
+        }
+    }
+    function grdSurveyHis_OnEditorPrepared(args) {
+        //args.editorOptions.onKeyDown = function(e) {
+        //    var findHandler = mapKeysToHandlers[e.jQueryEvent.key];
+        //    if (findHandler) {
+        //        args.setValue(e.jQueryEvent.target.value);
+        //        grid.saveEditData().done(() => {
+        //            setTimeout(() => findHandler(args.row.rowIndex));
+        //        });
+        //        e.jQueryEvent.preventDefault();
+        //        e.jQueryEvent.stopPropagation();
+        //    }
+        //};
+    }
+    function grdSurveyHis_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function setUserValue(rowData, value) {
+        var nowDate = new Date();
+        rowData.SURVEYQUANTITY = value;
+        rowData.SURVEYDATE = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
+        rowData.SURVEYWORKER = '@User.Identity.Name';
+    }
+
+    function grdSurveyHis_OnBeforeSend(method, ajaxOptions) {
+        if (method == "update") {
+
+            var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+
+            var index = $('#grdSurveyHis').dxDataGrid('instance').getRowIndexByKey(ajaxOptions.data.key);
+            var surveyseq = $('#grdSurveyHis').dxDataGrid('instance').cellValue(index, 'SURVEYSEQUENCE');
+            //var surveyqty = $('#grdSurveyHis').dxDataGrid('instance').cellValue(index, 'SURVEYQUANTITY');
+
+            if (surveyseq != null) {
+                parseJson.SURVEYSEQUENCE = surveyseq;
+            } else {
+                parseJson.SURVEYSEQUENCE = 0;
+            }
+
+            ajaxOptions.data.values = JSON.stringify(parseJson);
+        }
+    }
+    </script>

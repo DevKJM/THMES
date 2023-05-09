@@ -1,0 +1,122 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAH;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Infrastructure.DBA;
+@using JSMES.WebUI.Alpha.Infrastructure.Enums;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            @(Html.DevExtreme().Chart()
+                .ID("chtWarehouseTemp")
+                .Palette(VizPalette.GreenMist)
+                .DataSource(d => d.WebApi().Controller("QUAH052WebApi").Key("YEARID"))
+                .Size(s=>s.Height(200))
+                .DataSourceOptions(o=>o.Sort(s=>s.AddSorting("YEAR")))
+                .Title("년간 불량율 목표(PPM)")                
+                .Tooltip(t => t
+                    .Enabled(true)
+                    .Format(f=>f.Type(Format.FixedPoint).Precision(2))
+                )
+                .ArgumentAxis(x=>x.ArgumentType(ChartDataType.String))
+                .ValueAxis(v=>v.Add().ValueType(ChartDataType.Numeric).ValueMarginsEnabled(true))
+                .CommonSeriesSettings(s => s
+                    .ArgumentField("YEAR")
+                    .ValueField("GOAL_DEFECTRATIO")             
+                    
+                    .Type(SeriesType.Bar).IgnoreEmptyPoints(true)
+                    .Label(l => l
+                        .Visible(true)
+                        .ShowForZeroValues(false)
+                        .Format(f => f
+                            .Type(Format.FixedPoint)
+                            .Precision(2)
+                        )
+                    )
+                )                
+                .Series(s=>s.Add().ArgumentField("YEAR").IgnoreEmptyPoints(true))
+                .Legend(l => l
+                    .VerticalAlignment(VerticalEdge.Top)
+                    .HorizontalAlignment(HorizontalAlignment.Left)
+                    .Visible(false)
+                    //.CustomizeText("function(seriesInfo){ return $('#chtWarehouseTemp').dxChart('instance').getSeriesByName(seriesInfo.seriesName)._data[0].data.WAREHOUSENAME; }")
+                ))
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12">
+             @(Html.DevExtreme().DataGrid<GoalDefectRatio>()
+                      .ID("grdGoalDefectRatio")
+                      .DataSource(d => d.WebApi().Controller("QUAH052WebApi").Key("YEARID"))
+                      .Columns(columns =>
+                      {
+                          columns.AddFor(m => m.YEAR).AllowEditing(false).SortOrder(SortOrder.Asc);
+                          columns.AddFor(m => m.GOAL_DEFECTRATIO);
+
+                          columns.AddFor(m => m.CREATEUSER);
+                          columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+
+                          columns.AddFor(m => m.RECENTUSER);
+                          columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                      })
+                      .RemoteOperations(true)
+                      .FilterPanel(f => f.Visible(true))
+                      .Paging(p => p.PageSize(25).Enabled(true))
+                      .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                      .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                      .SearchPanel(searchPanel => searchPanel
+                          .Visible(true)
+                          .Width(180)
+                          .Placeholder("Search...")
+                      )
+                      .FilterRow(filterRow => filterRow
+                          .Visible(true)
+                          .ApplyFilter(GridApplyFilterMode.Auto)
+                      )
+                      .ShowBorders(true)
+                      .AllowColumnResizing(true)
+                      .Editing(e =>
+                          e.Mode(GridEditMode.Batch)
+                              .AllowUpdating(new JS("iudAuth()"))
+                      )
+                    .ColumnAutoWidth(true)
+                    .ShowRowLines(true)
+                    .RowAlternationEnabled(true)
+                    .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                    .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, ''); }")                    
+                    .OnInitialized("grdGoalDefectRatio_OnInitialized")
+                    .Option("KEY_FIELD", new object[] { "YEAR" })
+            )
+        </div>
+    </div>
+</div>
+<script>
+
+    function grdGoalDefectRatio_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+
+</script>
+
+<style>
+    .dx-gallery-item-image {
+        height: 100%;
+    }
+</style>

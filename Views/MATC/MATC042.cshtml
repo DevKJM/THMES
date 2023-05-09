@@ -1,0 +1,229 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MAT.MATC;
+
+@{
+    ViewBag.Title = "Main";
+    //DateTime toDt = DateTime.Now;
+    ////DateTime fromDt = toDt.AddDays(-7); /* 내일 */
+
+    //var filterValue = new object[] {
+    //    new object[] { "SURVEYDATE", FilterBuilderFieldFilterOperations.Equal, toDt }
+    //};
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<MATC042_LIST>()
+                    .ID("grdAdjust_mat")
+                    .DataSource(d => d.WebApi()
+                        .Controller("MATC042WebApi")
+                        .LoadAction("get_adjust_mat")
+                        .Key("SERIALNUMBER")
+                        .OnBeforeSend("grdAdjust_mat_OnBeforeSend")
+                        .UpdateAction("put_adjust_mat")
+                    )
+                    .Columns(columns =>
+                    {
+                        columns.AddFor(m => m.PLANTCODE).Visible(false);
+                        columns.AddFor(m => m.WAREHOUSECODE).Visible(false);
+                        //columns.AddFor(m => m.MATERIALHISSEQ).Visible(false);
+                        columns.AddFor(m => m.CARTYPE);
+                        columns.AddFor(m => m.COLOR);
+                        columns.AddFor(m => m.PARTNUMBER);
+                        columns.AddFor(m => m.MATERIALNAME);
+                        columns.AddFor(m => m.SPEC1);
+                        columns.AddFor(m => m.SPEC2).Visible(false);
+                        columns.AddFor(m => m.SPEC3).Visible(false);
+                        columns.AddFor(m => m.MATERIALTYPE)
+                            .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("MATERIALTYPE_LIST"))
+                                .DisplayExpr("SYSCODENAME")
+                                .ValueExpr("SYSCODE")
+                            );
+                        columns.AddFor(m => m.PRODUCTTYPE).Visible(false)
+                            .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("PRODUCTTYPE_LIST"))
+                                .DisplayExpr("SYSCODENAME")
+                                .ValueExpr("SYSCODE")
+                            );
+                        columns.AddFor(m => m.LOTNUMBER);
+                        columns.AddFor(m => m.SERIALNUMBER).Visible(false);
+                        columns.AddFor(m => m.SURVEYDATE).Width(120)
+                            .Format(f => f.Type(Format.ShortDate))
+                            .SelectedFilterOperation(FilterOperations.Equal)
+                            .FilterValue(new JS("new Date()"));
+                        columns.AddFor(m => m.SAFETYINVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(3));
+                        columns.AddFor(m => m.INVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(3));
+                        columns.AddFor(m => m.SURVEYQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(3));
+                        columns.AddFor(m => m.UNITCODE)
+                            .Lookup(lookup => lookup
+                                .DataSource(d => d.WebApi()
+                                    .Controller("COMA003WebApi").Key("SYSCODE")
+                                    .LoadAction("UNITCODE_LIST"))
+                                .DisplayExpr("SYSCODENAME")
+                                .ValueExpr("SYSCODE")
+                            );
+                        columns.AddFor(m => m.VALUE).Format(f => f.Type(Format.FixedPoint).Precision(3))
+                        .SetCellValue("setAdjustValue");
+                        columns.AddFor(m => m.REFLECTIONYN).AllowFiltering(false).AllowSorting(false)
+                        .SetCellValue("setAdjustValue");
+                        //columns.AddFor(m => m.CHECKYN)
+                        //    .Lookup(lookup => lookup.DataSource(new JS("USE_YN"))
+                        //        .DisplayExpr("NAME")
+                        //        .ValueExpr("CODE"));
+                        columns.AddFor(m => m.SURVEYSEQUENCE).Visible(false);
+                        columns.AddFor(m => m.CREATEUSER).Visible(false);
+                    })
+                    //.StateStoring(s => s.Enabled(true).StorageKey("MATC022_grdAdjust_mat").Type(StateStoringType.Custom)
+                    //    .CustomLoad("grdAdjust_mat_customLoad").CustomSave("grdAdjust_mat_customSave"))
+                    //.StateStoring(s => s.Enabled(true).StorageKey("MATC022_grdAdjust_mat").Type(StateStoringType.LocalStorage))
+                    .RemoteOperations(true)
+                    .FilterPanel(f => f.Visible(true))
+                    //.FilterValue(filterValue)
+                    .ColumnAutoWidth(true)
+                    .Paging(p => p.PageSize(25).Enabled(true))
+                    .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                    .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                    .SearchPanel(searchPanel => searchPanel
+                        .Visible(true)
+                        .Width(180)
+                        .Placeholder("Search...")
+                    )
+                    .FilterRow(filterRow => filterRow
+                        .Visible(true)
+                        .ApplyFilter(GridApplyFilterMode.Auto)
+                    )
+                    .FilterPanel(f => f.Visible(false))
+                    .ShowBorders(true)
+                    .AllowColumnResizing(true)
+                    .Editing(e =>
+                        e.Mode(GridEditMode.Batch)
+                            .AllowUpdating(new JS("iudAuth()"))
+                    )
+                    .RowAlternationEnabled(true)
+                    .Export(e=>e.Enabled(true))
+                    .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                    .ShowRowLines(true)
+                    .OnInitialized("grdAdjust_mat_OnInitialized")
+                    .OnCellClick("grdAdjust_mat_OnCellClick")
+                    .Option("KEY_FIELD", new object[]
+                    {
+                        "PLANTCODE", "WAREHOUSECODE", "CARTYPE", "COLOR", "PARTNUMBER", "MATERIALNAME", "MATERIALTYPE", "SPEC1", "SPEC2", "SPEC3",
+                        "PRODUCTTYPE", "LOTNUMBER", "SERIALNUMBER", "UNITCODE", "SAFETYINVENTQUANTITY",
+                        "INVENTQUANTITY", "SURVEYDATE", "SURVEYQUANTITY", "CREATEUSER"
+                    })
+                    .Option("IGNORE_AUTOWIDTH", new object[]
+                    {
+                        "PLANTCODE", "WAREHOUSECODE", "CARTYPE", "COLOR", "PARTNUMBER", "MATERIALNAME", "MATERIALTYPE", "SPEC1", "SPEC2", "SPEC3",
+                        "PRODUCTTYPE", "LOTNUMBER", "SERIALNUMBER", "UNITCODE", "SAFETYINVENTQUANTITY",
+                        "INVENTQUANTITY", "SURVEYDATE", "SURVEYQUANTITY", "CREATEUSER"
+                    })
+                    //.Option("IGNORE_AUTOWIDTH", new object[] { "PARTNUMBER" })
+                    .Option("USE_REQUIRED_HEADER", false)
+                    )
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function grdAdjust_mat_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdAdjust_mat_OnCellClick(e) {
+        if (e.rowType == "header" && e.column.dataField == "REFLECTIONYN") {
+            var grid = $('#grdAdjust_mat').dxDataGrid('instance');
+            var cnt = grid.totalCount();
+
+            if (cnt > grid.pageSize()) {
+                cnt = grid.pageSize();
+            }
+
+            var truecnt = 0;
+            var falsecnt = 0;
+            var chk = true;
+
+            for (var i = 0; i < cnt; i++) {
+                if (grid.cellValue(i, "REFLECTIONYN"))
+                    truecnt++;
+                else
+                    falsecnt++;
+            }
+
+            if (truecnt >= falsecnt)
+                chk = false;
+            else
+                chk = true;
+
+            for (var i = 0; i < cnt; i++) {
+                grid.cellValue(i, "REFLECTIONYN", chk);
+            }
+        }
+    }
+
+    function setAdjustValue(rowData, value, currentData) {
+        if (value == true) {
+            rowData.VALUE = currentData.SURVEYQUANTITY;
+            rowData.REFLECTIONYN = value;
+        } else if (value != false) {
+            rowData.VALUE = value;
+            rowData.REFLECTIONYN = true;
+        } else {
+            rowData.REFLECTIONYN = value;
+        }
+
+    
+        //rowData.SURVEYDATE = new Date();
+    }
+
+    function grdAdjust_mat_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+
+        } else if (method == "update") {
+
+            var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+
+            var index = $('#grdAdjust_mat').dxDataGrid('instance').getRowIndexByKey(ajaxOptions.data.key);
+            var reflectionYN = $('#grdAdjust_mat').dxDataGrid('instance').cellValue(index, 'REFLECTIONYN');
+            var value = $('#grdAdjust_mat').dxDataGrid('instance').cellValue(index, 'VALUE');
+            var surveyDate = $('#grdAdjust_mat').dxDataGrid('instance').cellValue(index, 'SURVEYDATE');
+            var unitcode = $('#grdAdjust_mat').dxDataGrid('instance').cellValue(index, 'UNITCODE');
+            parseJson.INVENTQUANTITY = Math.round(value);
+
+            if (unitcode == "U01")
+                parseJson.INVENTQUANTITY = value * 1000;
+
+            parseJson.SURVEYDATE = surveyDate;
+
+            if (reflectionYN == true) {
+                parseJson.REFLECTIONYN = "Y";
+            } else {
+                parseJson.REFLECTIONYN = "N";
+            }
+
+            ajaxOptions.data.values = JSON.stringify(parseJson);
+        }
+    }
+
+    function grdAdjust_mat_customLoad() {
+        var state = localStorage.getItem(this.storageKey);
+        if (state) {
+            state = JSON.parse(state);
+            for (var i = 0; i < state.columns.length; i++) {
+                if (state.columns[i].dataField == "SURVEYDATE") {
+                    state.columns[i].filterValue = new Date();
+                }
+            }
+        }
+        return state;
+    }
+
+    function grdAdjust_mat_customSave(state) {
+        localStorage.setItem(this.storageKey, JSON.stringify(state));
+    }  
+</script>

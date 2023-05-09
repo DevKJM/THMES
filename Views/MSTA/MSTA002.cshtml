@@ -1,0 +1,405 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.MST.MSTA;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-6 col-md-6 mt-lg-0 mt-md-0">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.USERGROUPLIST</i></span></h4>
+            @(Html.DevExtreme().DataGrid<EmpGroupMaster>()
+                    .ID("grdEmpGroupMaster")
+                    .DataSource(d => d.WebApi().Controller("MSTA002WebApi").Key("EMPGRPID")
+                        .LoadAction("EmpGroupList")
+                        .InsertAction("post_EmpGroupList")
+                        .UpdateAction("put_EmpGroupList")
+                        .DeleteAction("delete_EmpGroupList"))
+                    .Columns(columns =>
+                    {
+                        columns.AddFor(m => m.EMPGRPCODE);
+                        columns.AddFor(m => m.EMPGRPNAME);
+                        columns.AddFor(m => m.USEYN);
+                        columns.AddFor(m => m.CREATEUSER);
+                        columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                        columns.AddFor(m => m.RECENTUSER);
+                        columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                    })
+                    .Selection(s => s.Mode(SelectionMode.Single))
+                    .OnCellClick("grdEmpGroupMaster_OnCellClick")
+                    .OnInitialized("grdEmpGroupMaster_OnInitialized")
+                    .RemoteOperations(true)
+                    .FilterPanel(f => f.Visible(true))
+                    .ColumnAutoWidth(true)
+                    .Paging(p => p.PageSize(25).Enabled(true))
+                    .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                    .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                    .SearchPanel(searchPanel => searchPanel
+                        .Visible(true)
+                        .Width(180)
+                        .Placeholder("Search...")
+                    )
+                    .FilterRow(filterRow => filterRow
+                        .Visible(true)
+                        .ApplyFilter(GridApplyFilterMode.Auto)
+                    )
+                    .ShowBorders(true)
+                    .AllowColumnResizing(true)
+                    .Editing(e =>
+                        e.Mode(GridEditMode.Batch)
+                        .AllowAdding(new JS("iudAuth()"))
+                        .AllowUpdating(new JS("iudAuth()"))
+                    )
+                    .ShowRowLines(true)
+                    .RowAlternationEnabled(true)
+                    .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                    .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + LabelText.USERGROUPLIST + "') ;}")
+                    .Option("KEY_FIELD", new object[] { "EMPGRPCODE" })
+                    .Option("INIT_FIELD", new object[] { "USEYN" })
+                    .OnRowUpdating("grdData_onRowEditing")
+                    .OnRowInserting("grdData_onRowEditing")
+                    .OnRowRemoving("grdData_onRowEditing")
+                    .OnContentReady("grdData_onContentReady")
+        )
+        </div>
+        <div class="col-xl-6 col-md-6 mt-lg-0 mt-md-0 mt-sm-2">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.MENULIST</i></span></h4>
+            @(Html.DevExtreme().TreeList<MSTA002_LIST>()
+                    .ID("treeEmpGroupAuthority")
+                    .DataSource(d => d.WebApi().Controller("MSTA002WebApi").Key("MENUID")
+                    .OnBeforeSend("treeEmpGroupAuthority_OnBeforeSend"))
+                    .OnCellClick("treeEmpAuthority_OnCellClick")
+                    .OnToolbarPreparing("treeEmpGroupAuthority_OnToolbarPreparing")
+                    .ParentIdExpr("PARENTMENUID")
+                    .DataStructure(TreeListDataStructure.Plain)
+                    .KeyExpr("MENUID")
+                    .RootValue("-")
+                    .AllowColumnReordering(true)
+                    .ColumnAutoWidth(true)
+                    .Scrolling(s => s.Mode(TreeListScrollingMode.Standard))
+                    .Selection(s => s.Mode(SelectionMode.None))
+                    .OnCellPrepared("treeEmpGroupAuthority_OnCellPrepared")
+                    .Columns(columns =>
+                    {
+                        columns.AddFor(m => m.MENUCODE).Visible(false);
+                        columns.AddFor(m => m.MENUNAME).AllowEditing(false);
+                        columns.AddFor(m => m.DISPLAYSEQ).Visible(false).SortOrder(SortOrder.Asc).SortIndex(0);
+                        columns.AddFor(m => m.VIEWYN).ShowEditorAlways(false) .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi")
+                                .Key("SYSCODE")
+                                .LoadAction("AUTHORITYTYPE_LIST")
+                            )
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        ).AllowSorting(false); //.HeaderCellTemplate(new JS("treeEmpAuthority_VIEWYN_HeaderCellTemplate"))
+                        columns.AddFor(m => m.EDITYN).Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi")
+                                .Key("SYSCODE")
+                                .LoadAction("AUTHORITYTYPE_LIST")
+                            )
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        ).AllowSorting(false); //.HeaderCellTemplate(new JS("treeEmpAuthority_EDITYN_HeaderCellTemplate"))
+                        columns.AddFor(m => m.HMIYN).Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi")
+                                .Key("SYSCODE")
+                                .LoadAction("AUTHORITYTYPE_LIST")
+                            )
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        ).AllowSorting(false); //.HeaderCellTemplate(new JS("treeEmpAuthority_HMIYN_HeaderCellTemplate"))
+                    })
+                    .Editing(e =>
+                        e.Mode(GridEditMode.Batch)
+                        .AllowUpdating(new JS("iudAuth()"))
+                    )
+                    .RepaintChangesOnly(true)
+                    .ShowRowLines(true)
+                    .ShowBorders(true)
+                    .ShowColumnLines(false)
+                    .ShowRowLines(true)
+                    .ShowColumnHeaders(true)
+            )
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var customSelection = false;
+    
+    var treeLevel = [];
+
+    treeLevel[2] = 'rgba(142,194,194,0.7)';
+    treeLevel[3] = 'rgba(142,194,194,0.3)';
+    treeLevel[4] = 'rgba(142,194,194,0.1)';
+    treeLevel[5] = 'rgba(142,194,194,0.0)';
+
+    function treeEmpGroupAuthority_OnCellPrepared(e) {
+        if (e.rowType === "data" && (e.column.dataField === "VIEWYN" ||
+                                e.column.dataField === "EDITYN" ||
+                                e.column.dataField === "HMIYN")) {
+
+            e.cellElement.css("color", e.data[e.column.dataField] == 1 ? "var(--success)" : "var(--warning)");
+            e.cellElement.css("font-weight", e.data[e.column.dataField] == 1 ? "bold" : "normal");
+        }
+
+        if (e.rowType === "data" && (e.column.dataField === "MENUNAME")) {
+
+            e.cellElement.css("background-color", treeLevel[e.row.level +2]);
+        }                
+    }
+
+    function grdEmpGroupMaster_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdEmpGroupMaster_OnCellClick(e) {
+        this.selectedValue = e.key;
+        e.component.selectRows([e.key], false);
+
+        if (e.rowType == "data") {
+            var treelist = $('#treeEmpGroupAuthority').dxTreeList('instance');
+            var modify_tree = treelist.element().find(".dx-cell-modified");
+            
+            window.setTimeout(function() {
+                var keys = getNodeKeys(treelist.getRootNode());
+                treelist.beginUpdate();
+                keys.forEach(function(key) {  
+                    treelist.expandRow(key);
+                }); 
+                treelist.endUpdate();
+            }, 500);
+
+            treelist.refresh();
+
+            if (modify_tree.length > 0) {
+                treelist.cancelEditData();
+            }
+        }
+    }
+    
+    var getNodeKeys = function(node) {
+        var keys = [];
+        keys.push(node.key);
+        node.children.forEach(function(item) {              
+            keys = keys.concat(getNodeKeys(item));
+        });            
+        return keys;
+    }
+
+    function treeEmpGroupAuthority_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var empGroupGrid = $('#grdEmpGroupMaster').dxDataGrid('instance');
+            var empGroupCodeRow = empGroupGrid.getSelectedRowsData();
+            if (empGroupCodeRow.length > 0) {
+                ajaxOptions.data.EMPGRPCODE = empGroupCodeRow[0].EMPGRPCODE;
+            } else {
+                ajaxOptions.data.EMPGRPCODE = "";
+            }
+        } else if (method == "update") {
+            //EMPAUTHORITYID
+            var empGroupGrid = $('#grdEmpGroupMaster').dxDataGrid('instance');
+            var empGroupCodeRow = empGroupGrid.getSelectedRowsData();
+            var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+
+            if (empGroupCodeRow.length > 0) {
+                parseJson.EMPGRPCODE = empGroupCodeRow[0].EMPGRPCODE;
+                ajaxOptions.data.values = JSON.stringify(parseJson);
+            } else {
+                parseJson.EMPGRPCODE = '';
+                ajaxOptions.data.values = JSON.stringify(parseJson);
+            }
+        }
+    }
+
+    function treeEmpAuthority_onRowUpdating(e) {
+        for (var property in e.oldData) {
+            if (!e.newData.hasOwnProperty(property)) {
+                e.newData[property] = e.oldData[property];
+            }
+        }
+        updating = true;
+    }
+
+    //toolbar checkbox all checked
+    function treeEmpGroupAuthority_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    hint: "@LabelText.ALLCHECKED",
+                    icon: "check",
+                    disabled: !iudAuth(),
+                    onClick: function (e) {
+                        var list = $('#treeEmpGroupAuthority').dxTreeList('instance');
+                        var ds = list.getDataSource();
+                        var data = list.getVisibleRows();
+                        list.beginCustomLoading();
+                        list.beginUpdate();
+                        for (var itemIndex = 0; itemIndex < ds._items.length; itemIndex++) {
+                            if (data[itemIndex].data.EDITYN == false) {
+                                list.cellValue(itemIndex, "VIEWYN", 1) //조회유무
+                                list.cellValue(itemIndex, "EDITYN", 1) //수정유무
+                                //list.cellValue(itemIndex, "HMIYN", 1) //현장조회유무
+                            }
+                        }
+                        list.endUpdate();
+                        list.endCustomLoading();
+                    }
+                }
+            });
+    }
+
+    //조회유무 전체선택
+    function treeEmpAuthority_VIEWYN_HeaderCellTemplate(container, options) {
+        $('<div>')
+            .appendTo(container)
+            .dxCheckBox({
+                onValueChanged: function (args) {
+                    var list = $('#treeEmpGroupAuthority').dxTreeList('instance');
+                    var ds = list.getDataSource();
+                    list.beginCustomLoading();
+                    list.beginUpdate();
+                    for (var itemIndex = 0; itemIndex < ds._items.length; itemIndex++) {
+                        if (args.value == false) {
+                            list.cellValue(itemIndex, "EDITYN", args.value == true ? 1: 0)
+                        }
+                        list.cellValue(itemIndex, "VIEWYN", args.value == true ? 1: 0)
+                    }
+                    list.endUpdate();
+                    list.endCustomLoading();
+                }
+            })
+            .on('dxclick', function (e) {
+                e.stopPropagation();
+            }).text("@LabelText.VIEWYN");
+    }
+
+    //수정유무 전체선택
+    function treeEmpAuthority_EDITYN_HeaderCellTemplate(container, options) {
+        $('<div>')
+            .appendTo(container)
+            .dxCheckBox({
+                onValueChanged: function (args) {
+                    var list = $('#treeEmpGroupAuthority').dxTreeList('instance');
+                    var ds = list.getDataSource();
+                    list.beginCustomLoading();
+                    list.beginUpdate();
+                    for (var itemIndex = 0; itemIndex < ds._items.length; itemIndex++) {
+                        if (args.value == true) {
+                            list.cellValue(itemIndex, "VIEWYN", args.value == true ? 1: 0)
+                        }
+                        list.cellValue(itemIndex, "EDITYN", args.value == true ? 1: 0)
+                    }
+                    list.endUpdate();
+                    list.endCustomLoading();
+                }
+            })
+            .on('dxclick', function (e) {
+                e.stopPropagation();
+            }).text("@LabelText.EDITYN");
+    }
+
+    //현장조회유무 전체선택
+    function treeEmpAuthority_HMIYN_HeaderCellTemplate(container, options) {
+        $('<div>')
+            .appendTo(container)
+            .dxCheckBox({
+                onValueChanged: function (args) {
+                    var list = $('#treeEmpGroupAuthority').dxTreeList('instance');
+                    var ds = list.getDataSource();
+                    list.beginCustomLoading();
+                    list.beginUpdate();
+                    for (var i = 0; i < ds._items.length; i++) {
+                        list.cellValue(i, "HMIYN", args.value == true ? 1: 0)
+                    }
+                    list.endUpdate();
+                    list.endCustomLoading();
+                }
+            })
+            .on('dxclick', function (e) {
+                e.stopPropagation();
+            }).text("@LabelText.HMIYN");
+    }
+
+    function treeEmpAuthority_OnCellClick(e) {
+        if (e.rowType == "data" && (e.column.dataField == "VIEWYN" || e.column.dataField == "EDITYN" || e.column.dataField == "HMIYN")) {
+            var treeList = e.component;
+
+            treeList.beginUpdate();
+            /* Check True인 경우 현재 선택된 Node에 상위 노드 모두 Check 해줘야함.*/
+            var currentNode = treeList.getNodeByKey(e.key);
+
+            if (currentNode.parent != undefined) {
+                currentNode = currentNode.parent;
+
+                while (true) {
+                    if (currentNode != undefined) {
+
+                        var isAllUnchecked = true;
+
+                        currentNode.children.forEach(function (o) {
+                            var index = treeList.getRowIndexByKey(o.key);
+
+                            if ((treeList.cellValue(index, e.column.dataField) == 1 && e.key != o.key) || (e.value == 0 && e.key == o.key)) {
+                                isAllUnchecked = false;
+                            }
+                        });
+
+                        var index = treeList.getRowIndexByKey(currentNode.key);
+                        var setVal;
+                        if (isAllUnchecked) {
+                            setVal = 0;
+                        } else {
+                            setVal = 1;
+                        }
+
+                        if (treeList.cellValue(index, e.column.dataField) != setVal) {
+                            treeList.cellValue(index, e.column.dataField, setVal);
+                        }
+                            
+                        currentNode = currentNode.parent;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            var currentNode = treeList.getNodeByKey(e.key);
+
+            if (currentNode.hasChildren == true && e.column.dataField != "MEMO") {
+                /* 하위가 있는 경우 모두 Check True 해줘야함.*/
+                treeList.forEachNode(currentNode, function(node) {
+                    var index = treeList.getRowIndexByKey(node.key);
+                    var setVal = e.value == 0 ? 1 : 0;
+
+                    if (treeList.cellValue(index, e.column.dataField) != setVal) {
+                        treeList.cellValue(index, e.column.dataField, setVal);
+                    }
+                });
+            }
+
+            /* 자기 자신 바꾸기*/
+            treeList.cellValue(e.rowIndex, e.column.dataField, e.value == 0 ? 1 : 0);
+            treeList.endUpdate();
+        }
+    }
+
+    var updating = false;
+
+    function grdData_onRowEditing(e) {
+    if(!updating)
+        updating = true;
+    }
+
+    function grdData_onContentReady(e) {
+        @*if(updating && !e.component.hasEditData()){  // updates finished successfully
+            updating = false;
+            DevExpress.ui.notify('@LabelText.JOBSUCCESS', "success", globalNotificationSuccessTime);
+        }*@
+    }
+</script>

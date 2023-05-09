@@ -1,0 +1,87 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTA
+
+@{
+    ViewBag.Title = "Main";
+    
+    
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-primary" role="alert">
+              공장 코드 멀티 컬럼 적용
+            </div>
+            
+            @(Html.DevExtreme().DataGrid<WorkcenterMaster>()
+              .ID("grdWorkCenterMaster")
+              .DataSource(d => d.WebApi().Controller("MSTA003WebApi").Key("WORKCENTERID"))
+              .Columns(columns =>
+              {
+              columns.AddFor(m => m.WORKCENTERID);
+              columns.AddFor(m => m.PLANTCODE)
+                        .SetCellValue("grdWorkCenterMaster_PLANTCODE_SetCellValue")
+                        .Lookup(l => l.DataSource(d => d.WebApi()
+                                                          .Controller("MSTA001WebApi")
+                                                          .Key("PLANTCODE"))
+                                                          .ValueExpr("PLANTCODE")
+                                                          .DisplayExpr("PLANTNAME").AllowClearing(true))
+                                                          .EditCellTemplate(new TemplateName("EmbeddedPLANT"))
+                                                          ;
+                  columns.AddFor(m => m.PROCESSCODE);
+                  columns.AddFor(m => m.WORKCENTERCODE);
+                  columns.AddFor(m => m.WORKCENTERNAME);
+                  columns.AddFor(m => m.MEMO);
+                  columns.AddFor(m => m.USEYN);
+                  columns.AddFor(m => m.CREATEDATE);
+                  columns.AddFor(m => m.CREATEUSER);
+                  columns.AddFor(m => m.RECENTDATE);
+                  columns.AddFor(m => m.RECENTUSER);
+              })
+              .AllowColumnResizing(true)
+              .RemoteOperations(true)
+              .FilterPanel(f => f.Visible(true))
+              .ColumnAutoWidth(true)
+              .Paging(p=>p.PageSize(25).Enabled(true))
+              .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+              .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+              .ShowRowLines(true)
+              .SearchPanel(searchPanel => searchPanel
+                  .Visible(true)
+                  .Width(180)
+                  .Placeholder("Search...")
+              )
+              .FilterRow(filterRow => filterRow
+                  .Visible(true)
+                  .ApplyFilter(GridApplyFilterMode.Auto)
+              )
+              .ShowBorders(true)
+              .AllowColumnResizing(true)
+              .Editing(e =>
+                    e.Mode(GridEditMode.Batch)
+                    .AllowUpdating(true)
+                    .AllowAdding(true)
+                    .AllowDeleting(true)
+                )
+              .RowAlternationEnabled(true)
+              .Export(e=>e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    /* 공장 코드 배열 -> 단일 변수로 변경 */
+    function grdWorkCenterMaster_PLANTCODE_SetCellValue(newData, value, currentRowData) {
+        newData.PLANTCODE = value[0];
+    }
+
+</script>
+
+
+@Html.Partial("_DropdownPartial")

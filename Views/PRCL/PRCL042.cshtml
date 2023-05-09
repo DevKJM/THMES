@@ -1,0 +1,201 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCL;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<PRCL042_LIST>()
+                .ID("grdAdjust_prod")
+                .DataSource(d => d.WebApi()
+                    .Controller("PRCL042WebApi")
+                    .Key("SERIALNUMBER")
+                    .OnBeforeSend("grdAdjust_prod_OnBeforeSend")
+                )
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.PLANTCODE).Visible(false);
+                    columns.AddFor(m => m.WAREHOUSECODE).Visible(false);
+                    columns.AddFor(m => m.CARTYPE);
+                    columns.AddFor(m => m.COLOR);
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.PRODUCTTYPE).Visible(false)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA003WebApi").Key("SYSCODE")
+                            .LoadAction("PRODUCTTYPE_LIST"))
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        );
+                    columns.AddFor(m => m.LOTNUMBER);
+                    columns.AddFor(m => m.SERIALNUMBER).Visible(false);
+                    columns.AddFor(m => m.SURVEYDATE).Width(120)
+                        .Format(f => f.Type(Format.ShortDate))
+                        .SelectedFilterOperation(FilterOperations.Equal)
+                        .FilterValue(new JS("new Date()"));
+                    columns.AddFor(m => m.SAFETYINVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.SURVEYQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.UNITCODE)
+                        .Lookup(lookup => lookup
+                            .DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("UNITCODE_LIST"))
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        );
+                    columns.AddFor(m => m.VALUE).Format(f => f.Type(Format.FixedPoint).Precision(3))
+                    .SetCellValue("setAdjustValue");
+                    columns.AddFor(m => m.REFLECTIONYN).AllowFiltering(false).AllowSorting(false)
+                    .SetCellValue("setAdjustValue");
+                    columns.AddFor(m => m.CREATEUSER).Visible(false);
+                })
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .FilterPanel(f => f.Visible(false))
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .Editing(e =>
+                    e.Mode(GridEditMode.Batch)
+                        .AllowUpdating(new JS("iudAuth()"))
+                )
+                .RowAlternationEnabled(true)
+                .Export(e => e.Enabled(true))
+                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                .ShowRowLines(true)
+                .OnInitialized("grdAdjust_prod_OnInitialized")
+                .OnCellClick("grdAdjust_prod_OnCellClick")
+                .Option("KEY_FIELD", new object[]
+                {
+                "PLANTCODE", "WAREHOUSECODE", "CARTYPE", "COLOR", "PARTNUMBER", "PRODUCTNAME",
+                "PRODUCTTYPE", "LOTNUMBER", "SERIALNUMBER", "UNITCODE", "SAFETYINVENTQUANTITY",
+                "QUANTITY", "SURVEYDATE", "SURVEYQUANTITY", "CREATEUSER"
+                })
+                .Option("IGNORE_AUTOWIDTH", new object[]
+                {
+                "PLANTCODE", "WAREHOUSECODE", "CARTYPE", "COLOR", "PARTNUMBER", "PRODUCTNAME",
+                "PRODUCTTYPE", "LOTNUMBER", "SERIALNUMBER", "UNITCODE", "SAFETYINVENTQUANTITY",
+                "QUANTITY", "SURVEYDATE", "SURVEYQUANTITY", "CREATEUSER"
+                })
+                .Option("USE_REQUIRED_HEADER", false)
+            )
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function grdAdjust_prod_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdAdjust_prod_OnCellClick(e) {
+        if (e.rowType == "header" && e.column.dataField == "REFLECTIONYN") {
+            var grid = $('#grdAdjust_prod').dxDataGrid('instance');
+            var cnt = grid.totalCount();
+
+            if (cnt > grid.pageSize()) {
+                cnt = grid.pageSize();
+            }
+
+            var truecnt = 0;
+            var falsecnt = 0;
+            var chk = true;
+
+            for (var i = 0; i < cnt; i++) {
+                if (grid.cellValue(i, "REFLECTIONYN"))
+                    truecnt++;
+                else
+                    falsecnt++;
+            }
+
+            if (truecnt >= falsecnt)
+                chk = false;
+            else
+                chk = true;
+
+            for (var i = 0; i < cnt; i++) {
+                grid.cellValue(i, "REFLECTIONYN", chk);
+            }
+        }
+    }
+
+    function setAdjustValue(rowData, value, currentData) {
+        if (value == true) {
+            rowData.VALUE = currentData.SURVEYQUANTITY;
+            rowData.REFLECTIONYN = value;
+        } else if (value != false) {
+            rowData.VALUE = value;
+            rowData.REFLECTIONYN = true;
+        } else {
+            rowData.REFLECTIONYN = value;
+        }
+
+
+        //rowData.SURVEYDATE = new Date();
+    }
+
+    function grdAdjust_prod_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+
+        } else if (method == "update") {
+
+            var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+
+            var index = $('#grdAdjust_prod').dxDataGrid('instance').getRowIndexByKey(ajaxOptions.data.key);
+            var reflectionYN = $('#grdAdjust_prod').dxDataGrid('instance').cellValue(index, 'REFLECTIONYN');
+            var value = $('#grdAdjust_prod').dxDataGrid('instance').cellValue(index, 'VALUE');
+            var surveyDate = $('#grdAdjust_prod').dxDataGrid('instance').cellValue(index, 'SURVEYDATE');
+            var unitcode = $('#grdAdjust_prod').dxDataGrid('instance').cellValue(index, 'UNITCODE');
+            parseJson.INVENTQUANTITY = Math.round(value);
+
+            if (unitcode == "U01")
+                parseJson.INVENTQUANTITY = value * 1000;
+
+            parseJson.SURVEYDATE = surveyDate;
+
+            if (reflectionYN == true) {
+                parseJson.REFLECTIONYN = "Y";
+            } else {
+                parseJson.REFLECTIONYN = "N";
+            }
+
+            ajaxOptions.data.values = JSON.stringify(parseJson);
+        }
+    }
+
+    function grdAdjust_prod_customLoad() {
+        var state = localStorage.getItem(this.storageKey);
+        if (state) {
+            state = JSON.parse(state);
+            for (var i = 0; i < state.columns.length; i++) {
+                if (state.columns[i].dataField == "SURVEYDATE") {
+                    state.columns[i].filterValue = new Date();
+                }
+            }
+        }
+        return state;
+    }
+
+    function grdAdjust_prod_customSave(state) {
+        localStorage.setItem(this.storageKey, JSON.stringify(state));
+    }
+</script>

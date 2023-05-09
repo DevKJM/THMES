@@ -1,0 +1,38 @@
+﻿<div class="row border-bottom">
+    <nav class="navbar navbar-static-top white-bg" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <a class="navbar-minimalize minimalize-styl-2 btn btn-primary " href="#" id="leftSideExtend"><i class="fa fa-bars"></i> </a>
+        </div>
+            @Html.Partial("_LoginPartial")
+    </nav>
+</div>
+
+<script>
+    if (Cookies.get("isBoxOpen") === "yes") {
+            $('body').removeClass("mini-navbar");
+        } else {
+            $('body').addClass("mini-navbar");
+    }
+
+    $(document).ready(function () {
+
+        //set cookie here
+        $('#leftSideExtend').on("click", function () {
+
+            var ismininav;
+
+            $.each($('body').attr('class').split(' '), function (index, className) {
+                if (className.indexOf('mini-navbar') === 0) {
+                    ismininav = className;
+                }
+            });
+
+            if (ismininav) {
+                Cookies.set("isBoxOpen", "yes", { expires: 99999 });
+            }
+            else {
+                Cookies.set("isBoxOpen", "no", { expires: 99999 });
+            }
+        });
+    });
+</script>

@@ -1,0 +1,167 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTK
+
+@{
+    ViewBag.Title = "Main";
+}
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-5 col-md-5">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> 공정 목록</i></span></h4>
+            @(Html.DevExtreme().DataGrid<ProcessMaster>()
+                  .ID("grdProcessMaster")
+                  .DataSource(d => d.WebApi()
+                      .Controller("COMA001WebApi")
+                      .LoadAction("PROCESS_LIST")
+                      .Key("PROCESSID")
+                      .LoadParams(new
+                      {
+                          Culture = new JS("function() { return locale; }")
+                      }))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.PROCESSCODE).Width(150);
+                      columns.AddFor(m => m.PROCESSNAME);
+                  })
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  //.StateStoring(s => s.Enabled(true).StorageKey("MSTJ002_grdProcessMaster").Type(StateStoringType.LocalStorage))
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .RowAlternationEnabled(true)
+                  .Selection(s => s.Mode(SelectionMode.Single))
+                  .OnRowClick("grdProcessMaster_OnRowClick")
+                  .OnInitialized("grdProcessMaster_OnInitialized")
+                  .Option("IGNORE_AUTOWIDTH", new object[] { })
+                  //.Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                  .ShowRowLines(true)
+                  )
+        </div>
+        <div class="col-xl-7 col-md-7 mt-md-0 mt-lg-0 mt-sm-2">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> 비가동 코드 목록</i></span></h4>
+            @(Html.DevExtreme().DataGrid<MSTK033_LIST>()
+                  .ID("grdProcessNopcode")
+                  .DataSource(d => d.WebApi()
+                      .Controller("MSTK033WebApi")
+                      .Key("NOPID")
+                      .OnBeforeSend("grdProcessNopcode_OnBeforeSend"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.USEYN).SortOrder(SortOrder.Desc).Width(100);
+                      columns.AddFor(m => m.NOPCODE).AllowEditing(false)
+                          .Lookup(lookup => lookup
+                              .DataSource(d => d.WebApi()
+                                  .Controller("COMA001WebApi").Key("NOPCODE")
+                                  .LoadAction("NOPCODE_LIST")
+                              )
+                              .DisplayExpr("NOPNAME")
+                              .ValueExpr("NOPCODE")
+                          );
+                      //columns.AddFor(m => m.MEMO).AllowEditing(false).Visible(false);
+                  })
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  //.OnFocusedCellChanged()
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowUpdating(new JS("iudAuth()"))
+                  )
+                  //.StateStoring(s => s.Enabled(true).StorageKey("MSTJ002_grdProcessDefectMaster").Type(StateStoringType.LocalStorage))
+                  .OnCellClick("grdProcessNopcode_OnCellClick")
+                  //.OnInitialized("grdProcessNopcode_OnInitialized")
+                  //.Option("IGNORE_AUTOWIDTH", new object[] { })
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .RowAlternationEnabled(true)
+                  //.Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                  .ShowRowLines(true)
+                  )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function grdProcessMaster_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdProcessNopcode_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdProcessNopcode_OnCellClick(e) {
+        if (e.rowType == "data" && e.column.dataField == "USEYN") {
+            if (e.data.USEYN == false)//e.value == false || e.row.oldData.USEYN == false || e.USEYN)
+                $('#grdProcessNopcode').dxDataGrid('instance').cellValue(e.rowIndex, "USEYN", true);
+            else
+                $('#grdProcessNopcode').dxDataGrid('instance').cellValue(e.rowIndex, "USEYN", false);
+        }
+    }
+
+    function grdProcessNopcode_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var row = $('#grdProcessMaster').dxDataGrid('instance').getSelectedRowsData();
+
+            if (row.length > 0) {
+                ajaxOptions.data.ProcessCode = row[0].PROCESSCODE;
+            } else {
+                ajaxOptions.data.ProcessCode = "";
+            }
+        } else if (method == "update") {
+            var row = $('#grdProcessMaster').dxDataGrid('instance').getSelectedRowsData();
+
+            var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+
+            var index = $('#grdProcessNopcode').dxDataGrid('instance').getRowIndexByKey(ajaxOptions.data.key);
+            var nopCode = $('#grdProcessNopcode').dxDataGrid('instance').cellValue(index, 'NOPCODE');
+
+            if (row.length > 0) {
+                //parseJson.PLANTCODE = processRow[0].PLANTCODE;
+                parseJson.PROCESSCODE = row[0].PROCESSCODE;
+                parseJson.NOPCODE = nopCode;
+                ajaxOptions.data.values = JSON.stringify(parseJson);
+            }
+        }
+    }
+
+    function grdProcessMaster_OnRowClick(e) {
+        this.selectedValue = e.key;
+        e.component.selectRows([e.key], false);
+
+        if (e.rowType == "data") {
+            $('#grdProcessNopcode').dxDataGrid('instance').refresh();
+            $('#grdProcessNopcode').dxDataGrid('instance').cancelEditData();
+        }
+    }
+
+</script>

@@ -1,0 +1,84 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAB;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        @(Html.DevExtreme().DataGrid<QUAB002_LIST>()
+                .ID("grdInbondList")
+                .DataSource(d => d.WebApi().Controller("QUAB002WebApi").Key("INSPECTIONSEQUENCE"))
+                .FilterRow(f=>f.Visible(true))
+                .Export(e => e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                .ShowRowLines(true)
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.INSPECTIONSEQUENCE).SortOrder(SortOrder.Desc).Visible(false);
+                    columns.AddFor(m => m.INSPECTDATE).Format(f=>f.Type(Format.ShortDate)) .SelectedFilterOperation(FilterOperations.Between)
+                        .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date }).SortOrder(SortOrder.Desc);
+                    columns.AddFor(m => m.CANCELYN).Lookup(l=>l.DataSource(d => d.WebApi()
+                                                                .Controller("COMA003WebApi")
+                                                                .LoadAction("CANCEL_LIST")
+                                                                .Key("SYSCODE"))
+                                                                .DisplayExpr("SYSCODENAME")
+                                                                .ValueExpr("SYSCODE")
+                                                        );
+                    columns.AddFor(m => m.INSPECTIONRESULT).Lookup(l=>l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                                                    .LoadAction("INSPECTIONRESULT_LIST")
+                                                                                                    .Key("SYSCODE"))
+                                                                .DisplayExpr("SYSCODENAME")
+                                                                .ValueExpr("SYSCODE")
+                                                        );
+
+                    columns.AddFor(m => m.VENDORCODE).Lookup(l=>l.DataSource(d => d.WebApi().Controller("MSTI001WebApi").Key("VENDORCODE"))
+                                                                .DisplayExpr("VENDORNAME")
+                                                                .ValueExpr("VENDORCODE")
+                                                        );
+                    columns.AddFor(m => m.PRODUCTTYPE).Lookup(l=>l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                    .LoadAction("INSPECTION_PRODUCTTYPE_LIST")
+                                                                    .Key("SYSCODE"))
+                                                                .DisplayExpr("SYSCODENAME")
+                                                                .ValueExpr("SYSCODE")
+                                                            );
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME).Lookup(l=>l.DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                                                    .LoadAction("PART_LIST")
+                                                                    .LoadParams(new { PARTTYPE = new JS("function() { return ''; }")
+                                                                    })
+                                                                    .Key("PARTCODE"))
+                                                                .DisplayExpr("PARTNAME")
+                                                                .ValueExpr("PARTCODE")
+                                                        );
+                    columns.AddFor(m => m.RECEIVINGQUANTITY).Format(f=>f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.BOXPERQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.MEMO);
+                    columns.AddFor(m => m.CREATEUSER);
+                    columns.AddFor(m => m.CREATEDATE).Format(f=>f.Type(Format.ShortDateShortTime));
+                })
+                .OnInitialized("grdInbondList_OnInitialized")
+                .ColumnHidingEnabled(true)
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .ColumnAutoWidth(true)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{ 10, 25, 50, 100, 1000}))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .Scrolling(s=>s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                .Option("CANCEL_FIELD", new string[] { "CANCELYN" })
+            )
+    </div>
+</div>
+
+<script>
+    function grdInbondList_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

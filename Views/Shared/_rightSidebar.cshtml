@@ -1,0 +1,644 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources
+
+<style>
+    .rightSidebarControl{
+        margin-top: 5px;
+    }
+</style>
+
+<div id="right-sidebar" class="animated">
+    <div class="sidebar-container">
+
+        <ul class="nav nav-tabs navs-2">
+            <li>
+                <a class="nav-link active" data-toggle="tab" href="#tab-side-1"> <i class="fa fa-user"> @LabelText.PRIVATESETTINGS</i> </a>
+            </li>
+            <li>
+                <a class="nav-link" data-toggle="tab" href="#tab-side-2"> <i class="fa fa-wrench"> @LabelText.CONFIG</i> </a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!--바로가기-->
+            <div id="tab-side-1" class="tab-pane active">
+                <div class="sidebar-title">
+                    <h3> @LabelText.CONFIG</h3>
+                    <i class="fa fa-tim"></i> @LabelText.TITLEPRIVATESETTINGS
+                </div>
+                <div class="setings-item">
+                    <span>
+                        @LabelText.USEBIGFONT
+                    </span>
+                    <div class="switch">
+                        <div class="onoffswitch">
+                            <input type="checkbox" name="collapsemenu" class="onoffswitch-checkbox" id="globalFontSize" onchange="SetglobalFontSize();">
+                            <label class="onoffswitch-label" for="globalFontSize">
+                                <span class="onoffswitch-inner"></span>
+                                <span class="onoffswitch-switch"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="setings-item">
+                    <span>
+                        @LabelText.USEINPUTPOPUP
+                    </span>
+                    <div class="switch">
+                        <div class="onoffswitch">
+                            <input type="checkbox" name="collapsemenu" class="onoffswitch-checkbox" id="globalInputMode" onchange="SetglobalIntputMode();">
+                            <label class="onoffswitch-label" for="globalInputMode">
+                                <span class="onoffswitch-inner"></span>
+                                <span class="onoffswitch-switch"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar-title">
+                    <h3> @LabelText.MENULINK</h3>
+                    <i class="fa fa-tim"></i> @LabelText.TITLEMENULINKSTART <i class="fa fa-bookmark"></i> @LabelText.TITLEMENULINKEND
+                </div>
+                <ul class="sidebar-list" id="empFavoriteMenuList">
+                    
+                </ul>
+            </div>
+            <!--설정-->
+            <div id="tab-side-2" class="tab-pane">
+                <div class="setings-item">
+                    <span>
+                        @LabelText.SYSTEM_SETTINGS
+                    </span>
+                    <div class="switch">
+                        @(Html.DevExtreme().Button()
+                                                                        .ID("systemSettings")
+                                                                        .Width("100")
+                                                                        .Icon("fa fa-cogs")
+                                                                        .Text(LabelText.CONFIG)
+                                                                        .OnClick("function(e) { window.open(rootURL + 'SYSA/SYSA001', '_self', 'location=yes');}")
+                        )
+                    </div>
+                </div>
+                <div class="sidebar-title">
+                    <h3> @LabelText.FIELDCONFIG</h3>
+                    <i class="fa fa-tim"></i> @LabelText.TITLEPRIVATESETTINGS
+                </div>
+
+                <div class="setings-item">
+                    <span>
+                        @LabelText.PROCESS
+                    </span>
+                    @(Html.DevExtreme().SelectBox()
+                                          .ID("settingsPROCESSCODE")
+                                          .ValueExpr("PROCESSCODE")
+                                          .DisplayExpr("PROCESSNAME")
+                                          .DataSource(d => d.WebApi()
+                                              .Controller("COMA001WebApi")
+                                              .LoadAction("PROCESS_LIST")
+                                              .Key("PROCESSCODE")
+                                              .LoadParams(new { Culture = new JS("function() { return locale; }") })
+                                          )
+                                          .Placeholder("Select a value...")
+                                          .OnValueChanged("formSettings_PROCESSCODE_OnValueChanged")
+                                          .ShowClearButton(true)
+                                          .Value(new JS("globalProcessCode"))
+                                          .ElementAttr("class", "rightSidebarControl")
+                    )
+                </div>
+
+                @if (System.Configuration.ConfigurationManager.AppSettings["optionRightSideEquipment"] == "true")
+                {
+                    <div class="setings-item">
+                        <span>
+                            @LabelText.EQUIPMENT
+                        </span>
+                        @(Html.DevExtreme().TagBox()
+                                              .ID("settingsEQUIPMENTCODE")
+                                              .ShowSelectionControls(true)
+                                              .ApplyValueMode(EditorApplyValueMode.UseButtons)
+                                              .ValueExpr("EQUIPMENTCODE")
+                                              .DisplayExpr("EQUIPMENTNAME")
+                                              .ShowDropDownButton(true)
+                                              .DataSource(d => d.WebApi()
+                                                  .Controller("COMA001WebApi")
+                                                  .LoadAction("EQUIPMENT_LIST")
+                                                  .Key("EQUIPMENTCODE")
+                                                  .LoadParams(new
+                                                  {
+                                                      Culture = new JS("function() { return locale; }"),
+                                                      PROCESSCODE = new JS("function() { return $('#settingsPROCESSCODE').dxSelectBox('instance').option('value'); }")
+                                                  })
+                                              )
+                                              .Placeholder("Select a value...")
+                                              .Value(new JS("globalEquipmentCode"))
+                                              .ShowClearButton(true)
+                                              .ElementAttr("class", "rightSidebarControl")
+                        )
+                    </div>
+                }
+
+                @if (System.Configuration.ConfigurationManager.AppSettings["optionRightSideWorkcenter"] == "true")
+                {
+                    <div class="setings-item">
+                        <span>
+                            @LabelText.WORKCENTER
+                        </span>
+
+                        @(Html.DevExtreme().SelectBox()
+                                              .ID("settingsWORKCENTER")
+                                              .ValueExpr("WORKCENTERCODE")
+                                              .DisplayExpr("WORKCENTERNAME")
+                                              .DataSource(d => d.WebApi()
+                                                  .Controller("COMA001WebApi")
+                                                  .LoadAction("WORKCENTER_LIST")
+                                                  .Key("WORKCENTERCODE")
+                                                  .LoadParams(new { Culture = new JS("function() { return locale; }") })
+                                              )
+                                              .Placeholder("Select a value...")
+                                              .OnValueChanged("formSettings_PROCESSCODE_OnValueChanged")
+                                              .ShowClearButton(true)
+                                              .Value(new JS("globalProcessCode"))
+                                              .ElementAttr("class", "rightSidebarControl")
+                        )
+                    </div>
+                }
+
+
+
+                <div class="setings-item">
+                    @(Html.DevExtreme().Button().Text(LabelText.CONFIG).Width("100%").OnClick("processInfoSave"))
+                </div>
+
+
+                @if (System.Configuration.ConfigurationManager.AppSettings["optionSerialPortHost"] == "true")
+                {
+                    if (System.Configuration.ConfigurationManager.AppSettings["systemName"] == "IEPMES")
+                    {
+                        <div class="sidebar-title">
+                            <h3> MES 메뉴얼</h3>
+                            <i class="fa fa-tim"></i> MES 사용 메뉴얼을 다운로드 합니다.
+                            <br /> <a id="DownloadManualIEPMES"><span class="badge badge-light"><i class="fa fa-download"></i> [MES 메뉴얼] 다운로드</span></a>
+                        </div>
+
+                        <div class="sidebar-title">
+                            <h3> 블루투스 스캐너 설정</h3>
+                            <i class="fa fa-tim"></i> 블루투스 스캐너 통신을 위한 설정입니다.
+                            <br /> <a id="DownloadSerialPortHostIEPMES"><span class="badge badge-light"><i class="fa fa-download"></i> [블루투스 스캐너 설정] 다운로드</span></a>
+                        </div>
+                    }
+
+                    if (System.Configuration.ConfigurationManager.AppSettings["systemName"] == "JHTMES")
+                    {
+                        <div class="sidebar-title">
+                            <h3> MES 메뉴얼</h3>
+                            <i class="fa fa-tim"></i> MES 사용 메뉴얼을 다운로드 합니다.
+                            <br /> <a id="DownloadManualJHTMES"><span class="badge badge-light"><i class="fa fa-download"></i> [MES 메뉴얼] 다운로드</span></a>
+                        </div>
+
+                        <div class="sidebar-title">
+                            <h3> 시리얼포트 설정</h3>
+                            <i class="fa fa-tim"></i> 시리얼포트 통신을 위한 설정입니다.
+                            <br /> <a id="DownloadSerialPortHostJHTMES"><span class="badge badge-light"><i class="fa fa-download"></i> [시리얼포트 설정] 다운로드</span></a>
+                        </div>
+                    }
+
+                    if (System.Configuration.ConfigurationManager.AppSettings["systemName"] == "THMES")
+                    {
+                        <div class="sidebar-title">
+                            <h3> MES 메뉴얼</h3>
+                            <i class="fa fa-tim"></i> MES 사용 메뉴얼을 다운로드 합니다.
+                            <br /> <a id="DownloadManualTHMES"><span class="badge badge-light"><i class="fa fa-download"></i> [MES 메뉴얼] 다운로드</span></a>
+                        </div>
+                    }
+
+                    if (System.Configuration.ConfigurationManager.AppSettings["systemName"] == "HJMES")
+                    {
+                        <div class="sidebar-title">
+                            <h3> MES 메뉴얼</h3>
+                            <i class="fa fa-tim"></i> MES 사용 메뉴얼을 다운로드 합니다.
+                            <br /> <a id="DownloadManualHJMES"><span class="badge badge-light"><i class="fa fa-download"></i> [MES 메뉴얼] 다운로드</span></a>
+                        </div>
+                    }
+                    
+                    if (System.Configuration.ConfigurationManager.AppSettings["systemName"] == "SAMPC")
+                    {
+                        <div class="sidebar-title">
+                            <h3> MES 메뉴얼</h3>
+                            <i class="fa fa-tim"></i> MES 사용 메뉴얼을 다운로드 합니다.
+                            <br /> <a id="DownloadManualSAMPCMES"><span class="badge badge-light"><i class="fa fa-download"></i> [MES 메뉴얼] 다운로드</span></a>
+                        </div>
+                        
+                        <div class="sidebar-title">
+                            <h3> 시리얼포트 설정</h3>
+                            <i class="fa fa-tim"></i> 시리얼포트 통신을 위한 설정입니다.
+                            <br /> <a id="DownloadSerialPortHostSAMPCMES"><span class="badge badge-light"><i class="fa fa-download"></i> [시리얼포트 설정] 다운로드</span></a>
+                        </div>
+                    }
+                }
+
+
+
+                @if (System.Configuration.ConfigurationManager.AppSettings["optionPrinter"] == "true")
+                {
+                    <div class="sidebar-title">
+                        <h3> @LabelText.ZEBRAPRINTCONFIG</h3>
+                        <i class="fa fa-tim"></i> @LabelText.TITLEZEBRAPRINTERCONFIG
+                        <br /> <a id="DownloadZebraBrowserPrint"><span class="badge badge-light"><i class="fa fa-download"></i> @LabelText.ZEBRABROWSERPRINTDOWNLOAD</span></a>
+                    </div>
+                    <div class="setings-item">
+                        <span>
+                            @LabelText.USEPRINTER
+                        </span>
+                        <div class="switch">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="collapsemenu" class="onoffswitch-checkbox" id="useZebraPrinter" onchange="SetuseZebraPrinter();">
+                                <label class="onoffswitch-label" for="useZebraPrinter">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setings-item">
+                        <span>
+                            @LabelText.SELECTPRINTER
+                        </span>
+                        @(Html.DevExtreme().SelectBox().ID("zebraPrinterList")
+                                                                      .DataSource(new JS("zebraBrowserdeviceNames"))
+                                                                      .OnSelectionChanged("zebraPrinterList_OnSelectionChanged")
+                        )
+                    </div>
+                    <div class="setings-item">
+                        <span>
+                            @LabelText.ZPLMANUALSEND
+                        </span>
+                        <div>
+                            @(Html.DevExtreme().TextBox().ID("zebraPrinterRequest").Value("~HS").ElementAttr("float", "left").Width(250)
+                                                                          .Buttons(c => c.Add().Name("zebraPrinterButtons").Widget(w => w.Button().Text("전송").ID("btnzebraPrinterSend")
+                                                                              .OnClick("function(e){ writeToSelectedPrinter($('#zebraPrinterRequest').dxTextBox('instance').option('value')); }"))
+                                                                          ))
+                        </div>
+                        <span>
+                            @LabelText.RESPONSEMESSAGE
+                        </span>
+                        @(Html.DevExtreme().TextArea().ID("zebraPrinterResponse").Height(50).OnValueChanged("zebraPrinterResponse_OnValueChanged"))
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    
+    /*ErrorFlag*/
+    var zebraResponseErrorFlag= [
+        ["No Error",					    0,"00000000","00000000"],
+        ["Error Present",				1,"00000000","00000000"],
+        ["Printhead Thermistor Open",	1,"00000000","00000200"],
+        ["Invalid Firmware Config.",	1,"00000000","00000100"],
+        ["Printhead Detection Error",	1,"00000000","00000080"],
+        ["Bad Printhead Element",		1,"00000000","00000040"],
+        ["Motor Over Temperature",		1,"00000000","00000020"],
+        ["Printhead Over Temperature",	1,"00000000","00000010"],
+        ["Cutter Fault",				1,"00000000","00000008"],
+        ["Head Open",					1,"00000000","00000004"],
+        ["Ribbon Out",				    1,"00000000","00000002"],
+        ["Media Out",					1,"00000000","00000001"],
+        ["Clear Paper Path Failed",		1,"00000000","00008000"],
+        ["Paper Feed Error",			1,"00000000","00004000"],
+        ["Presenter Not Running",		1,"00000000","00002000"],
+        ["Paper Jam during Retract",	1,"00000000","00001000"],
+        ["Black Mark not Found",		1,"00000000","00080000"],
+        ["Black Mark Calabrate Error",	1,"00000000","00040000"],
+        ["Retract Function timedout",	1,"00000000","00020000"],
+        ["Paused",					    1,"00000000","00010000"]
+    ];
+
+    /*WarningFlag*/
+    var zebraResponseWarningFlag = [
+        ["No Warning",				    0,"00000000","00000000"],
+        ["Warning Present",			    1,"00000000","00000000"],
+        ["Paper-near-end Sensor",		1,"00000000","00000008"],
+        ["Replace Printhead",			1,"00000000","00000004"],
+        ["Clean Printhead",			    1,"00000000","00000002"],
+        ["Needto Calibrate Media",		1,"00000000","00000001"],
+        ["Sensor 1(Paper before head)",	1,"00000000","00000010"],
+        ["Sensor 2(Black mark)",		1,"00000000","00000020"],
+        ["Sensor 3(Paper after head)", 	1,"00000000","00000040"],
+        ["Sensor 4(loop ready)",		1,"00000000","00000080"],
+        ["Sensor 5(presenter)",		    1,"00000000","00000100"],
+        ["Sensor 6(retract ready)",	    1,"00000000","00000200"],
+        ["Sensor 7(in retract)",		1,"00000000","00000400"],
+        ["Sensor 8(at bin)",			1,"00000000","00000800"]
+    ];
+            
+    function zebraPrinterResponse_OnValueChanged(e) {
+        if ($("#zebraPrinterRequest").dxTextBox("instance").option("value") == "~HQES") {
+
+            var list = e.value.split('\n');
+            var statusMessage = '';
+
+            if (list.length > 0) {
+                /*
+                undefined
+                list
+                (6) ["
+                ", "
+                ", "  PRINTER STATUS                            
+                ", "   ERRORS:         1 00000000 00010000      
+                ", "   WARNINGS:       0 00000000 00000000      
+                ", ""]0: "
+                "1: "
+                "2: "  PRINTER STATUS                            
+                "3: "   ERRORS:         1 00000000 00010000      
+                "4: "   WARNINGS:       0 00000000 00000000      
+                "5: ""length: 6__proto__: Array(0)
+                */
+
+                if (list.length == 6) {
+                    if (list[2].trim() == "PRINTER STATUS") {
+                        var w = list[3].split(' ');
+                        /*
+                        undefined
+                        w
+                        (21) ["", "", "", "ERRORS:", "", "", "", "", "", "", "", "", "1", "00000000", "00010000", "", "", "", "", "", "
+                        "]*/
+
+                        if (w.length == 21) {
+                            if (w[3] == "ERRORS:") {
+                                console.log("errors");
+                                console.log(w[12]);
+                                console.log(w[13]);
+                                console.log(w[14]);
+                                statusMessage += zebraResponseStatusToMessage("errors", w[12], w[13], w[14]);
+                                statusMessage = statusMessage + "\r\n" + w;
+                            }
+                        }
+
+                        var q = list[4].split(' ');
+                        
+                        if (q.length == 19) {
+                            /*
+                            (19) ["", "", "", "WARNINGS:", "", "", "", "", "", "", "0", "00000000", "00000000", "", "", "", "", "", "
+                            "]
+                            */
+                            if (q[3] == "WARNINGS:") {
+                                console.log("warning");
+                                console.log(q[10]);
+                                console.log(q[11]);
+                                console.log(q[12]);
+                                statusMessage += zebraResponseStatusToMessage("warning", q[10], q[11], q[12]);
+                                statusMessage = statusMessage + "\r\n" + q;
+                            }
+                        }                        
+                    }
+
+                    alert(statusMessage);
+                }
+            }
+        }            
+    }
+
+    function zebraResponseStatusToMessage(type, status, group2, group1) {
+        var statusMessage = '';
+        
+        if (type == "errors") {
+            if (status == 0) {
+                statusMessage += "No Error";
+            } else {
+                for (var dataIndex = 0; 8 > dataIndex; dataIndex++) {
+                     var errorData = parseInt(group1[dataIndex], 16);
+                    if (errorData > 0) {
+                        for (var errorIndex = 0; zebraResponseErrorFlag.length > errorIndex; errorIndex++) {                            
+                            var errorIndexData = parseInt(zebraResponseErrorFlag[errorIndex][3][dataIndex]);
+                            if (errorIndexData > 0) {                                
+                                if (errorData >= errorIndexData) {
+                                    statusMessage += zebraResponseErrorFlag[errorIndex][0] + ",";
+                                    errorData = errorData - errorIndexData;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } 
+
+        if (type == "warning") {
+            if (status == 0) {
+                statusMessage += ", No Warning";
+            } else {
+                for (var dataIndex = 0; 8 > dataIndex; dataIndex++) {
+                     var errorData = parseInt(group1[dataIndex], 16);
+                    if (errorData > 0) {
+                        for (var errorIndex = 0; zebraResponseWarningFlag.length > errorIndex; errorIndex++) {                            
+                            var errorIndexData = parseInt(zebraResponseWarningFlag[errorIndex][3][dataIndex]);
+                            if (errorIndexData > 0) {                                
+                                if (errorData >= errorIndexData) {
+                                    statusMessage += zebraResponseWarningFlag[errorIndex][0] + ",";
+                                    errorData = errorData - errorIndexData;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return statusMessage;
+    }
+
+    $(function () {
+
+        $("#DownloadManualJHTMES").attr("href", rootURL + "Content/Files/ProgramManual/JHTMES/user/사용자 메뉴얼.pdf");
+        $("#DownloadManualTHMES").attr("href", rootURL + "Content/Files/ProgramManual/THMES/user/사용자 메뉴얼.pdf");
+        $("#DownloadManualIEPMES").attr("href", rootURL + "Content/Files/ProgramManual/IEPMES/user/아이앤폴리머 사용자 메뉴얼.pdf");
+        $("#DownloadManualHJMES").attr("href", rootURL + "Content/Files/ProgramManual/HJMES/사용자 매뉴얼.pdf");
+
+        $("#DownloadSerialPortHostIEPMES").attr("href", rootURL + "Content/Files/SerialPortHost/IEPMES/Setup_SerialPortHost.msi");
+        $("#DownloadSerialPortHostJHTMES").attr("href", rootURL + "Content/Files/SerialPortHost/JHTMES/Setup_SerialPortHost.msi");
+        $("#DownloadSerialPortHostSAMPCMES").attr("href", rootURL + "Content/Files/SerialPortHost/SAMPCMES/Setup_SerialPortHost.msi");
+
+        $("#DownloadZebraBrowserPrint").attr("href", rootURL + "Content/Files/ZebraBrowserPrint/ZebraBrowserPrintSetup-1.2.1.279.exe");
+
+        if (Cookies.get("globalFontSize") == "true"){
+            $('#globalFontSize').prop("checked", true);
+        } else {
+            $('#globalFontSize').prop("checked", false);
+        }
+
+        if (Cookies.get("globalInputMode") == "true"){
+            $('#globalInputMode').prop("checked", true);
+        } else {
+            $('#globalInputMode').prop("checked", false);
+        }
+        
+        if (Cookies.get("useZebraPrinter") == "true"){
+            $('#useZebraPrinter').prop("checked", true);
+        } else {
+            $('#useZebraPrinter').prop("checked", false);
+        }
+
+        if (@System.Configuration.ConfigurationManager.AppSettings["optionPrinter"] == true)
+            $('#btnzebraPrinterSend').dxButton('instance').option('disabled', !$('#useZebraPrinter').is(':checked'));
+
+
+        $('#settingsPROCESSCODE').dxSelectBox('instance').option('value', globalProcessCode);
+
+        if ($('#settingsEQUIPMENTCODE').dxTagBox('instance') != null) {
+            $('#settingsEQUIPMENTCODE').dxTagBox('instance').option('value', globalEquipmentCode);
+        }
+
+        if ($('#settingsWORKCENTER').dxSelectBox('instance') != null) {
+            $('#settingsWORKCENTER').dxSelectBox('instance').option('value', globalWorkcenterCode);
+        }
+
+
+        loadEmpFavoriteMenuList();
+    });
+
+    function processInfoSave() {
+        var settingData = []; //반드시 Array 여야 함.
+        settingData.push({ id: "PROCESSCODE", name: $('#settingsPROCESSCODE').dxSelectBox('instance').option('value') });
+
+        if ($('#settingsEQUIPMENTCODE').dxTagBox('instance') != null) {
+            settingData.push({ id: "EQUIPMENTCODE", name: $('#settingsEQUIPMENTCODE').dxTagBox('instance').option('value') });
+        }
+
+        if ($('#settingsWORKCENTER').dxSelectBox('instance') != null) {
+            settingData.push({ id: "WORKCENTERCODE", name: $('#settingsWORKCENTER').dxSelectBox('instance').option('value') });
+        }
+
+        var store = new DevExpress.data.LocalStore({
+            key: "id",
+            data: settingData,
+            name: "settings"
+        });
+
+        var result = DevExpress.ui.dialog.confirm("@LabelText.QUASTIONREFRESH", "Confirm changes");
+
+        result.done(function (dialogResult) {
+            if (dialogResult == true) {
+                location.reload(true);
+            }
+        });
+    }
+
+    function formSettings_PROCESSCODE_OnValueChanged(e) {
+
+        if ($('#settingsEQUIPMENTCODE').dxTagBox('instance') != null) {
+            var equipment = $('#settingsEQUIPMENTCODE').dxTagBox('instance').getDataSource();
+            $('#settingsEQUIPMENTCODE').dxTagBox('instance').option('value', null);
+            equipment.reload();
+        }
+    }
+
+    function loadEmpFavoriteMenuList() {
+        
+        var param = $.param({ EMPID: '@User.Identity.GetUserId()' });
+
+        $.ajax({
+            url: '@Url.Action("USER_FAVORITE_LIST", "COMA002WebApi", new { httproute = "DefaultApi" })',
+            type: 'GET',
+            data: param,
+            success: function (data) {
+
+                $("#empFavoriteMenuList").empty();
+
+                data.forEach(function (e) {
+                    var root = '@Url.Content("~/")';
+                    var targetUrl = root + e.URL1 + "/" + e.URL2;
+
+                    var html = "<li id=FAVORITE_" + e.MENUCODE +">";
+                    html += "        <div class='small float-right m-t-xs'>"+ e.MENUCODE + " <span class='fa fa-times' style='cursor:pointer' onclick='deleteFavoriteMenu(\"" + e.MENUCODE + "\");'></span></div>";
+                    html += "        <a href='" + targetUrl + "'>" + e.MENUNAME + "</a>";
+                    html += "</li>";
+
+                    $("#empFavoriteMenuList").append(html);
+                });
+            },
+            error: function () {
+                console.log("error");
+            }
+        });
+    }
+
+    function zebraPrinterList_OnSelectionChanged(e) {
+        for (var i = 0; i < zebraBrowserdevices.length; ++i) {
+            if (e.selectedItem == zebraBrowserdevices[i].uid) {
+                zebraBrowserSelected_device = zebraBrowserdevices[i];
+                Cookies.set("zebraBrowserSelectePrinter", e.selectedItem, { expires: 99999 });
+                return;
+            }
+        }
+    }
+
+    function SetglobalFontSize() {
+        var result = DevExpress.ui.dialog.confirm("@LabelText.QUASTIONREFRESH", "Confirm changes");
+        
+        if ($('#globalFontSize').prop("checked")) {
+            Cookies.set("globalFontSize", true, { expires: 99999 });
+        }
+        else {
+            Cookies.set("globalFontSize", false, { expires: 99999 });
+        }
+
+        result.done(function (dialogResult) {
+            if (dialogResult == true) {
+                location.reload();
+            }
+        });
+    }
+
+    function SetglobalIntputMode() {
+        var result = DevExpress.ui.dialog.confirm("@LabelText.QUASTIONREFRESH", "Confirm changes");
+
+        if ($('#globalInputMode').prop("checked")) {
+            Cookies.set("globalInputMode", true, { expires: 99999 });
+        }
+        else {
+            Cookies.set("globalInputMode", false, { expires: 99999 });
+        }
+
+        result.done(function(dialogResult) {
+            if (dialogResult == true) {
+                location.reload();
+            }
+        });
+    }
+
+    function SetuseZebraPrinter() {
+        if ($('#useZebraPrinter').prop("checked")) {
+            Cookies.set("useZebraPrinter", true, { expires: 99999 });
+            zebraBrowserPrintSetup();
+        }
+        else {
+            Cookies.set("useZebraPrinter", false, { expires: 99999 });
+        }
+
+        $('#btnzebraPrinterSend').dxButton('instance').option('disabled', !$('#useZebraPrinter').is(':checked'));
+    }
+
+    function deleteFavoriteMenu(menuCode) {
+
+        var data = {};
+        data.EMPID = '@User.Identity.GetUserId()';
+        data.MENUCODE = menuCode;
+
+        var param = new Object();
+        param.data = JSON.stringify(data);
+
+        $("#FAVORITE_" + menuCode).remove();
+
+        $.ajax({
+            url: '@Url.Action("deleteEmpFavoriteMenu", "COMA002WebApi", new { httproute = "DefaultApi" })',
+            type: 'POST',
+            data: param,
+            success: function () {
+                //
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+</script>

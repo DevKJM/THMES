@@ -1,0 +1,163 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAB;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<QUAB052_LIST>()
+                .ID("grdInbondList")
+                .DataSource(d => d.WebApi().Controller("QUAB052WebApi").Key("INSPECTIONSEQUENCE"))
+                .FilterRow(f=>f.Visible(true))
+                .Export(e => e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                .ShowRowLines(true)
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.INSPECTIONSEQUENCE).SortOrder(SortOrder.Desc).Visible(false);
+                    columns.AddFor(m => m.INSPECTDATE).Format(f=>f.Type(Format.ShortDate)) .SelectedFilterOperation(FilterOperations.Between)
+                        .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date }).SortOrder(SortOrder.Desc);
+                    columns.AddFor(m => m.CANCELYN).Lookup(l=>l.DataSource(d => d.WebApi()
+                                                                .Controller("COMA003WebApi")
+                                                                .LoadAction("CANCEL_LIST")
+                                                                .Key("SYSCODE"))
+                                                                .DisplayExpr("SYSCODENAME")
+                                                                .ValueExpr("SYSCODE")
+                                                        );
+                    columns.AddFor(m => m.INBOUNDTYPE).Lookup(l => l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                        .LoadAction("INBOUNDTYPE_INPUT_LIST")
+                                                        .Key("SYSCODE"))
+                                            .DisplayExpr("SYSCODENAME")
+                                            .ValueExpr("SYSCODE")
+                                    );
+                    columns.AddFor(m => m.INSPECTIONRESULT).Lookup(l=>l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                                                    .LoadAction("INSPECTIONRESULT_LIST")
+                                                                                                    .Key("SYSCODE"))
+                                                                .DisplayExpr("SYSCODENAME")
+                                                                .ValueExpr("SYSCODE")
+                                                        );
+
+                    columns.AddFor(m => m.VENDORCODE).Lookup(l=>l.DataSource(d => d.WebApi().Controller("MSTI001WebApi").Key("VENDORCODE"))
+                                                                .DisplayExpr("VENDORNAME")
+                                                                .ValueExpr("VENDORCODE")
+                                                        );
+                    columns.AddFor(m => m.PRODUCTTYPE).Lookup(l=>l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                    .LoadAction("INSPECTION_PRODUCTTYPE_LIST")
+                                                                    .Key("SYSCODE"))
+                                                                .DisplayExpr("SYSCODENAME")
+                                                                .ValueExpr("SYSCODE")
+                                                            );
+                    columns.AddFor(m => m.PARTNUMBER);
+
+                           columns.AddFor(m => m.PRODUCTNAME).Lookup(l => l.DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                        .LoadAction("MATRIAL_PART_LIST")
+                                        .Key("PARTCODE")                                        
+                                      .LoadParams(new
+                                       {
+                                           PARTTYPE = new JS("function() { return '' }")
+                                       }))
+                                   .DisplayExpr("PARTNAME")
+                                   .ValueExpr("PARTCODE")
+                                                               );
+                    columns.AddFor(m => m.VENDORLOTNUMBER);
+                            columns.AddFor(m => m.RECEIVINGQUANTITY).Format(f=>f.Type(Format.FixedPoint).Precision(0));
+                           columns.AddFor(m => m.GOODQUANTITY).Format(f=>f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.RECEIVINGQUANTITY).Format(f=>f.Type(Format.FixedPoint).Precision(3));
+                    columns.AddFor(m => m.BOXPERQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(3));
+                    columns.AddFor(m => m.UNITCODE)
+                        .Lookup(lookup => lookup
+                            .DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("UNITCODE_LIST"))
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        );
+                    columns.AddFor(m => m.MEMO);
+                    columns.AddFor(m => m.CREATEUSER);
+                    columns.AddFor(m => m.CREATEDATE);
+                })
+                .OnInitialized("grdInbondList_OnInitialized")
+                .ColumnAutoWidth(true)
+                .Width("100%")
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .ColumnHidingEnabled(false)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{ 10, 25, 50, 100, 1000}))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .Scrolling(s=>s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard).ShowScrollbar(ShowScrollbarMode.OnHover))                
+                .Option("CANCEL_FIELD", new string[] { "CANCELYN" })
+                .MasterDetail(m => m
+                    .Enabled(true)
+                    .Template(new TemplateName("tempGrdInbondInspect"))
+                )
+            )
+        </div>        
+    </div>
+</div>
+
+@*수입검사 하위 그리드*@
+@using (Html.DevExtreme().NamedTemplate("tempGrdInbondInspect"))
+{
+    @(Html.DevExtreme().DataGrid<QUAB052A_LIST>()
+        .ID(new JS("'grdInbondInspect-' + data.INSPECTIONSEQUENCE"))
+        .ElementAttr("class", "detail-grid")
+        .ShowBorders(true)
+        .AllowColumnResizing(false)
+        .ColumnAutoWidth(false)
+        .FilterPanel(f => f.Visible(false))
+        .RowAlternationEnabled(true)
+        .Width(500)
+        .DataSource(d => d.WebApi()
+            .Controller("QUAB052WebApi")
+            .LoadAction("getInbondInspectDetail")
+            .LoadParams(new
+            {
+                seq = new JS("function() { return data.INSPECTIONSEQUENCE; }")
+            })
+        )
+        .Paging(p => p.PageSize(10))
+        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+        .Columns(columns =>
+        {
+
+            columns.AddFor(m => m.DISPLAYSEQUENCE).AllowEditing(false).Visible(false);
+            columns.AddFor(m => m.INSPECTCODE).AllowEditing(false).Width(120)
+                .Lookup(l => l.DataSource(d => d.WebApi()
+                    .Controller("MSTL003WebApi")
+                    .LoadAction("getInspectItem")
+                    .Key("INSPECTCODE")
+                    )
+                    .ValueExpr("INSPECTCODE")
+                    .DisplayExpr("INSPECTNAME")
+                    .AllowClearing(true)
+                );
+            columns.AddFor(m => m.INSPECTUNIT).AllowEditing(false).Width(80).Visible(false)
+                                        .Lookup(lookup => lookup
+                                            .DataSource(d => d.WebApi()
+                                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                                .LoadAction("INSPECTUNIT_LIST")
+                                            )
+                                            .DisplayExpr("SYSCODENAME")
+                                            .ValueExpr("SYSCODE")
+                                        );
+            columns.AddFor(m => m.RESULT).Caption("결과").Visible(true);
+
+    })
+    .Selection(s => s.Mode(SelectionMode.Single))
+    )
+}
+<script>
+    function grdInbondList_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

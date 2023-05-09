@@ -1,0 +1,143 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.MAT.MATD;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<MATD011_LIST>()
+                  .ID("grdMatInout")
+                  .DataSource(d => d.WebApi().Controller("MATD011WebApi").Key("MATERIALHISSEQ"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.WORKDATE).Width(170)
+                          .Format(f => f.Type(Format.ShortDate))
+                          .SelectedFilterOperation(FilterOperations.Between)
+                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                          .SortOrder(SortOrder.Desc);
+                      columns.AddFor(m => m.LOTNUMBER);
+                      columns.AddFor(m => m.SERIALNUMBER).SortOrder(SortOrder.Desc);
+                      columns.AddFor(m => m.PRODUCTTYPE).Visible(false)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("PRODUCTTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.MATERIALTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("MATERIALTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.PARTNUMBER);
+                      columns.AddFor(m => m.MATERIALNAME);
+                      columns.AddFor(m => m.WAREHOUSECODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("WAREHOUSECODE")
+                              .LoadAction("WAREHOUSE_LIST"))
+                              .DisplayExpr("WAREHOUSENAME")
+                              .ValueExpr("WAREHOUSECODE")
+                          );
+                      columns.AddFor(m => m.TRANSCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("TRANSCODE")
+                              .LoadAction("TRANSACTION_LIST"))
+                              .DisplayExpr("TRANSNAME")
+                              .ValueExpr("TRANSCODE")
+                          );
+                      columns.AddFor(m => m.VENDORCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("VENDORCODE")
+                              .LoadAction("VENDOR_LIST"))
+                              .DisplayExpr("VENDORNAME")
+                              .ValueExpr("VENDORCODE")
+                          );
+                      columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                      columns.AddFor(m => m.HOLDINGYN)
+                          .Lookup(lookup => lookup.DataSource(new JS("USE_YN"))
+                              .DisplayExpr("NAME")
+                              .ValueExpr("CODE"));
+                      columns.AddFor(m => m.MEMO);
+                      columns.AddFor(m => m.CANCELYN)
+                          .Lookup(lookup => lookup.DataSource(new JS("USE_YN"))
+                              .DisplayExpr("NAME")
+                              .ValueExpr("CODE"));
+                      columns.AddFor(m => m.CANCELTIME);
+                      columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                      columns.AddFor(m => m.CREATEUSER); // lookup _ EMP 코드로 변경가능성 있음
+                  })
+                  //.StateStoring(s => s.Enabled(true).StorageKey("MATD001_grdMatInout").Type(StateStoringType.Custom)
+                  //    .CustomLoad("grdMatInout_customLoad").CustomSave("grdMatInout_customSave"))
+                  //.StateStoring(s=>s.Enabled(true).StorageKey("MATD001_grdMatInout").Type(StateStoringType.LocalStorage))
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowAdding(false)
+                          .AllowUpdating(false)
+                          .AllowDeleting(false)
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  .OnInitialized("grdMatInout_OnInitialized")
+                  .Option("KEY_FIELD", new object[]
+                  {
+                      "WORKDATE", "SERIALNUMBER", "LOTNUMBER", "PRODUCTTYPE", "MATERIALTYPE",
+                      "PARTNUMBER", "MATERIALNAME", "WAREHOUSECODE", "TRANSCODE", "VENDORCODE",
+                      "QUANTITY", "HOLDINGYN", "MEMO", "CANCELYN", "CANCELTIME", "CREATEDATE", "CREATEUSER"
+                  })
+                  .Option("USE_REQUIRED_HEADER", true)
+                  )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function grdMatInout_customLoad() {
+        var state = localStorage.getItem(this.storageKey);
+        var value =  ([(new Date()).addDays(-7), new Date()]);
+        var value2 = [new Date('@DateTime.Now.AddDays(-7).Date.ToString("yyyy-MM-dd")'), new Date('@DateTime.Now.Date.ToString("yyyy-MM-dd")')];
+        if (state) {
+            state = JSON.parse(state);
+            for (var i = 0; i < state.columns.length; i++) {
+                if (state.columns[i].dataField == "WORKDATE") {
+                    //state.columns[i].selectedFilterOperation = "between";
+                    state.columns[i].filterValue = value;
+                }
+            }
+        }
+        return state;
+    }
+
+    function grdMatInout_customSave(state) {
+        localStorage.setItem(this.storageKey, JSON.stringify(state));
+    }  
+
+    function grdMatInout_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

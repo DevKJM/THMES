@@ -1,0 +1,145 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAC;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().Chart()
+                .ID("chtDefectSum")
+                .CommonSeriesSettings(s => s.Type(SeriesType.Bar))
+                .Tooltip(t => t.Enabled(true).CustomizeTooltip("chtDefectSum_CustomizeTooltip"))
+                .Size(s => s.Height(320))
+                .AdaptiveLayout(l => l.Width(450))
+            )
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12">
+           @(Html.DevExtreme().PivotGrid<QUAC001_LIST>()
+                .ID("pivDefectHis")
+                .AllowSorting(true)
+                .AllowSortingBySummary(true)
+                .ShowBorders(true)
+                .RowHeaderLayout(PivotGridRowHeadersLayout.Tree)
+                .OnContentReady("pivDefectHis_OnContentReady")
+                .OnCellClick("pivDefectHis_OnCellClick")
+                .Scrolling(e => e.Mode(PivotGridScrollingMode.Virtual))
+                .AllowExpandAll(true)
+                .Export(e => e.Enabled(true))
+                //.StateStoring(s=>s.Enabled(true).StorageKey("QUAC001_pivDefectHis").Type(StateStoringType.LocalStorage))
+                .DataSource(d => d.RemoteOperations(true).Store(s => s.WebApi().Controller("QUAC001WebApi").Key("DEFECTHISSEQ"))
+                .Fields(fields => {
+                    
+                    fields.AddFor(m=>m.PROCESSNAME)
+                        .Width(250)
+                        .SortOrder(SortOrder.Desc)
+                        .Area(PivotGridArea.Row)
+                        ;
+
+                    fields.AddFor(m=>m.DEFECTNAME)
+                        .Width(250)
+                        .SortOrder(SortOrder.Desc)
+                        .Area(PivotGridArea.Row);
+
+                    fields.AddFor(m=>m.CREATEDATE)
+                        .DataType(PivotGridDataType.Date)
+                        .Area(PivotGridArea.Column)
+                        .AllowFiltering(true)
+                        .HeaderFilter(h=>h.AllowSearch(true))
+                        .FilterType(FilterType.Include)
+                        .FilterValues(new JS("[[thisYear]]"))
+                        ;
+
+                    fields.AddFor(m=>m.DEFECTQUANTITY)
+                        .SummaryType(SummaryType.Sum)
+                        .Format(Format.FixedPoint)
+                        .Area(PivotGridArea.Data);
+
+                    fields.Add()
+                        .DataField("DEFECTHISSEQ")
+                        .Visible(false);
+                })
+            )
+        )
+        </div>
+    </div>
+</div>
+
+@(Html.DevExtreme().Popup()
+    .ID("popDefectDetail")
+    .ContentTemplate(@<text>
+        @(Html.DevExtreme().DataGrid<QUAC001_LIST>()
+            .ID("grdDefectDetail")
+            .ColumnAutoWidth(true)
+            .ShowBorders(true)
+            .FilterRow(f=>f.Visible(true))
+            .SearchPanel(s=>s.Visible(true))
+            .OnInitialized("grdDefectDetail_OnInitialized")
+            .Columns(columns => {
+                columns.AddFor(m => m.PROCESSNAME);
+                columns.AddFor(m => m.DEFECTNAME);
+                columns.AddFor(m => m.DEFECTQUANTITY).Format(f=>f.Type(Format.FixedPoint));
+                columns.AddFor(m => m.CREATEUSER);
+                columns.AddFor(m => m.CREATEDATE).Format(f=>f.Type(Format.LongDateLongTime));
+            }))
+    </text>)
+    .OnShowing("popup_showing")
+    .OnShown("popup_shown")
+)
+
+<script>
+
+    var drillDownDataSource = {};
+    var thisYear = Globalize('en').dateFormatter({ skeleton:'y'})(new Date());
+
+    function grdDefectDetail_OnInitialized(e) {
+        userCustomGrid(e); 
+    }
+
+    function pivDefectHis_OnCellClick(e) {
+        if(e.area == "data") {
+            var pivotGridDataSource = e.component.getDataSource(),
+                rowPathLength = e.cell.rowPath.length,
+                rowPathName = e.cell.rowPath[rowPathLength - 1],
+                popupTitle = (rowPathName ? rowPathName : "Total") + " @LabelText.LIST",
+                salesPopup = $("#popDefectDetail").dxPopup("instance");    
+            drillDownDataSource = pivotGridDataSource.createDrillDownDataSource(e.cell);
+            salesPopup.option("title", popupTitle);
+            salesPopup.show();
+        }
+    }
+
+    function popup_showing() {
+        $("#grdDefectDetail")
+                .dxDataGrid("instance")
+                .option("dataSource", drillDownDataSource);
+    }
+
+    function popup_shown() {
+        $("#grdDefectDetail")
+                .dxDataGrid("instance")
+                .updateDimensions();
+    }
+
+    function chtDefectSum_CustomizeTooltip(e) {
+        return {
+            html: e.seriesName + "<div>"
+                + Globalize.numberFormatter()(e.originalValue) + "</div>"
+        };
+    }
+
+    function pivDefectHis_OnContentReady(e) {
+     e.component.bindChart($("#chtDefectSum"), {
+            dataFieldsDisplayMode: "splitPanes",
+            alternateDataFields: false
+        });
+    }
+</script>

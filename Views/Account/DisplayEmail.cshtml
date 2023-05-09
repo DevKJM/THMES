@@ -1,0 +1,63 @@
+﻿@using JSMES.WebUI.Alpha.App_GlobalResources
+@{
+    Layout = "~/Views/Shared/_SingleLayout.cshtml";
+    ViewBag.Title = "Email Authentication";
+}
+
+<div class="card-body">
+    <h2>@LabelText.EMAIL_AUTHENTICATION</h2>
+    <hr />
+    <div>
+        <br />
+        <p>
+            <span class="text-info">@ViewBag.Email</span> @LabelText.DISPLAYEMAIL<br />
+            @LabelText.DISPLAYEMAILINFO<br />
+            @LabelText.DISPLAYEMAILINFO2<br />
+            <br />
+            <i class="fa fa-warning"></i> @LabelText.DIDNOTRECEIVEEMAIL<br />
+            <small class="text-secondary">
+                - @LabelText.DIDNOTRECEIVEEMAILINFO<br />
+                - @LabelText.DIDNOTRECEIVEEMAILINFO2
+            </small>
+        </p>
+        <div style="margin-top:10px; margin-bottom:20px;">
+            <a class="text-info" href="javascript:recend_onclick()" style="margin-left:10px;">
+                @LabelText.RECENDEMAIL
+            </a>
+            <a class="text-info" style="margin-left: 10px;" href="/Account/Login">
+                @LabelText.LOGIN
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function recend_onclick() {
+
+        var data = "UserCode=" +
+            "@ViewBag.UserId" +
+            "&UserName=" +
+            "@ViewBag.UserName" +
+            "&Email=" +
+            "@ViewBag.Email" +
+            "&PhoneNumber=" +
+            "@ViewBag.Phone" +
+            "&Password=" +
+            "@ViewBag.Pwd";
+
+        $.ajax({
+            type: "PUT",
+            url: "SendToEmail",
+            data: data,
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (e) {
+                DevExpress.ui.notify('@LabelText.RECEIVETOEMAIL', "info", globalNotificationSuccessTime);
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+
+</script>

@@ -1,0 +1,76 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.MAT.MATD;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<MATD052_LIST>
+                  ()
+                  .ID("grdMatStock")
+                  .DataSource(d => d.WebApi().Controller("MATD052WebApi"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.SERIALNUMBER);
+                      columns.AddFor(m => m.LOTNUMBER);
+                      columns.AddFor(m => m.PARTNUMBER).GroupIndex(0);
+                      columns.AddFor(m => m.PRODUCTNAME);
+                      columns.AddFor(m => m.PRODUCTTYPE).Visible(false)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("PRODUCTTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      
+                      columns.AddFor(m => m.INVENTQUANTITY).Format("#,##0.###");
+                      columns.AddFor(m => m.UNITCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("UNITCODE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                  })
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowAdding(false)
+                          .AllowUpdating(false)
+                          .AllowDeleting(false)
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  .OnInitialized("grdMatStock_OnInitialized")
+                )
+        </div>
+    </div>
+</div>
+<script>
+    function grdMatStock_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

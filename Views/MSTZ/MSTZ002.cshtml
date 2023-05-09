@@ -1,0 +1,157 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTA;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<SyscodeGroupMaster>()
+                    .ID("grdSyscodeGroupMaster")
+                    .DataSource(d => d.WebApi().Controller("MSTZ002WebApi").Key("SYSGROUPID"))
+                    .ShowBorders(true)
+                    .Paging(p => p.PageSize(25).Enabled(true))
+                    .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                    .Editing(e =>
+                        e.Mode(GridEditMode.Batch)
+                            .AllowAdding(true)
+                            .AllowUpdating(true)
+                            .AllowDeleting(true)
+                    )
+                    .Columns(columns =>
+                    {
+                        columns.AddFor(m => m.SYSGROUPCODE).SortOrder(SortOrder.Asc);
+                        columns.AddFor(m => m.SYSGROUPNAME).SortOrder(SortOrder.Asc);
+                        columns.AddFor(m => m.MEMO);
+                        columns.AddFor(m => m.CREATEUSER);
+                        columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                        columns.AddFor(m => m.RECENTUSER);
+                        columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                    })
+                    .OnCellClick("grdSyscodeGroupMaster_OnRowClick")
+                    .OnInitialized("grdSyscodeGroupMaster_OnInitialized")
+                    .RemoteOperations(true)
+                    .FilterPanel(f => f.Visible(true))
+                    .ColumnAutoWidth(true)
+                    .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                    .Selection(s => s.Mode(SelectionMode.Single))
+                    .SearchPanel(searchPanel => searchPanel
+                        .Visible(true)
+                        .Width(180)
+                        .Placeholder("Search...")
+                    )
+                    .FilterRow(filterRow => filterRow
+                        .Visible(true)
+                        .ApplyFilter(GridApplyFilterMode.Auto)
+                    )
+                    .ShowRowLines(true)
+                    .AllowColumnResizing(true)
+                    .RowAlternationEnabled(true)
+                    .Export(e => e.Enabled(true).FileName("공통 코드 관리").ExcelFilterEnabled(true))
+                    .Option("KEY_FIELD", new object[] { "SYSGROUPCODE" })
+                    .Option("INIT_FIELD", new object[] { "PLANTCODE" })
+                    .MasterDetail(m => m
+                            .Enabled(true)
+                            .Template(new TemplateName("grdSyscodeMaster-details"))
+                        )
+            )
+        </div> 
+    </div>
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("grdSyscodeMaster-details"))
+{
+    @(Html.DevExtreme().DataGrid<SyscodeMaster>()
+            .ID(new JS("'grdSyscodeMaster-details-' + data.SYSGROUPCODE"))
+            .ElementAttr("class", "detail-grid")
+            .ShowBorders(true)
+            .ColumnAutoWidth(true)
+            .FilterPanel(f => f.Visible(true))
+            .RowAlternationEnabled(true)
+            .DataSource(d => d.WebApi()
+                .Controller("MSTZ002WebApi")
+                .LoadAction("SyscodeList")
+                .InsertAction("post_SyscodeList")
+                .UpdateAction("put_SyscodeList")
+                .DeleteAction("delete_SyscodeList")
+                .Key("SYSID")
+                .LoadParams(new
+                {
+                    sysGroupCode = new JS("function() { return data.SYSGROUPCODE; }")
+                })
+            )
+            .Paging(p => p.PageSize(5))
+            .OnInitialized("function(e){userCustomGrid(e);}")
+            .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+            .Columns(columns =>
+            {
+                columns.AddFor(m => m.SYSGROUPCODE).AllowEditing(false);
+                columns.AddFor(m => m.SYSCODE).SortOrder(SortOrder.Asc);
+                columns.AddFor(m => m.SYSCODENAME);
+                columns.AddFor(m => m.ATTRIBUTE1);
+                columns.AddFor(m => m.SORTINDEX);
+                columns.AddFor(m => m.MEMO);
+                columns.AddFor(m => m.CREATEUSER);
+                columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                columns.AddFor(m => m.RECENTUSER);
+                columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+            })
+            .Editing(e =>
+                e.Mode(GridEditMode.Batch)
+                .AllowAdding(new JS("iudAuth()"))
+                .AllowUpdating(new JS("iudAuth()"))
+                .AllowDeleting(new JS("iudAuth()"))
+            )
+            .ShowRowLines(true)
+            .OnInitNewRow("grdSyscodeMaster_details_OnInitNewRow")
+            .Option("KEY_FIELD", new object[] { "SYSCODE", "SYSGROUPCODE", "PLANTCODE" })
+            .Option("INIT_FIELD", new object[] { "PLANTCODE" })
+    )
+}
+
+<script>
+    var sysGroupCodeTemp = null; 
+    var sortIndex = 0; 
+
+    function grdSyscodeGroupMaster_OnInitialized(e) {
+        userCustomGrid(e); 
+    }
+
+    function grdSyscodeGroupMaster_OnRowClick(e) {
+        this.selectedValue = e.key;
+        e.component.selectRows([e.key], false);
+    }
+
+    function grdSyscodeMaster_details_OnInitNewRow(e) {  
+        var grid = $("#grdSyscodeGroupMaster").dxDataGrid('instance');
+        var sysGroupCodeRow = grid.getSelectedRowsData();
+
+        var detail = $("#grdSyscodeMaster-details-" + sysGroupCodeRow[0].SYSGROUPCODE).dxDataGrid('instance');
+
+        if (sysGroupCodeTemp != sysGroupCodeRow[0].SYSGROUPCODE) {
+            sortIndex = 0;
+            sysGroupCodeTemp = sysGroupCodeRow[0].SYSGROUPCODE;
+        }
+
+        for (var i = 0; i < detail.getDataSource()._items.length; i++) {
+            if (sortIndex < detail.getDataSource()._items[i].SORTINDEX) {
+                sortIndex = detail.getDataSource()._items[i].SORTINDEX +1;
+            }
+        }
+
+        if (detail.getDataSource()._items.length > 0) {
+            e.data.SORTINDEX = sortIndex == 0 ? 0 : sortIndex;
+        }
+        else {
+            e.data.SORTINDEX = sortIndex;
+        }
+        sortIndex++;
+        
+        //e.data.PLANTCODE = sysGroupCodeRow[0].PLANTCODE;
+        e.data.SYSGROUPCODE = sysGroupCodeRow[0].SYSGROUPCODE;
+    }
+</script>
+
+@Html.Partial("_DropdownPartial")

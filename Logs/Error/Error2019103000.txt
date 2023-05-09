@@ -1,0 +1,438 @@
+2019-10-29 14:50:32.8792|ERROR|NLogCommandInterceptor|Command SELECT
+`GroupBy1`.`A1` AS `C1`
+FROM (SELECT
+COUNT(1) AS `A1`
+FROM `__MigrationHistory` AS `Extent1`
+ WHERE `Extent1`.`ContextKey` = @p__linq__0) AS `GroupBy1` failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.__migrationhistory' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 14:50:32.8792|ERROR|NLogCommandInterceptor|Command SELECT
+`GroupBy1`.`A1` AS `C1`
+FROM (SELECT
+COUNT(1) AS `A1`
+FROM `__MigrationHistory` AS `Extent1`) AS `GroupBy1` failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.__migrationhistory' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 14:50:32.9970|ERROR|NLogCommandInterceptor|Command SELECT
+`Extent1`.`Id`, 
+`Extent1`.`ModelHash`
+FROM `EdmMetadata` AS `Extent1`
+ ORDER BY 
+`Extent1`.`Id` DESC LIMIT 1 failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.edmmetadata' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 14:52:30.4638|ERROR|NLogCommandInterceptor|Command SELECT
+`GroupBy1`.`A1` AS `C1`
+FROM (SELECT
+COUNT(1) AS `A1`
+FROM `__MigrationHistory` AS `Extent1`
+ WHERE `Extent1`.`ContextKey` = @p__linq__0) AS `GroupBy1` failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.__migrationhistory' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 14:52:30.4768|ERROR|NLogCommandInterceptor|Command SELECT
+`GroupBy1`.`A1` AS `C1`
+FROM (SELECT
+COUNT(1) AS `A1`
+FROM `__MigrationHistory` AS `Extent1`) AS `GroupBy1` failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.__migrationhistory' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 14:52:30.5486|ERROR|NLogCommandInterceptor|Command SELECT
+`Extent1`.`Id`, 
+`Extent1`.`ModelHash`
+FROM `EdmMetadata` AS `Extent1`
+ ORDER BY 
+`Extent1`.`Id` DESC LIMIT 1 failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.edmmetadata' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 15:10:02.0233|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): '/THMES/' 경로에 대한 컨트롤러가 없거나 이 컨트롤러가 IController를 구현하지 않습니다.
+   위치: System.Web.Mvc.DefaultControllerFactory.GetControllerInstance(RequestContext requestContext, Type controllerType)
+   위치: System.Web.Mvc.MvcHandler.ProcessRequestInit(HttpContextBase httpContext, IController& controller, IControllerFactory& factory)
+   위치: System.Web.Mvc.MvcHandler.BeginProcessRequest(HttpContextBase httpContext, AsyncCallback callback, Object state)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:10:10.4182|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): '/THMES/' 경로에 대한 컨트롤러가 없거나 이 컨트롤러가 IController를 구현하지 않습니다.
+   위치: System.Web.Mvc.DefaultControllerFactory.GetControllerInstance(RequestContext requestContext, Type controllerType)
+   위치: System.Web.Mvc.MvcHandler.ProcessRequestInit(HttpContextBase httpContext, IController& controller, IControllerFactory& factory)
+   위치: System.Web.Mvc.MvcHandler.BeginProcessRequest(HttpContextBase httpContext, AsyncCallback callback, Object state)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:29:34.1260|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:29:43.2333|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:29:53.6809|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:30:10.4044|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:30:30.7236|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:30:52.2461|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:31:02.2905|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:31:18.3087|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:31:22.8681|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:31:27.1592|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:31:31.4177|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:32:02.9670|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:32:46.8399|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:33:05.5729|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:33:54.3285|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:35:36.2266|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 15:37:24.7541|ERROR|JSMES.WebUI.Alpha.MvcApplication|System.Web.HttpException (0x80004005): HTTP 헤더를 보낸 후에는 서버에서 상태를 설정할 수 없습니다.
+   위치: System.Web.HttpResponse.set_StatusCode(Int32 value)
+   위치: System.Web.Mvc.HttpStatusCodeResult.ExecuteResult(ControllerContext context)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.<>c__DisplayClass3_1.<BeginInvokeAction>b__1(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncControllerActionInvoker.EndInvokeAction(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.<>c.<BeginExecuteCore>b__152_1(IAsyncResult asyncResult, ExecuteCoreState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecuteCore(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.Controller.EndExecute(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.<>c.<BeginProcessRequest>b__20_1(IAsyncResult asyncResult, ProcessRequestState innerState)
+   위치: System.Web.Mvc.Async.AsyncResultWrapper.WrappedAsyncVoid`1.CallEndDelegate(IAsyncResult asyncResult)
+   위치: System.Web.Mvc.MvcHandler.EndProcessRequest(IAsyncResult asyncResult)
+   위치: System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   위치: System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   위치: System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2019-10-29 16:11:32.5885|ERROR|NLogCommandInterceptor|Command SELECT
+`GroupBy1`.`A1` AS `C1`
+FROM (SELECT
+COUNT(1) AS `A1`
+FROM `__MigrationHistory` AS `Extent1`
+ WHERE `Extent1`.`ContextKey` = @p__linq__0) AS `GroupBy1` failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.__migrationhistory' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 16:11:32.6146|ERROR|NLogCommandInterceptor|Command SELECT
+`GroupBy1`.`A1` AS `C1`
+FROM (SELECT
+COUNT(1) AS `A1`
+FROM `__MigrationHistory` AS `Extent1`) AS `GroupBy1` failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.__migrationhistory' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 16:11:32.6375|ERROR|NLogCommandInterceptor|Command SELECT
+`Extent1`.`Id`, 
+`Extent1`.`ModelHash`
+FROM `EdmMetadata` AS `Extent1`
+ ORDER BY 
+`Extent1`.`Id` DESC LIMIT 1 failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.edmmetadata' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 16:13:24.5919|ERROR|NLogCommandInterceptor|Command SELECT
+`GroupBy1`.`A1` AS `C1`
+FROM (SELECT
+COUNT(1) AS `A1`
+FROM `__MigrationHistory` AS `Extent1`
+ WHERE `Extent1`.`ContextKey` = @p__linq__0) AS `GroupBy1` failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.__migrationhistory' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 16:13:24.5999|ERROR|NLogCommandInterceptor|Command SELECT
+`GroupBy1`.`A1` AS `C1`
+FROM (SELECT
+COUNT(1) AS `A1`
+FROM `__MigrationHistory` AS `Extent1`) AS `GroupBy1` failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.__migrationhistory' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)
+2019-10-29 16:13:24.6648|ERROR|NLogCommandInterceptor|Command SELECT
+`Extent1`.`Id`, 
+`Extent1`.`ModelHash`
+FROM `EdmMetadata` AS `Extent1`
+ ORDER BY 
+`Extent1`.`Id` DESC LIMIT 1 failed with exception MySql.Data.MySqlClient.MySqlException (0x80004005): Table 'thmes.edmmetadata' doesn't exist
+   위치: MySql.Data.MySqlClient.MySqlStream.ReadPacket()
+   위치: MySql.Data.MySqlClient.NativeDriver.GetResult(Int32& affectedRow, Int64& insertedId)
+   위치: MySql.Data.MySqlClient.Driver.NextResult(Int32 statementId, Boolean force)
+   위치: MySql.Data.MySqlClient.MySqlDataReader.NextResult()
+   위치: MySql.Data.MySqlClient.MySqlCommand.ExecuteReader(CommandBehavior behavior)
+   위치: MySql.Data.EntityFramework.EFMySqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   위치: System.Data.Entity.Infrastructure.Interception.InternalDispatcher`1.Dispatch[TTarget,TInterceptionContext,TResult](TTarget target, Func`3 operation, TInterceptionContext interceptionContext, Action`3 executing, Action`3 executed)

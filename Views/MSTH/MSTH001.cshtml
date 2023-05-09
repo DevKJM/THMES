@@ -1,0 +1,326 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTH;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-4 col-md-12">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @string.Format("{0} {1}", LabelText.ROUTEGROUP, LabelText.LIST) </i></span></h4>
+            @(Html.DevExtreme().DataGrid<SyscodeMaster>()
+                .ID("grdSysRouteGroupList")
+                .DataSource(d => d.WebApi()
+                    .Controller("MSTH001WebApi").Key("SYSID")
+                    .LoadAction("getSysRouteGroupList")
+                    .InsertAction("postSysRouteGroupList")
+                    .UpdateAction("putSysRouteGroupList")
+                    .DeleteAction("deleteSysRouteGroupList")
+                )
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.SYSID).Visible(false);
+                    columns.AddFor(m => m.SYSGROUPCODE).Visible(false);
+                    columns.AddFor(m => m.SYSCODE);
+                    columns.AddFor(m => m.SYSCODENAME);
+                })
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+              
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .Selection(s => s.Mode(SelectionMode.Single))
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .Editing(e =>
+                    e.Mode(GridEditMode.Batch)
+                        .AllowUpdating(new JS("iudAuth()"))
+                        .AllowAdding(new JS("iudAuth()"))
+                        .AllowDeleting(new JS("iudAuth()"))
+                )
+                .RowAlternationEnabled(true)
+                .ShowRowLines(true)
+                .KeyboardNavigation(options =>
+                                        {
+                                            // MoveFocus : 엔터시 이동 
+                                            // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                                            options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                                            // 엔터 이외 키 입력시 EditMode 여부
+                                            options.EditOnKeyPress(true);
+                                            // Row : 엔터시 열 단위 이동 →
+                                            // Column : 엔터시 행 단위 이동 ↓
+                                            options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                                        })
+                .OnCellClick("grdSysRouteGroupList_OnRowClick")
+                .OnInitNewRow("grdSysRouteGroupList_OnInitNewRow")
+                .OnInitialized("grdSysRouteGroupList_OnInitialized")
+                .Option("KEY_FIELD", new object[] { "SYSCODE", "SYSNAME" })
+                .Option("IGNORE_AUTOWIDTH", new object[] { "SYSCODE", "SYSNAME" })
+            )
+        </div>
+        <div class="col-xl-8 col-md-12">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @string.Format("{0} {1}", LabelText.ROUTE, LabelText.LIST) </i></span></h4>
+            @(Html.DevExtreme().DataGrid<MSTH001_LIST>()
+                    .ID("grdProcessList")
+                    .DataSource(d => d.WebApi().Controller("MSTH001WebApi")
+                    .Key("PROCESSID")
+                    .OnBeforeSend("grdProcessList_OnBeforeSend")
+                )
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.CHKUSEYN).Width(100).SortOrder(SortOrder.Desc).SortIndex(0);
+                    columns.AddFor(m => m.ROUTEGROUPID).Visible(false);
+                    columns.AddFor(m => m.ROUTEGROUPCODE).AllowEditing(false).Visible(false);
+                    columns.AddFor(m => m.ROUTEGROUPNAME).AllowEditing(false).Visible(false);
+                    columns.AddFor(m => m.PROCESSSQEUENCE).SortOrder(SortOrder.Asc).SortIndex(1);
+                    columns.AddFor(m => m.PROCESSID).Visible(false);
+                    columns.AddFor(m => m.PROCESSCODE).SortOrder(SortOrder.Asc).SortIndex(2)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                .Controller("MSTF001WebApi")
+                                .Key("PROCESSCODE")
+                            )
+                            .DisplayExpr("PROCESSNAME")
+                            .ValueExpr("PROCESSCODE")
+                        );
+                    columns.AddFor(m => m.CREATEUSER).Visible(true)
+                        .Lookup(lookup => lookup
+                            .DataSource(d => d.WebApi()
+                                .Controller("COMA001WebApi")
+                                .Key("EMPCODE")
+                                .LoadAction("HR_LIST")
+                            )
+                            .DisplayExpr("EMPNAME")
+                            .ValueExpr("EMPCODE")
+                        );
+                    columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime)).Visible(true);
+                    columns.AddFor(m => m.RECENTUSER).Visible(true).Lookup(lookup => lookup
+                        .DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi")
+                            .Key("EMPCODE")
+                            .LoadAction("HR_LIST")
+                        )
+                        .DisplayExpr("EMPNAME")
+                        .ValueExpr("EMPCODE")
+                    );
+                    columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime)).Visible(true);
+                })
+                .ShowRowLines(true)
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                    .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .Editing(e =>
+                    e.Mode(GridEditMode.Batch)
+                        .AllowUpdating(new JS("iudAuth()"))
+                )
+                .RowAlternationEnabled(true)
+                .KeyboardNavigation(options =>
+                {
+                    // MoveFocus : 엔터시 이동 
+                    // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                    options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                    // 엔터 이외 키 입력시 EditMode 여부
+                    options.EditOnKeyPress(true);
+                    // Row : 엔터시 열 단위 이동 →
+                    // Column : 엔터시 행 단위 이동 ↓
+                    options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                })
+                .Option("KEY_FIELD", new object[] { "ROUTEGROUPID", "ROUTEGROUPCODE", "ROUTEGROUPNAME", "PROCESSID", "PROCESSCODE", "CREATEDATE", "CREATEUSER", "RECENTDATE", "RECENTUSER"  })
+                .Option("IGNORE_AUTOWIDTH", new object[] { "ROUTEGROUPID", "ROUTEGROUPCODE", "ROUTEGROUPNAME", "PROCESSID", "PROCESSCODE", "CREATEDATE", "CREATEUSER", "RECENTDATE", "RECENTUSER" })
+                .OnInitialized("grdProcessList_OnInitialized")
+                .OnEditorPreparing("grdProcessList_OnEditorPreparing")
+                .OnRowUpdating("grdProcessList_onRowEditing")
+                .OnRowInserting("grdProcessList_onRowEditing")
+                .OnRowRemoving("grdProcessList_onRowEditing")
+                .OnContentReady("grdProcessList_onContentReady")
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function grdProcessList_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdSysRouteGroupList_OnInitialized(e) {
+        userCustomGrid(e);
+
+        var grid = e.component;
+        var editing = grid.option('editing');
+        editing.allowDeleting = true;
+    }
+
+    function grdSysRouteGroupList_OnInitNewRow(e) {
+        e.data.SYSGROUPCODE = "ROUTEGROUP";
+    }
+
+    function grdSysRouteGroupList_OnRowClick(e) {
+        this.selectedValue = e.key;
+        e.component.selectRows([e.key], false);
+
+        if (e.rowType == "data") {
+            $('#grdProcessList').dxDataGrid('instance').refresh();
+            $('#grdProcessList').dxDataGrid('instance').cancelEditData();
+        }
+    }
+
+    function grdProcessList_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var routeGroupRow = $('#grdSysRouteGroupList').dxDataGrid('instance').getSelectedRowsData();
+
+            if (routeGroupRow.length > 0) {
+                ajaxOptions.data.RouteGroupCode = routeGroupRow[0].SYSCODE;
+                ajaxOptions.data.RouteGroupName = routeGroupRow[0].SYSCODENAME;
+            } else {
+                ajaxOptions.data.RouteGroupCode = "";
+                ajaxOptions.data.RouteGroupName = "";
+            }
+        } else if (method == "update") {
+            var routeGroupRow = $('#grdSysRouteGroupList').dxDataGrid('instance').getSelectedRowsData();
+
+            var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+
+            var processGrid = $('#grdProcessList').dxDataGrid('instance');
+            var processData = processGrid.getDataSource();
+            var index = processGrid.getRowIndexByKey(ajaxOptions.data.key);
+            var processCode = processGrid.cellValue(index, 'PROCESSCODE');
+            var processSequence = processGrid.cellValue(index, 'PROCESSSQEUENCE');
+            var UseYN = processSequence != null ? "Y" : "N"
+
+            var isValidation = true;
+            if (processGrid.cellValue(index, "ROUTEGROUPCODE") == null) {
+           
+                DevExpress.ui.dialog.alert('@LabelText.SELECTROUTEGROUP', 'error', globalNotificationErrorTime);
+                isValidation = false;
+            }
+            for (var i = 0; i < processData._items.length; i++) {
+                if (processGrid.cellValue(i, "PROCESSCODE") != processCode) {
+                    if (processGrid.cellValue(i, "PROCESSSQEUENCE") != "" && processGrid.cellValue(i, "PROCESSSQEUENCE") != null) {
+                        if (processGrid.cellValue(i, "PROCESSSQEUENCE") == processSequence) {
+                        
+                            DevExpress.ui.dialog.alert('@LabelText.PROCESSINDEXEXISTED', 'error', globalNotificationErrorTime);
+                            isValidation = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (isValidation) {
+                if (processSequence == null) {
+                    processSequence = 0;
+                }
+                if (routeGroupRow.length > 0) {
+                    parseJson.RouteGroupCode = routeGroupRow[0].SYSCODE;
+                    parseJson.RouteGroupName = routeGroupRow[0].SYSCODENAME;
+                    parseJson.ProcessCode = processCode;
+                    parseJson.PROCESSSQEUENCE = processSequence;
+                    parseJson.USEYN = UseYN == true ? "Y" : "N";
+                    ajaxOptions.data.values = JSON.stringify(parseJson);
+                }
+            }
+            else {
+                method.abort();
+            }
+        }
+    }
+
+    function grdProcessList_VIEWYN_HeaderCellTemplate(container, options) {
+        $('<div>')
+            .appendTo(container)
+            .dxCheckBox().text("S");
+    }
+
+    function grdProcessList_OnEditorPreparing(e) {
+        if (e.parentType == 'dataRow') {
+            var field = e.dataField;
+            var rowIndex = e.row.rowIndex;
+            var onValueChanged = e.editorOptions.onValueChanged;
+            e.editorOptions.onValueChanged = function (args) {
+                onValueChanged.apply(this, arguments);
+
+                var grid = $("#grdProcessList").dxDataGrid('instance');
+                var data = grid.getDataSource();
+
+                var maxValue = 0;
+                if (field == 'PROCESSSQEUENCE') {
+                    if (args.value != null && args.value > 0) {
+                        grid.cellValue(rowIndex, "CHKUSEYN", true)
+                    }
+                    else {
+                        grid.cellValue(rowIndex, "CHKUSEYN", false)
+                    }
+                }
+                else if (field = "CHKUSEYN") {
+                    if (args.value) {
+                        if (grid.cellValue(rowIndex, "PROCESSSQEUENCE") == null && grid.cellValue(rowIndex, "PROCESSSQEUENCE") <= 0) {
+                            for (var i = 0; i < data._items.length; i++) {
+                                if (grid.cellValue(i, "PROCESSSQEUENCE") != null && grid.cellValue(i, "PROCESSSQEUENCE") > 0) {
+                                    if (maxValue < grid.cellValue(i, "PROCESSSQEUENCE")) {
+                                        maxValue = grid.cellValue(i, "PROCESSSQEUENCE");
+                                    }
+                                }
+                            }
+                            grid.cellValue(rowIndex, "PROCESSSQEUENCE", maxValue + 1);
+                        }
+                    }
+                    else {
+                        // 체크 해제 시 공정 순서 값이 있으면 하위 공정 순서 항목 값 -1 처리.
+                        for (var i = 0; i < data._items.length; i++) {
+                            if (grid.cellValue(i, "PROCESSSQEUENCE") != null && grid.cellValue(i, "PROCESSSQEUENCE") > 0) {
+                                if (grid.cellValue(rowIndex, "PROCESSSQEUENCE") < grid.cellValue(i, "PROCESSSQEUENCE")) {
+                                    grid.cellValue(i, "PROCESSSQEUENCE", grid.cellValue(i, "PROCESSSQEUENCE") - 1);
+                                }
+                            }
+                        }
+                        
+                        grid.cellValue(rowIndex, "PROCESSSQEUENCE", null);
+                    }
+                }
+            }
+        }
+    }
+
+    var updating = false;
+
+    function grdProcessList_onRowEditing(e) {
+        if(!updating)
+            updating = true;
+    }
+
+    function grdProcessList_onContentReady(e) {
+        if(updating && !e.component.hasEditData()){  // updates finished successfully
+            updating = false;
+            DevExpress.ui.notify('@LabelText.JOBSUCCESS', "success", globalNotificationSuccessTime);
+        }
+    }
+</script>

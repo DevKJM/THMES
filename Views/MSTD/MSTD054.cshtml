@@ -1,0 +1,170 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.MST.MSTD;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<MSTD054_LIST>()
+                          .ID("grdCostPerPartNumber")
+                          .DataSource(d => d.WebApi().Controller("MSTD054WebApi").Key("PARTNUMBERUNITCOSTID"))
+                          .Columns(columns =>
+                          {
+                              columns.AddFor(m => m.PARTNUMBER)
+                                .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA001WebApi").Key("PARTNUMBER")
+                                          .LoadAction("PART_LIST"))
+                                      .DisplayExpr("PRODUCTNAME")
+                                      .ValueExpr("PARTNUMBER")
+                                  );
+                              columns.AddFor(m => m.BASEDATE)
+                              .EditCellTemplate(new TemplateName("DateBoxTemplate"))
+                              .DataType(GridColumnDataType.Date).Format(f=>f.Type(Format.ShortDate));
+                              columns.AddFor(m => m.UNITCOST).DataType(GridColumnDataType.Number).Format(f=>f.Type(Format.Currency).Currency("KRW"));
+                              columns.AddFor(m => m.FROMDATE).AllowEditing(false).DataType(GridColumnDataType.Date).Format(f=>f.Type(Format.ShortDate));
+                              columns.AddFor(m => m.TODATE).AllowEditing(false).DataType(GridColumnDataType.Date).Format(f=>f.Type(Format.ShortDate));
+                              columns.AddFor(m => m.MEMO);
+                              columns.Add().DataField("LIMITEDATE").Visible(false);
+                              columns.AddFor(m => m.CREATEUSER);
+                              columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                              columns.AddFor(m => m.RECENTUSER);
+                              columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                          })
+                          .AllowColumnResizing(true)
+                          .RemoteOperations(true)
+                          .FilterPanel(f => f.Visible(true))
+                          .ColumnAutoWidth(true)
+                          .Paging(p => p.PageSize(25).Enabled(true))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .ShowRowLines(true)
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                          .SearchPanel(searchPanel => searchPanel
+                              .Visible(true)
+                              .Width(180)
+                              .Placeholder("Search...")
+                          )
+                          .FilterRow(filterRow => filterRow
+                              .Visible(true)
+                              .ApplyFilter(GridApplyFilterMode.Auto)
+                          )
+                          .ShowBorders(true)
+                          .AllowColumnResizing(true)
+                          .Editing(e =>
+                              e.Mode(GridEditMode.Batch)
+                                  .AllowAdding(new JS("iudAuth()"))
+                                  .AllowDeleting(new JS("iudAuth()"))
+                          )
+                          .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                  .OnInitialized("grdPartNumber_OnInitialized")
+                  .Option("KEY_FIELD", new object[] { "PARTNUMBER" })                  
+                  .OnInitNewRow("grdPartNumber_OnInitNewRow")
+                  .OnRowUpdated("grid_OnRowUpdated")
+                  .OnEditorPreparing("grid_OnEditorPreparing")
+                  .OnRowValidating("grid_OnRowValidating")
+            )
+        </div>
+    </div>
+</div>
+@using(Html.DevExtreme().NamedTemplate("DateBoxTemplate")) {
+    @(Html.DevExtreme().DateBox()        
+        .Value(new JS("value"))
+        .Min(new JS("data.LIMITEDATE"))
+        .OnValueChanged("function(e){ setValue(e.value)}")
+    )
+}
+<script>
+
+    function grid_OnRowValidating(e) {
+        console.log(e);
+    }
+
+    function grid_OnEditorPreparing(e) {
+        var component = e.component,  
+            rowIndex = e.row && e.row.rowIndex;  
+        if(e.dataField === "PARTNUMBER" && rowIndex != undefined) {  
+            var onValueChanged = e.editorOptions.onValueChanged;  
+            
+            e.editorOptions.onValueChanged = function(s) {  
+                onValueChanged.call(this, s);  
+                // Emulating a web service call  
+                component.beginCustomLoading();
+
+                var result = "";
+
+                var dataParam = $.param({
+                    PARTNUMBER: s.value
+                });
+
+                $.ajax({
+                    url: '@Url.Action("getPartNumberUnitCost", "MSTD054WebApi", new { httproute = "DefaultApi" })',
+                    async: false,
+                    data: dataParam,
+                    type: 'GET',
+                    success: function (data) {
+                        console.log(data);
+
+                        if (data == null) {
+                            component.cellValue(rowIndex, "BASEDATE",(new Date()).toLocaleDateString());  
+                            component.cellValue(rowIndex, "FROMDATE",(new Date()).toLocaleDateString());  
+                            component.cellValue(rowIndex, "TODATE", new Date("2200-01-01T00:00:00"));  
+                        } else {
+                            component.cellValue(rowIndex, "BASEDATE", new Date(data.FROMDATE).addDays(1));
+                            component.cellValue(rowIndex, "FROMDATE", new Date(data.FROMDATE).addDays(1));
+                            component.cellValue(rowIndex, "UNITCOST", data.UNITCOST);  
+                            component.cellValue(rowIndex, "TODATE", new Date("2200-01-01T00:00:00"));  
+                            component.cellValue(rowIndex, "LIMITEDATE", new Date(data.FROMDATE).addDays(1));  
+                        }
+
+                        component.endCustomLoading();
+                    },
+                    error: function (d) {
+                        showError(this, d);
+                                            
+                            component.endCustomLoading();
+                    }
+                });
+            }  
+        } else if(e.dataField === "BASEDATE" && rowIndex != undefined) {  
+            var onValueChanged = e.editorOptions.onValueChanged;  
+            
+            e.editorOptions.onValueChanged = function(s) {  
+                onValueChanged.call(this, s);
+                // Emulating a web service call  
+                component.cellValue(rowIndex, "FROMDATE", new Date(s.value));
+            }  
+        }  
+    }
+
+    function grid_OnRowUpdated(e) {
+        console.log(e);
+    }
+
+    function grdPartNumber_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdPartNumber_OnInitNewRow(e) {
+        //e.data.SAFETYINVENTQUANTITY = 0;
+    }
+
+</script>
+
+
+@Html.Partial("_DropdownPartial")

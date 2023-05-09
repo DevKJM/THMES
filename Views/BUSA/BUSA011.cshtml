@@ -1,0 +1,600 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.BUS.BUSA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.StatusStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 mt-2">
+            @(Html.DevExtreme().DataGrid<BUSA011B_LIST>()
+                        .ID("grdShippingplan")
+                        .DataSource(d => d.WebApi()
+                            .Controller("BUSA011WebApi")
+                            .Key("VENDORCODE", "PARTNUMBER")
+                            .OnBeforeSend("grdShippingplan_OnBeforeSend")
+                        )
+                        .Columns(columns =>
+                        {
+                            columns.AddFor(m => m.VENDORCODE).Fixed(true).AllowEditing(true).SortIndex(0).SortOrder(SortOrder.Asc)
+                                .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                .Controller("COMA001WebApi").Key("VENDORCODE")
+                                .LoadAction("VENDOR_SELLYN_LIST"))
+                                .DisplayExpr("VENDORNAME")
+                                .ValueExpr("VENDORCODE")
+                            //.Option("popupWidth", "500px")
+                            );
+
+                            columns.AddFor(m => m.PARTNUMBER).Width(250).Fixed(true).AllowEditing(false).Caption("품번");
+
+                            columns.AddFor(m => m.PARTNUMBER).Width(250).Fixed(true).SortIndex(1).SortOrder(SortOrder.Asc)
+                                .Lookup(l => l.DataSource(d => d.WebApi()
+                                        .Controller("COMA001WebApi")
+                                        .LoadAction("PART_CUSTOMER_LIST")
+                                        .Key("PARTNUMBER")
+                                        .OnBeforeSend("grdShippingplan_column_OnBeforeSend")
+                                    )
+                                    .ValueExpr("PARTNUMBER")
+                                    .DisplayExpr("PRODUCTNAME").AllowClearing(true)
+                                    .DataSourceOptions(d => d.Sort("PARTNUMBER", false))
+                                )
+                                .EditCellTemplate(new TemplateName("EmbeddedPART"))
+                                .SetCellValue("function(newData , value , currentRowData)" +
+                                              "{newData.CUSTOMERPARTNUMBER = value.CUSTOMERPARTNUMBER;" +
+                                              "newData.PRODUCTNAME = value.PARTNUMBER;" +
+                                              "newData.PARTNUMBER = value.PARTNUMBER;" +
+                                          " if(value.PARTNUMBER != currentRowData.PARTNUMBER) $('#grdShippingplan').dxDataGrid('instance').closeEditCell();}");
+
+                            columns.AddFor(m => m.CUSTOMERPARTNUMBER).Width(250).Fixed(true).AllowEditing(false);
+                        })
+                        .RemoteOperations(true)
+                        .FilterPanel(f => f.Visible(true))
+                        .ColumnAutoWidth(true)
+                        .Paging(p => p.PageSize(25).Enabled(true))
+                        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                        .SearchPanel(searchPanel => searchPanel
+                            .Visible(true)
+                            .Width(180)
+                            .Placeholder("Search...")
+                        )
+                        .FilterRow(filterRow => filterRow
+                            .Visible(true)
+                            .ApplyFilter(GridApplyFilterMode.Auto)
+                        )
+                        .FilterPanel(f => f.Visible(false))
+                        .ShowBorders(true)
+                        .AllowColumnResizing(true)
+                        .Editing(e =>
+                        {
+                            e.Mode(GridEditMode.Batch);
+                            e.AllowAdding(new JS("iudAuth()"));
+                            e.AllowUpdating(new JS("iudAuth()"));
+                            e.AllowDeleting(new JS("iudAuth()"));
+                            e.SelectTextOnEditStart(new JS("iudAuth()"));
+                            e.StartEditAction(GridStartEditAction.Click);
+                        })
+                        .ShowRowLines(true)
+                        .RowAlternationEnabled(true)
+                        .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                        .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                        .OnToolbarPreparing("grdShippingplan_OnToolbarPreparing")
+                        .OnInitNewRow("grdShippingplan_OnInitNewRow")
+                        .OnInitialized("grdShippingplan_OnInitialized")
+            )
+        </div>
+    </div>
+</div>
+
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPART"))
+{
+    @(Html.DevExtreme().DropDownBox()
+                .ID("ddbPart")
+                .Value(new JS("data.PARTNUMBER"))
+                .ValueExpr("PARTNUMBER")
+                .DisplayExpr("PRODUCTNAME")
+                  .DropDownOptions(d => d.Width(600))
+                .DataSource(d => d.WebApi().Controller("BUSA011WebApi").LoadAction("PART_CUSTOMER_LIST").Key("PARTNUMBER")
+                .OnBeforeSend(@<text>
+                    function(method, ajaxOptions){
+                    if(data.VENDORCODE != null || data.VENDORCODE == ""){
+                    ajaxOptions.data.customer = data.VENDORCODE;
+                    }
+                    else{
+                    ajaxOptions.data.customer = "";
+                    }
+                    }
+                </text>))
+                            .AcceptCustomValue(true)
+                            .OnValueChanged(@<text>
+                                function(e){
+                                setValue(e.value);
+                                }
+                            </text>)
+                                          .DataSourceOptions(d => d.Sort("PARTNUMBER", false))
+                                        .ContentTemplate(new TemplateName("EmbeddedPARTSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPARTSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                .ID("grdPartSingle")
+                .DataSource(new JS(@"component.option(""dataSource"")"))
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+                })
+                //.Width("500")
+                .HoverStateEnabled(true)
+                .Paging(p => p.PageSize(10))
+                .FilterRow(f => f.Visible(true))
+                .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                .Height(345)
+                .Selection(s => s.Mode(SelectionMode.Single))
+                .SelectedRowKeys(new JS(@"component.option(""value"")"))
+                .OnSelectionChanged(@<text>
+                    function(selectedItems) {
+                    var haskey;
+                    var keys = selectedItems.selectedRowKeys;
+
+                    if(typeof keys !== undefined && keys.length > 0)
+                    {
+                    haskey = true;
+                    }
+
+                    if(typeof keys !== 'undefined' && keys.length > 0){
+                    if(!(selectedItems.currentDeselectedRowKeys.length > 1)){
+                    component.close();
+                    }
+                    }
+
+                    if (haskey != undefined){
+                    component.option("value", selectedItems.selectedRowsData[0])
+                    }
+                    }
+                </text>)
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedCUSTOMERPART"))
+{
+    @(Html.DevExtreme().DropDownBox()
+                .ID("ddbPart")
+                .Value(new JS("data.PARTNUMBER"))
+                .ValueExpr("PARTNUMBER")
+                .DisplayExpr("PRODUCTNAME")
+                .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("PART_CUSTOMER_LIST").Key("PARTNUMBER")
+                    .OnBeforeSend(@<text>
+                        function(method, ajaxOptions){
+                        if(data.VENDORCODE != null || data.VENDORCODE == ""){
+                        ajaxOptions.data.customer = data.VENDORCODE;
+                        }
+                        else{
+                        ajaxOptions.data.customer = "";
+                        }
+                        }
+                    </text>))
+                            .AcceptCustomValue(true)
+                            .OnValueChanged(@<text>
+                                function(e){
+                                setValue(e.value[0]);
+                                console.log(e);
+                                }
+                            </text>)
+                                        .OnOpened(@<text>
+                                            function (e) {
+                                            e.component.content().parent().width(350);
+                                            console.log(data);
+                                            var trans = e.component.content().parent().css('transform');
+                                            var matrix = trans.replace(/[^0-9\-.,]/g, '').split(',');
+                                            var vLeft = 350 - (window.innerWidth - matrix[4]);
+                                            if (vLeft > 0) {
+                                            e.component.content().parent().css('left', -(vLeft + 5));
+                                            }
+                                            }
+                                        </text>)
+                                                    .ContentTemplate(new TemplateName("EmbeddedPARTSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPARTSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                .ID("grdPartSingle")
+                .DataSource(new JS(@"component.option(""dataSource"")"))
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+                })
+                .HoverStateEnabled(true)
+                .Paging(p => p.PageSize(10))
+                .FilterRow(f => f.Visible(true))
+                .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                .Height(345)
+                .Selection(s => s.Mode(SelectionMode.Single))
+                .SelectedRowKeys(new JS(@"component.option(""value"")"))
+                .OnSelectionChanged(@<text>
+                    function(selectedItems) {
+                    var keys = selectedItems.selectedRowKeys;
+                    component.option("value", keys);
+                    }
+                </text>)
+    )
+}
+
+@*엑셀 업로드*@
+@(Html.DevExtreme().Popup()
+      .ID("ExcelUpload_POPUP")
+      .ElementAttr("class", "popup")
+      .ShowTitle(true)
+      .DragEnabled(false)
+      .ContentTemplate(new TemplateName("EmbeddedMSTZ001"))
+      .FullScreen(false)
+      .ShowCloseButton(true)
+      .OnHidden("ExcelUpload_POPUP_OnHidden")
+      )
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedMSTZ001"))
+{
+    //엑셀 업로드 팝업
+@(Html.DevExtreme().FileUploader()
+      .ID("ExcelFileUploader")
+      .Name("myFile")
+      .Multiple(false)
+      .Accept("*")
+      .UploadMode(FileUploadMode.Instantly)
+      .UploadUrl(Url.Action("Upload", "ShippingPlanExcelUpload"))
+      .OnValueChanged("fileUploader_valueChanged")
+      .OnUploaded("grdExcelUpload_onUploaded")
+        .OnInitialized("grdExcelUpload_onInitialized")
+)
+
+    @*<h3>※ KOKR 칼럼값이 중복이면 자동 업데이트 됩니다.</h3>*@
+
+    @(Html.DevExtreme().DataGrid<BUSA011C_LIST>()
+                                        .ID("grdExcelUpload")
+                                        .DataSource(d => d.WebApi().Controller("MSTZ001WebApi").Key("LANGID").LoadAction("getExcelUpload"))
+                                        .Columns(columns =>
+                                        {
+                                            columns.AddFor(m => m.VENDORCODE).Fixed(true).AllowEditing(true).SortIndex(0).SortOrder(SortOrder.Asc)
+                                                .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                .Controller("COMA001WebApi").Key("VENDORCODE")
+                                                .LoadAction("VENDOR_SELLYN_LIST"))
+                                                .DisplayExpr("VENDORNAME")
+                                                .ValueExpr("VENDORCODE")
+                                            //.Option("popupWidth", "500px")
+                                            );
+
+                                            columns.AddFor(m => m.PARTNUMBER).Width(250).Fixed(true).AllowEditing(false).Caption("품번");
+
+                                            columns.AddFor(m => m.PARTNUMBER).Width(250).Fixed(true).SortIndex(1).SortOrder(SortOrder.Asc)
+                                                .Lookup(l => l.DataSource(d => d.WebApi()
+                                                        .Controller("COMA001WebApi")
+                                                        .LoadAction("PART_CUSTOMER_LIST")
+                                                        .Key("PARTNUMBER")
+                                                        .OnBeforeSend("grdShippingplan_column_OnBeforeSend")
+                                                    )
+                                                    .ValueExpr("PARTNUMBER")
+                                                    .DisplayExpr("PRODUCTNAME").AllowClearing(true)
+                                                    .DataSourceOptions(d => d.Sort("PARTNUMBER", false))
+                                                )
+                                                .EditCellTemplate(new TemplateName("EmbeddedPART"))
+                                                .SetCellValue("function(newData , value , currentRowData)" +
+                                                              "{newData.CUSTOMERPARTNUMBER = value.CUSTOMERPARTNUMBER;" +
+                                                              "newData.PRODUCTNAME = value.PARTNUMBER;" +
+                                                              "newData.PARTNUMBER = value.PARTNUMBER;" +
+                                                          " if(value.PARTNUMBER != currentRowData.PARTNUMBER) $('#grdExcelUpload').dxDataGrid('instance').closeEditCell();}");
+
+                                            columns.AddFor(m => m.CUSTOMERPARTNUMBER).Width(250).Fixed(true).AllowEditing(false);
+                                            columns.AddFor(m => m.PLANQUANTITY);
+                                        })
+                                        .HeaderFilter(h => h.Visible(false))
+                                        .ColumnHidingEnabled(true)
+                                        .SearchPanel(s => s.Visible(true))
+                                        .ColumnResizingMode(ColumnResizingMode.Widget)
+                                        .AllowColumnResizing(true)
+                                        .RowAlternationEnabled(true)
+                                        .FilterRow(f => f.Visible(true))
+                                        .ShowBorders(false)
+                                        .ShowColumnLines(true)
+                                        .ShowRowLines(true)
+                                        .ColumnAutoWidth(true)
+                                        .AllowColumnReordering(true)
+                                        .Paging(paging => paging.PageSize(50))
+                                        .Height(300)
+                                        .Pager(pager =>
+                                        {
+                                            pager.ShowPageSizeSelector(true);
+                                            pager.AllowedPageSizes(new List<int> { 50, 100, 200 });
+                                        })
+
+                                        .Editing(e =>
+                                            e.Mode(GridEditMode.Batch)
+                                                .AllowUpdating(new JS("iudAuth()"))
+                                                .AllowAdding(new JS("iudAuth()"))
+                                        )
+                                        .Option("USE_RESIZE", false)
+    )
+}
+
+
+
+
+<script>
+    var plandate;
+
+    $(function () {
+        $('#searchDate').dxDateBox('instance').option('value', new Date());
+        initDateColumnHeader();
+    });
+
+    function grdShippingplan_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function initDateColumnHeader() {
+        var currentDate = $('#searchDate').dxDateBox('instance').option('value');
+
+        gridInstance = $('#grdShippingplan').dxDataGrid('instance');
+        var state = gridInstance.state();
+        var columns = gridInstance.option("columns");
+
+        for (dayIndex = 0; dayIndex < 7; dayIndex++) {
+
+            var caption = (currentDate).addDays(dayIndex);
+            var day = {
+                dataField: "DAY" + (dayIndex + 1),
+                caption: Globalize.dateFormatter({ date: "short" })(caption),
+                format: {
+                    type: "fixedPoint"
+                    //precision: 2
+                }
+            }
+            columns.push(day);
+        }
+
+        //summary 추가
+        var colSum =  {
+            caption: '@LabelText.TOTAL',
+            format: {
+                type: "fixedPoint"
+                //precision: 2
+            },
+            dataType: "number",
+            calculateDisplayValue: function (e) {
+                var totalSum = Number(e.DAY1) + Number(e.DAY2) + Number(e.DAY3) + Number(e.DAY4) + Number(e.DAY5) + Number(e.DAY6) + Number(e.DAY7);
+                return totalSum;
+            },
+            fixed: true,
+            fixedPosition:"right",
+            cssClass : "dx-grandtotal"
+        }
+
+        columns.push(colSum);
+
+        gridInstance.option("columns", columns);
+        gridInstance.state(state);
+    }
+
+
+    function grdShippingplan_column_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            var grid = $('#grdShippingplan').dxDataGrid('instance');
+            var data = grid.getSelectedRowsData();
+            if (data.length > 0) {
+                ajaxOptions.data.customer = data[0].VENDORCODE;
+            }
+            else {
+                ajaxOptions.data.customer = "";
+            }
+        }
+    }
+
+    function grdShippingplan_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                widget: "dxDateBox",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '@LabelText.STANDARDDATE' +"</div> ",
+                location: "before",
+                options: {
+                    elementAttr: { "id": "searchDate" },
+                    onValueChanged: function (e) {
+                        if (e.previousValue != undefined) {
+                            var grid = $('#grdShippingplan').dxDataGrid('instance');
+
+                            grid.refresh();
+
+                            grid.beginUpdate();
+                            var currentDate = $('#searchDate').dxDateBox('instance').option('value');
+                            plandate = currentDate;
+                            for (dayIndex = 0; dayIndex < 7; dayIndex++) {
+                                grid.columnOption('DAY' + (dayIndex + 1), 'caption', Globalize.dateFormatter({ date: "short" })((currentDate).addDays(dayIndex)));
+                            }
+                            grid.endUpdate();
+                        }
+                    }
+                },
+            },
+            {
+                //UPLOAD
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    icon: "glyphicon glyphicon-open",
+                    onClick: function () {
+                        $("#ExcelUpload_POPUP").dxPopup("instance").show();
+                    }
+                }
+            }
+        )
+    }
+
+    function grdShippingplan_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+            var StandardNumber;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                StandardNumber = 7;
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.StandardNumber = StandardNumber == null ? 7 : StandardNumber;
+        } else if (method == "update") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+            var StandardNumber;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                StandardNumber = 7;
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.StandardNumber = StandardNumber == null ? 7 : StandardNumber;
+        } else if (method == "insert") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+            var StandardNumber;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                StandardNumber = 7;
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.StandardNumber = StandardNumber == null ? 7 : StandardNumber;
+        }
+        else if (method == "delete") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+            var StandardNumber;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                StandardNumber = 7;
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.StandardNumber = StandardNumber == null ? 7 : StandardNumber;
+        }
+    }
+
+    function grdShippingplan_OnInitNewRow(e) {
+        e.data.DAY1 = 0;
+        e.data.DAY2 = 0;
+        e.data.DAY3 = 0;
+        e.data.DAY4 = 0;
+        e.data.DAY5 = 0;
+        e.data.DAY6 = 0;
+        e.data.DAY7 = 0;
+    }
+
+
+
+    //
+    //엑셀 업로드 관련 함수 및 이벤트 시작//
+    //
+
+    function grdExcelUpload_onInitialized(e) {
+        $('#ExcelFileUploader').dxFileUploader('instance').reset();
+    }
+
+    function grdExcelUpload_onContentReady(e) {
+        if(updating && !e.component.hasEditData()){  // updates finished successfully
+            //console.log("onContentReady");
+            updating = false;
+            DevExpress.ui.notify('@LabelText.JOBSUCCESS', "success", globalNotificationSuccessTime);
+            $("#ExcelUpload_POPUP").dxPopup("instance").hide();
+        }
+    }
+
+    function fileUploader_valueChanged(e) {
+        var files = e.value;
+        if (files.length > 0) {
+            $("#selected-files").show();
+        }
+        else
+            $("#selected-files").hide();
+    }
+
+        function grdExcelUpload_onUploaded(e) {
+
+        $('#grdExcelUpload').dxDataGrid('instance').cancelEditData();
+        $('#grdExcelUpload').dxDataGrid('instance').refresh();
+
+        $("#grdExcelUpload").dxDataGrid({
+            dataSource: DevExpress.data.AspNet.createStore({
+                key: "LANGID",
+                @*loadUrl: '@Url.Action("getExcelUpload", "MSTZ001WebApi", new { httproute = "DefaultApi" })',
+                insertUrl: '@Url.Action("post", "MSTZ001WebApi", new { httproute = "DefaultApi" })',
+                updateUrl: '@Url.Action("put", "MSTZ001WebApi", new { httproute = "DefaultApi" })',
+                deleteUrl: '@Url.Action("delete", "MSTZ001WebApi", new { httproute = "DefaultApi" })',*@
+            })
+        });
+
+        var jsonLocation = "/Content/Files/" + e.file.name + ".json";
+
+        $.getJSON(jsonLocation, function(data){
+            for (var i = 0; i < data.length; i++) {
+                $('#grdExcelUpload').dxDataGrid('instance').addRow();
+
+                $('#grdExcelUpload').dxDataGrid('instance').cellValue(0, 'KOKR', data[i].KOKR);
+                $('#grdExcelUpload').dxDataGrid('instance').cellValue(0, 'ENUS', data[i].ENUS);
+                $('#grdExcelUpload').dxDataGrid('instance').cellValue(0, 'DEDE', data[i].DEDE);
+                $('#grdExcelUpload').dxDataGrid('instance').cellValue(0, 'ZHCN', data[i].ZHCN);
+                $('#grdExcelUpload').dxDataGrid('instance').cellValue(0, 'JAJP', data[i].JAJP);
+                $('#grdExcelUpload').dxDataGrid('instance').cellValue(0, 'KOKRS', data[i].KOKRS);
+                $('#grdExcelUpload').dxDataGrid('instance').cellValue(0, 'ENUSS', data[i].ENUSS);
+                $('#grdExcelUpload').dxDataGrid('instance').cellValue(0, 'DEDES', data[i].DEDES);
+                $('#grdExcelUpload').dxDataGrid('instance').cellValue(0, 'ZHCNS', data[i].ZHCNS);
+                $('#grdExcelUpload').dxDataGrid('instance').cellValue(0, 'JAJPS', data[i].JAJPS);
+            }
+        });
+
+        var gridGapTemp = $(window).height() -
+            ($(window).height() - Number($('#grdExcelUpload').parent().parent().height() +
+            $('#grdExcelUpload').parent().parent().offset().top)) -
+            $('#grdExcelUpload').offset().top - 10;
+
+        $('#grdExcelUpload').dxDataGrid('instance').option('height', gridGapTemp);
+
+        $('#ExcelFileUploader').dxFileUploader('instance').reset();
+    }
+
+    function ExcelUpload_POPUP_OnHidden(e) {
+        $('#ExcelFileUploader').dxFileUploader('instance').reset();
+
+        $('#grdExcelUpload').dxDataGrid('instance').option('dataSource', null);
+        $('#grdExcelUpload').dxDataGrid('instance').refresh();
+
+        var gridGapTemp = $(window).height() -
+            ($(window).height() - Number($('#grdExcelUpload').parent().parent().height() +
+                $('#grdExcelUpload').parent().parent().offset().top)) -
+            $('#grdExcelUpload').offset().top - 10;
+
+        $('#grdExcelUpload').dxDataGrid('instance').option('height', gridGapTemp);
+    }
+
+    //엑셀 업로드 관련 함수 및 이벤트 종료//
+
+</script>

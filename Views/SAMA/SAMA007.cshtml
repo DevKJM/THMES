@@ -1,0 +1,144 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTA
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-4 col-sm-12">
+            <div class="upload-wrapper">
+                <h1>
+                    <label for="upload" class="upload-label">
+                        <i class="fa fa-qrcode"> 터치해서 바코드 스캔</i>
+                    </label>
+                </h1>
+            </div>
+            <!-- fileReader를 통해 읽은 파일을 넣는 부분 -->
+            <div class="image-preview"></div>
+            <input type="file" accept="image/*" id="upload" class="image-upload" style="display:none;" multiple>
+        </div>
+        <div class="col-lg-8 col-sm-12 mt-1">
+            
+            @(Html.DevExtreme().DataGrid<PlantMaster>()
+              .ID("grdPlantMaster")
+              .DataSource(d => d.WebApi().Controller("MSTA001WebApi").Key("PlantId"))
+              .Columns(columns =>
+              {
+                  columns.AddFor(m => m.PLANTID);
+                  columns.AddFor(m => m.PLANTCODE);
+                  columns.AddFor(m => m.PLANTNAME);
+                  columns.AddFor(m => m.CREATEDATE).AllowEditing(false);
+              })
+              .ColumnMinWidth(50)
+              .RemoteOperations(true)
+              .FilterPanel(f => f.Visible(true))
+              .ColumnAutoWidth(true)
+              .FilterRow(f => f.Visible(true))
+              .Paging(p=>p.PageSize(25).Enabled(true))
+              .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+              .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+              .SearchPanel(searchPanel => searchPanel
+                  .Visible(true)
+                  .Width(180)
+                  .Placeholder("Search...")
+              )
+              .FilterRow(filterRow => filterRow
+                  .Visible(true)
+                  .ApplyFilter(GridApplyFilterMode.Auto)
+              )
+              .ShowBorders(true)
+              .AllowColumnResizing(true)
+              .Editing(e => 
+                    e.Mode(GridEditMode.Batch)
+                    .AllowUpdating(true)
+                    .AllowAdding(true)
+                    .AllowDeleting(true)
+                )
+              .RowAlternationEnabled(true)
+              .Export(e=>e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+              .FilterRow(f => f.Visible(true))
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    const load_image = e => {
+      const files = e.target.files;
+      const filesArr = Array.prototype.slice.call(files);
+      // 여러장의 이미지를 불러올 경우, 배열화
+        $(".image-preview").children().remove();
+      filesArr.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const image = new Image();
+            image.className = "img-item"; // 스타일 적용을 위해
+            image.src = e.target.result;
+            image.onload = imageEvent => {
+              // 이미지가 로드가 되면! 리사이즈 함수가 실행되도록 합니다.
+              resize_image(image);
+          };
+        };
+        reader.readAsDataURL(file);
+      });
+    };
+
+    const resize_image = image => {
+      let canvas = document.createElement("canvas"),
+        max_size = 1280,
+        // 최대 기준을 1280으로 잡음.
+        width = image.width,
+        height = image.height;
+
+      if (width > height) {
+        // 가로가 길 경우
+        if (width > max_size) {
+          height *= max_size / width;
+          width = max_size;
+        }
+      } else {
+        // 세로가 길 경우
+        if (height > max_size) {
+          width *= max_size / height;
+          height = max_size;
+        }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(image, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg");
+
+        // 미리보기 위해서 마크업 추가.
+        $(".image-preview").append('<img width="100%" src="' + dataUrl + '" class="img-item">');
+
+        /* 리자이즈 끝나는 순간 */
+        var formdata = new FormData();
+        formdata.append("base64image", dataUrl);
+
+        $.ajax({
+            url: '@Url.Action("Scan", "MSTA")',
+            type: 'POST',
+            data: formdata,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (barcode) {
+                alert(barcode);
+            },
+            error: function () {
+                alert("Reading Error");
+            }
+        });
+
+    };
+
+    $(".image-upload").on("change", e => load_image(e));
+
+</script>

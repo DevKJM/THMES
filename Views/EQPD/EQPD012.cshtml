@@ -1,0 +1,576 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.EQP.EQPA;
+@using JSMES.WebUI.Alpha.ViewModels.EQP.EQPD;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 mt-2">
+
+            @(Html.DevExtreme().Form<EQPD012_LIST>()
+                                    .ID("form")
+                                    .ColCount(10)
+                                    .Items(items =>
+                                    {
+                                        items.AddSimpleFor(m=>m.EQUIPMENTCODE)
+                                            .Editor(e => e.Lookup()
+                                                .DataSource(d => d.WebApi().Controller("EQPD012WebApi")
+                                                    .Key("EQUIPMENTCODE")
+                                                    .LoadAction("EQUIPMENT_LIST")
+                                                )
+                                                .DisplayExpr("EQUIPMENTNAME")
+                                                .ValueExpr("EQUIPMENTCODE")
+                                                .CloseOnOutsideClick(true)
+                                                .OnSelectionChanged("EQUIPMENTCODE_OnSelectionChanged")
+                                                .DataSourceOptions(d=>d.Sort(s=>s.AddSorting("EQUIPMENTTYPE",false).AddSorting("EQUIPMENTCODE",false)))
+                                            )
+                                            .Name("EQUIPMENT")
+                                            .Label(T => T.Text(LabelText.EQUIPMENTNAME))
+                                            .ColSpan(2);
+
+                                        items.AddEmpty().ColSpan(5);
+
+                                        items.AddSimple()
+                                            .Editor(e => e.TextBox()
+                                                .Width("60")
+                                                .ID("Legend_1")
+                                            )
+                                            .Label(T => T.Text("설비점검완료").Location(FormLabelLocation.Right).ShowColon(false))
+                                            .Name("Legend_1")
+                                            .ColSpan(1);
+
+                                        items.AddSimple()
+                                            .Editor(e => e.TextBox()
+                                                .Width("60")
+                                                .ID("Legend_2")
+                                            )
+                                            .Label(T => T.Text("점검일 초과").Location(FormLabelLocation.Right).ShowColon(false))
+                                            .Name("Legend_2")
+                                            .ColSpan(1);
+
+                                        items.AddSimple()
+                                            .Editor(e => e.TextBox()
+                                                .Width("60")
+                                                .ID("Legend_3")
+                                            )
+                                            .Label(T => T.Text("점검 예정일").Location(FormLabelLocation.Right).ShowColon(false))
+                                            .Name("Legend_3")
+                                            .ColSpan(1);
+
+
+                                        items.AddSimple().ColSpan(10)
+                                                .Template(@<text>
+                                                    @(Html.DevExtreme().Scheduler()
+                                                        .ID("scheduler")
+                                                          .DataSource(d => d.WebApi().Controller("EQPD012WebApi").LoadAction("get").Key("KEY").LoadParams(new
+                                                          {
+                                                              EQUIPMENTCODE = new JS("function() { return seletedEQUIPMENTCODE; }"),
+                                                              DATE = new JS("function() { return Globalize.dateFormatter({ datetime: 'short' })($('#scheduler').dxScheduler('instance').option('currentDate')); }")
+                                                          }))
+                                                        .Views(new SchedulerViewType[] {
+                                                                    SchedulerViewType.Month
+                                                                    })
+                                                        .OnCellClick("scheduler_OnCellClick")
+                                                          .OnAppointmentDblClick("scheduler_OnAppointmentDblClick")
+                                                        .CurrentView(SchedulerViewType.Month)
+                                                        .CurrentDate(new JS("new Date()"))
+                                                        .StartDayHour(0)
+                                                          .EndDayHour(24)
+                                                          .Height(600)
+                                                          .Editing(d=>d.AllowAdding(true).AllowUpdating(true))
+                                                          .StartDateExpr("MAINTENANCEDATE")
+                                                          .TextExpr("EQUIPMENTNAMEMAINTENANCECONTENT")
+                                                          .OnAppointmentFormOpening("appointmentForm_created")
+                                                          .OnContentReady("scheduler_OnContentReady")
+                                                          .OnAppointmentClick("scheduler_OnAppointmentClick")
+                                                          .OnAppointmentRendered("scheduler_OnAppointmentRendered")
+                                                          .OnAppointmentUpdating("scheduler_OnAppointmentUpdating")
+
+                                                    )
+                                                </text>);
+
+                                    })
+
+            )
+
+        </div>
+    </div>
+</div>
+
+
+@*품목 선택 팝업창*@
+@(Html.DevExtreme().Popup()
+                                            .ID("PARTNUMBER_POPUP")
+                                            .ElementAttr("class", "popup")
+                                            .Title("보전 활동 등록")
+                                            .DragEnabled(true)
+                                            .ContentTemplate(new TemplateName("EmbeddedPRCD001_MAINTENANCE"))
+                                            .FullScreen(false)
+                                            .CloseOnOutsideClick(true)
+                                            .ShowCloseButton(true)
+                                            .Width("50%")
+          .Height("240")
+)
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPRCD001_MAINTENANCE"))
+{
+    @(Html.DevExtreme().ScrollView()
+                                            .ScrollByContent(true)
+                                            .ScrollByThumb(true)
+                                            .Content(
+                                            @<text>
+                                                @(Html.DevExtreme().Form<EQPD012_LIST>()
+                                                                .ID("popFrmPARTNUMBER")
+                                                                .LabelLocation(FormLabelLocation.Left)
+                                                                .ColCount(4)
+                                                                .Items(items =>
+                                                                {
+
+                                                                    items.AddSimpleFor(m => m.MAINTENANCECODE)
+                                                                        .Editor(e => e
+                                                                            .TextBox()
+                                                                            .ReadOnly(true)
+                                                                            .ShowClearButton(false)
+                                                                            .FocusStateEnabled(false)
+                                                                        )
+                                                                        .ColSpan(1).Label(d=>d.Text("예방보전항목코드"));
+
+                                                                    items.AddSimpleFor(m => m.MAINTENANCETYPE)
+                                                                        .Editor(e => e
+                                                                            .TextBox()
+                                                                            .ReadOnly(true)
+                                                                            .ShowClearButton(false)
+                                                                            .FocusStateEnabled(false)
+                                                                        )
+                                                                        .ColSpan(1).Label(d => d.Text("점검구분"));
+
+                                                                    items.AddSimpleFor(m => m.EQUIPMENTCODE)
+                                                                        .Editor(e => e
+                                                                            .TextBox()
+                                                                            .ReadOnly(true)
+                                                                            .ShowClearButton(false)
+                                                                            .FocusStateEnabled(false)
+                                                                        )
+                                                                        .ColSpan(2).Label(d => d.Text("설비"));
+
+
+
+                                                                    items.AddSimpleFor(m => m.MAINTENANCECONTENT)
+                                                                        .Editor(e => e
+                                                                            .TextBox()
+                                                                            .ReadOnly(true)
+                                                                            .ShowClearButton(false)
+                                                                            .FocusStateEnabled(false)
+                                                                        )
+                                                                        .ColSpan(4).Label(d => d.Text("점검내용"));
+
+
+                                                                    items.AddSimpleFor(m => m.ACTIVITIECONTENT)
+                                                                        .Editor(e => e
+                                                                            .TextBox()
+                                                                            .ReadOnly(true)
+                                                                            .ShowClearButton(false)
+                                                                            .FocusStateEnabled(false)
+                                                                        )
+                                                                        .ColSpan(4).Label(d => d.Text("점검활동내용"));
+
+                                                                        items.AddSimpleFor(m => m.MAINTENANCECYCLE)
+                                                                        .Editor(e => e
+                                                                            .NumberBox()
+                                                                            .Format(f=>f.Type(Format.FixedPoint))
+                                                                            .ReadOnly(true)
+                                                                            .ShowSpinButtons(false)
+                                                                            .ShowClearButton(false)
+                                                                            .FocusStateEnabled(false)
+                                                                        )
+                                                                        .ColSpan(1).Label(d => d.Text("예방보전주기"));
+
+                                                                    items.AddSimple()
+                                                                        .Editor(e => e
+                                                                            .DateBox().ID("dtWorkDate")
+                                                                            .ReadOnly(true)
+                                                                            .Type(DateBoxType.Date)
+                                                                            .DisplayFormat(Format.ShortDate)
+                                                                            .Value(new JS("new Date()"))
+                                                                            .Width("100%")
+                                                                        ).Name("WorkDate")
+                                                                        .Label(T => T.Text("점검일")).ColSpan(1);
+
+                                                                    items.AddSimple()
+                                                                        .Editor(e => e
+                                                                            .DateBox().ID("dtWorkDate")
+                                                                            .ReadOnly(true)
+                                                                            .Type(DateBoxType.Date)
+                                                                            .DisplayFormat(Format.ShortDate)
+                                                                            .Value(new JS("new Date()"))
+                                                                            .Width("100%")
+                                                                        ).Name("WorkDate")
+                                                                        .Label(T => T.Text("다음점검일")).ColSpan(1);
+
+                                                                    items.AddSimpleFor(m => m.MAINTENANCEWORKER)
+                                                                        .Editor(e => e
+                                                                            .NumberBox()
+                                                                            .Format(f=>f.Type(Format.FixedPoint))
+                                                                            .ReadOnly(true)
+                                                                            .ShowSpinButtons(false)
+                                                                            .ShowClearButton(false)
+                                                                            .FocusStateEnabled(false)
+                                                                        )
+                                                                        .ColSpan(1).Label(d => d.Text("점검자"));
+
+
+                                                                    items.AddButton()
+                                                    .HorizontalAlignment(HorizontalAlignment.Left)
+                                                    .ButtonOptions(b => b.Text(LabelText.CONFIRM)
+                                                        .OnClick("popFrmPARTNUMBER_btnSave_onClick")
+                                                        .Type(ButtonType.Success)
+                                                        .Width("100%")
+                                                ).ColSpan(2);
+
+                                                                    items.AddButton()
+                                                         .HorizontalAlignment(HorizontalAlignment.Left)
+                                                         .ButtonOptions(b => b.Text(LabelText.CANCEL)
+                                                             .OnClick("popFrmPARTNUMBER_btnSave_onClick")
+                                                             .Type(ButtonType.Normal)
+                                                             .Width("100%")
+                                                     ).ColSpan(2);
+                                                                })
+                                                )
+                                            </text>))
+}
+
+
+
+<script>
+
+    var seletedEQUIPMENTCODE;
+
+    $(function () {
+        $("#Legend_1").find("input").css({ "background": "#3333ff" });
+        $("#Legend_2").find("input").css({ "background": "#ff0000" });
+        $("#Legend_3").find("input").css({ "background": "#1ab394" });
+    });
+
+    function appointmentForm_created(data) {
+
+        var form = data.form
+
+        var today = new Date();
+
+        form.option("colCount", 2);
+
+        var IsReadOnly;
+
+        var items = data.component._popup.option('toolbarItems');  
+        //items[0].options = { visible: false };  
+        //items[1].options = { text: 'Close' };  
+        //data.component._popup.option('toolbarItems', items);
+
+        var backcolor = "";
+
+
+        if (data.appointmentData.COMPLETEYN == "N") {
+            //$('#scheduler').dxScheduler('instance').option("editing.allowUpdating", true);
+            //$('#scheduler').dxScheduler('instance').option("editing.allowAdding", true);
+            //$('#scheduler').dxScheduler('instance').option("editing.allowDeleting", true);
+
+            items[0].options = { visible: true };  
+            items[1].options = { text: '닫기' };  
+            data.component._popup.option('toolbarItems', items);
+
+            IsReadOnly = false;
+
+            backcolor = "#cae6ec;";
+
+
+        }
+        else if (data.appointmentData.COMPLETEYN == "Y") {
+            items[0].options = { visible: false };  
+            items[1].options = { text: '닫기' };  
+            data.component._popup.option('toolbarItems', items);
+
+            IsReadOnly = true;
+
+            backcolor = "#ffffff;";
+        }
+
+        var ACTIVITIECONTENT = data.appointmentData.ACTIVITIECONTENT;
+
+        form.option("items", [
+        {
+            label: {
+                text: "@LabelText.MAINTENANCECODE"
+            },
+            colSpan: 1,
+            dataField: "MAINTENANCECODE",
+            name: "MAINTENANCECODE",
+            editorType: "dxTextBox",
+            editorOptions: {
+                value: data.appointmentData.MAINTENANCECODE,
+                readOnly: true
+            }
+        },
+
+        {
+            label: {
+                text: "@LabelText.MAINTENANCETYPE",
+                cssClass: "background-color:red22;"
+            },
+            //dataField: "StartDate",
+            editorType: "dxLookup",
+            colSpan: 1,
+            cssClass: "background-color:red;",
+            dataField: "MAINTENANCETYPE",
+            editorOptions: {
+                dataSource: DevExpress.data.AspNet.createStore({
+                    key: "SYSCODE",
+                    loadUrl: rootURL + "api/COMA003WebApi/MAINTENANCETYPE_LIST",
+                }),
+                value: data.appointmentData.MAINTENANCETYPE,
+                displayExpr: "SYSCODENAME",
+                valueExpr: "SYSCODE",
+                width: "100%",
+                readOnly: true,
+                onValueChanged: function (args) {
+                    //startDate = args.value;
+                    //form.getEditor("EndDate")
+                    //    .option("value", new Date(startDate.getTime() +
+                    //        60 * 1000 * movie.Duration));
+                }
+            }
+        },
+
+        {
+            label: {
+                text: "@LabelText.EQUIPMENTNAME"
+            },
+            colSpan: 2,
+            dataField: "EQUIPMENTNAME",
+            name: "EQUIPMENTNAME",
+            editorType: "dxTextBox",
+            editorOptions: {
+                value: data.appointmentData.EQUIPMENTNAME,
+                readOnly: true
+            }
+        },
+
+        {
+            label: {
+                text: "@LabelText.MAINTENANCECONTENT"
+            },
+            colSpan: 2,
+            dataField: "MAINTENANCECONTENT",
+            name: "MAINTENANCECONTENT",
+            editorType: "dxTextBox",
+            editorOptions: {
+                value: data.appointmentData.MAINTENANCECONTENT,
+                readOnly: true
+            }
+        },
+        {
+            label: {
+                text: "@LabelText.ACTIVITIECONTENT",
+            },
+            colSpan: 2,
+            dataField: "ACTIVITIECONTENT",
+            name: "ACTIVITIECONTENT",
+            editorType: "dxTextBox",
+            editorOptions: {
+                value: ACTIVITIECONTENT,
+                readOnly: IsReadOnly,
+                inputAttr: {  
+                    'style': 'background-color:' + backcolor
+                }
+            }
+        },
+
+        {
+            label: {
+                text: "@LabelText.MAINTENANCECYCLE"
+            },
+            colSpan: 1,
+            dataField: "MAINTENANCECYCLE",
+            name: "MAINTENANCECYCLE",
+            editorType: "dxTextBox",
+            editorOptions: {
+                value: data.appointmentData.MAINTENANCECYCLE,
+                readOnly: true
+            }
+        },
+        {
+            label: {
+                text: "@LabelText.MAINTENANCEDATE"
+            },
+            dataField: "NEWMAINTENANCEDATE",
+            editorType: "dxDateBox",
+            name: "NEWMAINTENANCEDATE",
+            colSpan:1,
+            editorOptions: {
+                value: new Date,
+                inputAttr: {  
+                    'style': 'background-color: ' + backcolor
+                },
+                width: "100%",
+                type: "date",
+                readOnly: IsReadOnly,
+                displayFormat: '@Format.ShortDate',
+                onValueChanged: function (args) {
+
+                    var value = Globalize.dateFormatter()(args.value);
+                    var valueDate = new Date(value);
+
+                    form.getEditor("NEXTMAINTENANCEDATE").option("value", new Date(valueDate.setDate(valueDate.getDate() + data.appointmentData.MAINTENANCECYCLE)));
+                }
+            }
+        },
+        {
+            label: {
+                text: "@LabelText.NEXTMAINTENANCEDATE"
+            },
+            dataField: "NEXTMAINTENANCEDATE",
+            editorType: "dxDateBox",
+            name: "NEXTMAINTENANCEDATE",
+            colSpan:1,
+            editorOptions: {
+                value: today.setDate(today.getDate() + data.appointmentData.MAINTENANCECYCLE),
+                width: "100%",
+                type: "date",
+                readOnly: true,
+                displayFormat: '@Format.ShortDate',
+                onValueChanged: function (args) {
+                    //startDate = args.value;
+                    //form.getEditor("EndDate")
+                    //    .option("value", new Date(startDate.getTime() +
+                    //        60 * 1000 * movie.Duration));
+                }
+            }
+        },
+        {
+            label: {
+                text: "@LabelText.MAINTENANCEWORKER"
+            },
+            dataField: "MAINTENANCEWORKER",
+            editorType: "dxLookup",
+            colSpan: 1,
+            editorOptions: {
+                dataSource: DevExpress.data.AspNet.createStore({
+                    key: "EMPCODE",
+                    loadUrl: rootURL + "api/COMA002WebApi/HR_LIST",
+                }),
+                //value: startDate,
+                displayExpr: "EMPNAME",
+                valueExpr: "EMPCODE",
+                elementAttr: {  
+                    'style': 'background-color:' + backcolor
+                },
+                width: "100%",
+                readOnly: IsReadOnly,
+                closeOnOutsideClick : true,
+                onValueChanged: function (args) {
+                    //startDate = args.value;
+                    //form.getEditor("EndDate")
+                    //    .option("value", new Date(startDate.getTime() +
+                    //        60 * 1000 * movie.Duration));
+                }
+            }
+        }
+
+
+        ]);
+    }
+
+    function scheduler_OnAppointmentDblClick(e) {
+        //e.cancel = $.Deferred();  
+        //e.cancel.done(function (response) {  
+        //    e.cancel.resolve(response);  
+        //});  
+
+        //e.cancel = true;
+
+        //e.event.stopPropagation();
+
+        //$("#PARTNUMBER_POPUP").dxPopup("instance").show();
+    }
+
+    function scheduler_OnCellClick(e) {
+        e.cancel = true;
+
+        //$("#PARTNUMBER_POPUP").dxPopup("instance").show();
+    }
+
+    function popFrmPARTNUMBER_btnSave_onClick(e) {
+        $("#PARTNUMBER_POPUP").dxPopup("instance").hide();
+    }
+
+    function EQUIPMENTCODE_OnSelectionChanged(e) {
+
+        seletedEQUIPMENTCODE = e.selectedItem.EQUIPMENTCODE
+
+        //$('#scheduler').dxScheduler('instance').repaint();
+        $("#scheduler").dxScheduler("getDataSource").reload()
+    }
+
+    function scheduler_OnContentReady(e) {
+        var popupConfig = e.component._popupConfig;
+
+
+        e.component._popupConfig = function () {
+            var popupOptions = popupConfig.apply(e.component, arguments)
+            var newWidth = screen.width;
+
+            return $.extend(popupOptions, {  
+                width: "400px",  
+                maxWidth: null  
+            });
+        }  
+
+    }
+
+    //어포인트 클릭시 
+    function scheduler_OnAppointmentClick(e) {
+        e.cancel = true;
+    }
+
+    //어포인트 색 변경
+    function scheduler_OnAppointmentRendered(e) {
+
+        var COLOR;
+
+        if (e.appointmentData.COMPLETEYN == "Y") {
+            COLOR = e.appointmentData.COLORTYPE;
+        }
+        else if (e.appointmentData.COMPLETEYN == "N") {
+
+            //예정
+            if (e.appointmentData.MAINTENANCEDATE >= e.appointmentData.SELECTEDDATE) {
+                COLOR = "#1ab394";
+            }
+            //점검일 초과
+            else if (e.appointmentData.MAINTENANCEDATE < e.appointmentData.SELECTEDDATE) {
+                COLOR = "#ff0000";
+            }
+        }
+
+        e.appointmentElement[0].style.backgroundColor = COLOR;  
+    }
+
+    function scheduler_OnAppointmentUpdating(e) {
+        if (e.newData.ACTIVITIECONTENT == "") {
+            DevExpress.ui.dialog.alert("점검활동내용을 입력해 주세요.", "warning");
+            e.cancel = true
+            return;
+        }
+
+        if (e.newData.MAINTENANCEWORKER == null || e.newData.MAINTENANCEWORKER == "")
+        {
+            DevExpress.ui.dialog.alert("점검활동내용을 입력해 주세요.", "warning");
+            e.cancel = true
+            return;
+        }
+    }
+
+</script>

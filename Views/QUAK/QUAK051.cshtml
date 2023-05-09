@@ -1,0 +1,179 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAK;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Infrastructure.Enums
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<QUAK051H_LIST>()
+                                                .ID("grdSampleInspection")
+                                                    .DataSource(d => d.WebApi()
+                                                                .Controller("QUAK051WebApi")
+                                                                .Key("INSPECTCODE", "INSPECTDATE")
+                                                                .LoadAction("getSampleInspectionList")
+                                                            )
+                                                            
+                                                .Sorting(s=>s.Mode(GridSortingMode.None))
+                                                .Columns(columns =>
+                                                {
+                                                    columns.AddFor(m => m.INSPDATE).Caption("검사일").GroupIndex(0).SortOrder(SortOrder.Desc);   
+                                                    columns.AddFor(m => m.PARTNUMBER).AllowEditing(false).Width(100)
+                                                      .Lookup(l => l.DataSource(d => d.WebApi()
+                                                            .Controller("QUAK051WebApi")
+                                                            .Key("PARTNUMBER")
+                                                            .LoadAction("PARTNUMBER_LIST")
+                                                        )
+                                                        .ValueExpr("PARTNUMBER")
+                                                        .DisplayExpr("PRODUCTNAME")
+                                                        .AllowClearing(true)
+                                                    ).GroupIndex(1);
+                                                    columns.AddFor(m => m.PROCESSCODE).AllowEditing(false).Width(100)
+                                                         .Lookup(l => l.DataSource(d => d.WebApi()
+                                                                    .Controller("COMA001WebApi")
+                                                                    .Key("PROCESSCODE")
+                                                                    .LoadAction("PROCESS_LIST"))
+                                                                    .DisplayExpr("PROCESSNAME")
+                                                                    .ValueExpr("PROCESSCODE")                                                                                                  
+                                                        .AllowClearing(true)
+                                                    );
+                                                    columns.AddFor(m => m.INSPECTOR).AllowEditing(false).Width(100);
+                                                    columns.AddFor(m => m.INSPECTCODE).AllowEditing(false).Width(150)
+                                                        .Lookup(l => l.DataSource(d => d.WebApi()
+                                                            .Controller("QUAK051WebApi")
+                                                            .LoadAction("getInspItemMaster")
+                                                            .Key("INSPECTCODE")
+                                                        )
+                                                        .ValueExpr("INSPECTCODE")
+                                                        .DisplayExpr("INSPECTNAME")
+                                                        .AllowClearing(true)
+                                                    );
+                                                    columns.AddFor(m => m.SPEC).AllowEditing(false).Width(100);                                                    
+                                                    columns.AddFor(m => m.INSPECTUNIT).Width(80)
+                                                        .Lookup(lookup => lookup
+                                                            .DataSource(d => d.WebApi()
+                                                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                                                .LoadAction("INSPECTUNIT_LIST"))
+                                                            .DisplayExpr("SYSCODENAME")
+                                                            .ValueExpr("SYSCODE")
+                                                        );
+                                                    
+                                                    columns.AddFor(m => m.WORKDATE).AllowEditing(false).Visible(true).Caption("검사 시간").Width(100).Format(f=>f.Type(Format.ShortTime)).SortOrder(SortOrder.Desc);
+                                                    columns.Add().Width(100).CalculateCellValue("grdSampleInspection_CalculateCellValue").Caption("평균").Alignment(HorizontalAlignment.Right);
+                                                    columns.AddFor(m => m.DATATYPE).Visible(false);
+                                                    columns.AddFor(m => m.SPECCLASS).Visible(false);
+                                                    columns.AddFor(m => m.USL).Visible(false);
+                                                    columns.AddFor(m => m.LSL).Visible(false);
+                                                    columns.AddFor(m => m.CSL).Visible(false);
+                                                    columns.AddFor(m => m.UCL).Visible(false);
+                                                    columns.AddFor(m => m.LCL).Visible(false);
+                                                    columns.AddFor(m => m.RESULT).AllowEditing(true).Width(60).Caption("결과");
+                                                    columns.AddFor(m => m.INSPECTVALUE1).Visible(true).Width(80).Caption("1");
+                                                    columns.AddFor(m => m.INSPECTVALUE2).Visible(true).Width(80).Caption("2");
+                                                    columns.AddFor(m => m.INSPECTVALUE3).Visible(true).Width(80).Caption("3");
+                                                    columns.AddFor(m => m.INSPECTVALUE4).Visible(true).Width(80).Caption("4");
+                                                    columns.AddFor(m => m.INSPECTVALUE5).Visible(true).Width(80).Caption("5");
+                                                    columns.AddFor(m => m.INSPECTVALUE6).Visible(true).Width(80).Caption("6");
+                                                    columns.AddFor(m => m.INSPECTVALUE7).Visible(true).Width(80).Caption("7");
+                                                    columns.AddFor(m => m.INSPECTVALUE8).Visible(true).Width(80).Caption("8");
+                                                    columns.AddFor(m => m.INSPECTVALUE9).Visible(true).Width(80).Caption("9");
+                                                    columns.AddFor(m => m.INSPECTVALUE10).Visible(true).Width(80).Caption("10");
+                                                    columns.AddFor(m => m.INSPECTVALUE11).Visible(true).Width(80).Caption("11");
+                                                    columns.AddFor(m => m.INSPECTVALUE12).Visible(true).Width(80).Caption("12");
+                                                    columns.AddFor(m => m.INSPECTVALUE13).Visible(true).Width(80).Caption("13");
+                                                    columns.AddFor(m => m.INSPECTVALUE14).Visible(true).Width(80).Caption("14");
+                                                    columns.AddFor(m => m.INSPECTVALUE15).Visible(true).Width(80).Caption("15");
+                                                    columns.AddFor(m => m.INSPECTVALUE16).Visible(true).Width(80).Caption("16");
+                                                    columns.AddFor(m => m.INSPECTVALUE17).Visible(true).Width(80).Caption("17");
+                                                    columns.AddFor(m => m.INSPECTVALUE18).Visible(true).Width(80).Caption("18");
+                                                    columns.AddFor(m => m.INSPECTVALUE19).Visible(true).Width(80).Caption("19");
+                                                    columns.AddFor(m => m.INSPECTVALUE20).Visible(true).Width(80).Caption("20");
+                                                    columns.AddFor(m => m.INSPECTVALUE21).Visible(true).Width(80).Caption("21");
+                                                    columns.AddFor(m => m.INSPECTVALUE22).Visible(true).Width(80).Caption("22");
+                                                    columns.AddFor(m => m.INSPECTVALUE23).Visible(true).Width(80).Caption("23");
+                                                    columns.AddFor(m => m.INSPECTVALUE24).Visible(true).Width(80).Caption("24");
+                                                    columns.AddFor(m => m.INSPECTVALUE25).Visible(true).Width(80).Caption("25");
+                                                    columns.AddFor(m => m.INSPECTVALUE26).Visible(true).Width(80).Caption("26");
+                                                    columns.AddFor(m => m.INSPECTVALUE27).Visible(true).Width(80).Caption("27");
+                                                    columns.AddFor(m => m.INSPECTVALUE28).Visible(true).Width(80).Caption("28");
+                                                    columns.AddFor(m => m.INSPECTVALUE29).Visible(true).Width(80).Caption("29");
+                                                    columns.AddFor(m => m.INSPECTVALUE30).Visible(true).Width(80).Caption("30");
+                                                })                                                                                                    
+                                                .RemoteOperations(true)
+                                                .FilterPanel(f => f.Visible(true))
+                                                .ColumnAutoWidth(true)
+                                                .Paging(p => p.PageSize(25).Enabled(true))
+                                                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                .SearchPanel(searchPanel => searchPanel
+                                                    .Visible(true)
+                                                    .Width(180)
+                                                    .Placeholder("Search...")
+                                                )
+                                                .FilterRow(filterRow => filterRow
+                                                    .Visible(true)
+                                                    .ApplyFilter(GridApplyFilterMode.Auto)
+                                                )
+                                                .ShowRowLines(true)                                                
+                                                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                .AllowColumnResizing(true)
+                                                .RowAlternationEnabled(true)
+                                                .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                                                .Export(e=>e.Enabled(true))
+                                                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                                                .ShowBorders(true)
+                                                //.OnInitialized("grdSampleInspection_OnInitialized")
+                                                //.OnToolbarPreparing("grdSampleInspection_OnToolbarPreparing")    
+                                                //.OnCellPrepared("grdSampleInspection_OnCellPrepared")
+                                            )
+
+                
+        </div>
+    </div>
+</div>
+<script>
+    
+    $(function () {    
+
+        $.ajax({
+            url: '@Url.Action("getSampleCount", "QUAH051WebApi", new { httproute = "DefaultApi", })',
+            type: 'GET',
+            async: false,
+            success: function (data) {
+                var cnt = data.data[0].CNT;
+                var maxcnt = data.data[0].MAXCNT;
+                if (isNaN(cnt) == false)
+                    sampleCount = Number(cnt) > Number(maxcnt) ? Number(maxcnt) : Number(cnt);
+                else
+                    sampleCount = Number(maxcnt);
+
+                var grid = $('#grdSampleInspection').dxDataGrid('instance');
+
+                for (var i = 30; i >= sampleCount; i--) {
+                    var field = "INSPECTVALUE" + (i + 1);
+                    grid.deleteColumn(field);
+                }
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });        
+    });
+
+    function grdSampleInspection_CalculateCellValue(rowdata) {
+        var val = 0;
+        for (var i = 0; i <= sampleCount; i++) {
+            val += rowdata["INSPECTVALUE"+ (i + 1)];
+        }
+
+        return (val / sampleCount).toFixed(2);
+    }
+
+
+</script>

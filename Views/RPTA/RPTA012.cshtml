@@ -1,0 +1,282 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Infrastructure.Enums
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            <div id="tabs" class="animated">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs ">
+                        <li>
+                            <a class="nav-link active" data-toggle="tab" href="#tab-side-1">
+                                <i class="fa fa-calendar"> 수입검사</i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" data-toggle="tab" href="#tab-side-2">
+                                <i class="fa fa-wrench"> 초종검사</i>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content onlyHeader">
+                        <div id="tab-side-1" class="tab-pane active">
+                            @(Html.DevExtreme().DataGrid<RPTA012_LIST>
+                                                  ()
+                                                  .ID("grdInbondInspect")
+                                                  .DataSource(d => d.WebApi().Controller("RPTA012WebApi")
+                                                      .LoadAction("getInbondInspect"))
+                                                  .Columns(columns =>
+                                                  {
+                                                      columns.AddFor(m => m.INSPECTIONSEQUENCE).Visible(false);
+                                                      columns.AddFor(m => m.INSPECTDATE).Visible(true).Format(f => f.Type(Format.ShortDate))
+                                                          .SelectedFilterOperation(FilterOperations.Between)
+                                                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                                                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                                                      columns.AddFor(m => m.VENDORCODE).Visible(false);
+                                                      columns.AddFor(m => m.VENDORNAME).Visible(true);
+                                                      columns.AddFor(m => m.MATERIALCODE).Visible(true);
+                                                      columns.AddFor(m => m.MATERIALNAME).Visible(true);
+                                                      columns.AddFor(m => m.UNITCODE).Visible(false);
+                                                      columns.AddFor(m => m.UNITNAME).Visible(true);
+                                                      columns.AddFor(m => m.RECEIVINGQUANTITY).Visible(true).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                                      columns.AddFor(m => m.INSPECTIONRESULT).Alignment(HorizontalAlignment.Center).Visible(true);
+                                                      columns.AddFor(m => m.CREATEUSER).Visible(true)
+                                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                          .Controller("COMA001WebApi")
+                                                          .Key("EMPCODE")
+                                                          .LoadAction("HR_LIST")
+                                                          )
+                                                          .DisplayExpr("EMPNAME")
+                                                          .ValueExpr("EMPCODE")
+                                                          );
+                                                  })
+                                                  .RemoteOperations(true)
+                                                  .FilterPanel(f => f.Visible(true))
+                                                  .ColumnAutoWidth(true)
+                                                  .Paging(p => p.PageSize(25).Enabled(true))
+                                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                  .SearchPanel(searchPanel => searchPanel
+                                                      .Visible(true)
+                                                      .Width(180)
+                                                      .Placeholder("Search...")
+                                                  )
+                                                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                                                  .FilterRow(filterRow => filterRow
+                                                      .Visible(true)
+                                                      .ApplyFilter(GridApplyFilterMode.Auto)
+                                                  )
+                                                  .ShowBorders(true)
+                                                  .AllowColumnResizing(true)
+                                                  .Editing(e =>
+                                                      e.Mode(GridEditMode.Batch)
+                                                          .AllowAdding(false)
+                                                          .AllowUpdating(false)
+                                                          .AllowDeleting(false)
+                                                  )
+                                                  .RowAlternationEnabled(true)
+                                                  .Export(e => e.Enabled(true))
+                                                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                                                  .ShowRowLines(true)
+                                                  //.OnInitialized("grdDefectRate_OnInitialized")
+                                                  .Option("KEY_FIELD", new object[]
+                                                  {
+                                                                              "PLANTCODE", "WORKDATE", "PARTNUMBER", "PRODUCTNAME", "SHIFTCODE", "PROCESSCODE", "EQUIPMENTCODE"
+                                                                              , "DEFECTRATE"
+                                                  })
+                                                  //.OnRowClick("grdInbondInspect_OnRowClick")
+                                                  //.OnCellClick("grdInbondInspect_OnCellClick")
+                                                  .MasterDetail(m => m
+                                                      .Enabled(true)
+                                                      .Template(new TemplateName("tempGrdInbondInspect"))
+                                                  )
+                                    //.Option("USE_REQUIRED_HEADER", true)
+                            )
+                        </div>
+                        <div id="tab-side-2" class="tab-pane">
+                            @(Html.DevExtreme().DataGrid<RPTA012B_LIST>
+                                                  ()
+                                                  .ID("grdSampleInspect")
+                                                  .DataSource(d => d.WebApi().Controller("RPTA012WebApi")
+                                                      .LoadAction("getSampleInspect"))
+                                                  .Columns(columns =>
+                                                  {
+                                                      columns.AddFor(m => m.SAMPLEINGINSPECTIONID).Visible(false);
+                                                      columns.AddFor(m => m.GROUPNAME).GroupIndex(0).Caption("");
+                                                      columns.AddFor(m => m.INSPECTDATE).Visible(true).Format(f => f.Type(Format.ShortDate))
+                                                          .SelectedFilterOperation(FilterOperations.Between)
+                                                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                                                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                                                      columns.AddFor(m => m.PARTNUMBER).Visible(true);
+                                                      columns.AddFor(m => m.PRODUCTNAME).Visible(true);
+                                                      columns.AddFor(m => m.EQUIPMENTCODE).Visible(false);
+                                                      columns.AddFor(m => m.EQUIPMENTNAME).Visible(true);
+                                                      columns.AddFor(m => m.INSPECTCLASSIFY).Visible(false);
+                                                      columns.AddFor(m => m.INSPECTCLASSIFYNAME).Visible(true);
+                                                      columns.AddFor(m => m.SAMPLECOUNT).Visible(true).Alignment(HorizontalAlignment.Center);
+                                                      columns.AddFor(m => m.INSPECTRESULT).Visible(true).Alignment(HorizontalAlignment.Center);
+                                                      columns.AddFor(m => m.INSPECTOR).Visible(true);
+                                                      columns.AddFor(m => m.INSPECTNO).Visible(false);
+                                                      columns.AddFor(m => m.ORDERNUMBER).Visible(false);
+                                                  })
+                                                  .RemoteOperations(true)
+                                                  .FilterPanel(f => f.Visible(true))
+                                                  .ColumnAutoWidth(true)
+                                                  .Paging(p => p.PageSize(25).Enabled(true))
+                                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                  .SearchPanel(searchPanel => searchPanel
+                                                      .Visible(true)
+                                                      .Width(180)
+                                                      .Placeholder("Search...")
+                                                  )
+                                                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                                                  .FilterRow(filterRow => filterRow
+                                                      .Visible(true)
+                                                      .ApplyFilter(GridApplyFilterMode.Auto)
+                                                  )
+                                                  .ShowBorders(true)
+                                                  .AllowColumnResizing(true)
+                                                  .Editing(e =>
+                                                      e.Mode(GridEditMode.Batch)
+                                                          .AllowAdding(false)
+                                                          .AllowUpdating(false)
+                                                          .AllowDeleting(false)
+                                                  )
+                                                  .RowAlternationEnabled(true)
+                                                  .Export(e => e.Enabled(true))
+                                                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                                                  .ShowRowLines(true)
+                                                  //.OnInitialized("grdDefectStatus_OnInitialized")
+                                                  .Option("KEY_FIELD", new object[]
+                                                  {
+                                                                              "PLANTCODE", "WORKDATE", "PARTNUMBER", "PRODUCTNAME", "SHIFTCODE", "PROCESSCODE", "EQUIPMENTCODE"
+                                                                              , "DEFECTQUANTITY", "DEFECTCODE", "DEFECTRATE"
+                                                  })
+                                  .MasterDetail(m => m
+                                      .Enabled(true)
+                                      .Template(new TemplateName("tempGrdSampleInspect"))
+                                  )
+                                    //.Option("USE_REQUIRED_HEADER", true)
+                            )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*수입검사 하위 그리드*@
+@using (Html.DevExtreme().NamedTemplate("tempGrdInbondInspect"))
+{
+    @(Html.DevExtreme().DataGrid<RPTA012A_LIST>()
+                          .ID(new JS("'grdInbondInspect-' + data.INSPECTIONSEQUENCE"))
+                          .ElementAttr("class", "detail-grid")
+                          .ShowBorders(true)
+                          .AllowColumnResizing(false)
+                          .ColumnAutoWidth(false)
+                          .FilterPanel(f => f.Visible(false))
+                          .RowAlternationEnabled(true)
+                          .DataSource(d => d.WebApi()
+                              .Controller("RPTA012WebApi")
+                              .LoadAction("getInbondInspectDetail")
+                              .LoadParams(new
+                              {
+                                  seq = new JS("function() { return data.INSPECTIONSEQUENCE; }")
+                              })
+                          )
+                          .Paging(p => p.PageSize(10))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .Columns(columns =>
+                          {
+                              columns.AddFor(m => m.INSPECTDATE).Visible(false);
+                              columns.AddFor(m => m.INSPREPORTSEQUENCE).Visible(false);
+                              columns.AddFor(m => m.INSPECTIONSEQUENCE).Visible(false);
+                              columns.AddFor(m => m.MATERIALCODE).Visible(false);
+                              columns.AddFor(m => m.MATERIALNAME).Visible(false);
+                              columns.AddFor(m => m.INSPECTCODE).Visible(false);
+                              columns.AddFor(m => m.INSPECTNAME).Visible(true);
+                              columns.AddFor(m => m.USL).Visible(true);
+                              columns.AddFor(m => m.CSL).Visible(true);
+                              columns.AddFor(m => m.LSL).Visible(true);
+                              columns.AddFor(m => m.SPECCLASS).Visible(false);
+                              columns.AddFor(m => m.DATATYPE).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT).Visible(false);
+                              columns.AddFor(m => m.INSPECTIONVALUE).Visible(true).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.INSPECTRESULT).Visible(true).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.CREATEUSER).Visible(false)
+                                  .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                      .Controller("COMA001WebApi")
+                                      .Key("EMPCODE")
+                                      .LoadAction("HR_LIST")
+                                      )
+                                      .DisplayExpr("EMPNAME")
+                                      .ValueExpr("EMPCODE")
+                                  );
+                          })
+                          .Selection(s => s.Mode(SelectionMode.Single))
+    )
+}
+
+@*초종검사 하위 그리드*@
+@using (Html.DevExtreme().NamedTemplate("tempGrdSampleInspect"))
+{
+    @(Html.DevExtreme().DataGrid<RPTA012C_LIST>()
+                          .ID(new JS("'grdSampleInspect-' + data.SAMPLEINGINSPECTIONID"))
+                          .ElementAttr("class", "detail-grid")
+                          .ShowBorders(true)
+                          .AllowColumnResizing(false)
+                          .ColumnAutoWidth(false)
+                          .FilterPanel(f => f.Visible(false))
+                          .RowAlternationEnabled(true)
+                          .DataSource(d => d.WebApi()
+                              .Controller("RPTA012WebApi")
+                              .LoadAction("getSampleInspectDetail")
+                              .LoadParams(new
+                              {
+                                  id = new JS("function() { return data.SAMPLEINGINSPECTIONID; }")
+                              })
+                          )
+                          .Paging(p => p.PageSize(10))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .Columns(columns =>
+                          {
+                              columns.AddFor(m => m.SAMPLEINGINSPECTIONID).Visible(false);
+                              columns.AddFor(m => m.INSPECTCODE).Visible(false);
+                              columns.AddFor(m => m.INSPECTNAME).Visible(true);
+                              columns.AddFor(m => m.USL).Visible(true);
+                              columns.AddFor(m => m.CSL).Visible(true);
+                              columns.AddFor(m => m.LSL).Visible(true);
+                              columns.AddFor(m => m.INSPECTVALUE).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT).Visible(false);
+                              columns.AddFor(m => m.INSPECTIONVALUE).Visible(true).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.INSPECTRESULT).Visible(true).Alignment(HorizontalAlignment.Center);
+
+                          })
+                          .Selection(s => s.Mode(SelectionMode.Single))
+    )
+}
+
+
+<script>
+            //function grdDefectRate_OnInitialized(e) {
+            //    //userCustomGrid(e);
+            //}
+            //function grdDefectStatus_OnInitialized(e) {
+            //    //userCustomGrid(e);
+            //}
+
+</script>

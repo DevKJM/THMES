@@ -1,0 +1,152 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<RPTA042_LIST>()
+            .ID("grdDefectMaster")
+            .DataSource(d => d.WebApi().Controller("RPTA042WebApi"))
+            .Columns(columns =>
+            {
+                columns.AddFor(m => m.WORKDATEGROUP).SortOrder(SortOrder.Desc).SortIndex(0).GroupIndex(0);
+                columns.AddFor(m => m.ORDERNUMBER).SortOrder(SortOrder.Asc).SortIndex(4).Visible(false);
+                columns.AddFor(m => m.ORDERSEQUENCE).SortOrder(SortOrder.Asc).SortIndex(5).Visible(false);
+                columns.AddFor(m => m.ORDERNUMBER_SEQ).SortOrder(SortOrder.Asc).SortIndex(3).GroupIndex(0).Visible(false);
+                columns.AddFor(m => m.WORKDATE).Width(180).SortOrder(SortOrder.Desc).SortIndex(0)
+                    .Format(f => f.Type(Format.ShortDate))
+                    .SelectedFilterOperation(FilterOperations.Between)
+                    .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date });
+                columns.AddFor(m => m.CARTYPE).Caption(LabelText.CARTYPE).SortOrder(SortOrder.Asc).SortIndex(1)
+                    .Lookup(lookup => lookup
+                    .DataSource(d => d.WebApi()
+                    .Controller("COMA003WebApi").Key("SYSCODE")
+                    .LoadAction("CARTYPE_LIST"))
+                    .DisplayExpr("SYSCODENAME")
+                    .ValueExpr("SYSCODE")
+                );
+                columns.AddFor(m => m.COLOR).Caption(LabelText.COLOR).SortOrder(SortOrder.Asc).SortIndex(2)
+                    .Lookup(lookup => lookup
+                    .DataSource(d => d.WebApi()
+                    .Controller("COMA003WebApi").Key("SYSCODE")
+                    .LoadAction("COLOR_LIST"))
+                    .DisplayExpr("SYSCODENAME")
+                    .ValueExpr("SYSCODE")
+                );
+                columns.AddFor(m => m.PARTNUMBER)
+                    .Lookup(lookup => lookup
+                    .DataSource(d => d.WebApi()
+                    .Controller("COMA001WebApi").Key("PARTNUMBER")
+                    .LoadAction("PART_HP_LIST"))
+                    .DisplayExpr("PRODUCTNAME")
+                    .ValueExpr("PARTNUMBER")
+                );
+                columns.AddFor(m => m.ORDERQUANTITY);
+                columns.AddFor(m => m.GOODQUANTITY);
+                columns.AddFor(m => m.DEFECTQUANTITY);
+                columns.AddFor(m => m.TOTALDEFECTQUANTITY).Visible(false);
+                columns.AddFor(m => m.A001).Width(100);
+                columns.AddFor(m => m.A002).Width(100);
+                columns.AddFor(m => m.A003).Width(100);
+                columns.AddFor(m => m.A004).Width(100);
+                columns.AddFor(m => m.A005).Width(100);
+                columns.AddFor(m => m.A006).Width(100);
+                columns.AddFor(m => m.A007).Width(100);
+                columns.AddFor(m => m.A008).Width(100);
+                columns.AddFor(m => m.A009).Width(100);
+                columns.AddFor(m => m.A010).Width(100);
+                columns.AddFor(m => m.A011).Width(100);
+                columns.AddFor(m => m.A012).Width(100);
+                columns.AddFor(m => m.WORKER);
+                columns.AddFor(m => m.MEMO);
+            })
+            .Summary(s => s.GroupItems(items =>
+            {
+                items.AddFor(m => m.DEFECTQUANTITY)
+                    .SummaryType(SummaryType.Sum)
+                    .ShowInColumn("DEFECTQUANTITY")
+                    .ShowInGroupFooter(true)
+                    .DisplayFormat("총 불량 수 : {0}");
+                items.AddFor(m => m.GOODQUANTITY)
+                    .SummaryType(SummaryType.Sum)
+                    .ShowInColumn("GOODQUANTITY")
+                    .ShowInGroupFooter(true)
+                    .DisplayFormat("총 양품 수 : {0}");
+            })
+            )
+            .RemoteOperations(true)
+            .FilterPanel(f => f.Visible(true))
+            .ColumnAutoWidth(true)
+            .Paging(p => p.PageSize(25).Enabled(true))
+            .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+            .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+            .SearchPanel(searchPanel => searchPanel
+                .Visible(true)
+                .Width(180)
+                .Placeholder("Search...")
+            )
+            .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+            .FilterRow(filterRow => filterRow
+                .Visible(true)
+                .ApplyFilter(GridApplyFilterMode.Auto)
+            )
+            .ShowBorders(true)
+            .AllowColumnResizing(true)
+            .Editing(e =>
+                e.Mode(GridEditMode.Batch)
+                    .AllowAdding(false)
+                    .AllowUpdating(false)
+                    .AllowDeleting(false)
+            )
+            .RowAlternationEnabled(true)
+            .Export(e=>e.Enabled(true))
+            .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+            .ShowRowLines(true)
+            .OnInitialized("grdWorkResult_OnInitialized")
+            .Option("IGNORE_AUTOWIDTH", new object[] { "WORKDATE", "ORDERNUMBER", "ORDERSEQUENCE", "ORDERNUMBER_SEQ", "CARTYPE", "COLOR", "PARTNUMBER", "GOODQUANTITY", "DEFECTQUANTITY", "TOTALDEFECTQUANTITY"})
+            //.Option("IGNORE_AUTOWIDTH", new object[] { "WORKDATE", "ORDERNUMBER", "ORDERSEQUENCE", "ORDERNUMBER_SEQ", "CARTYPE", "COLOR", "PARTNUMBER", "GOODQUANTITY", "DEFECTQUANTITY", "TOTALDEFECTQUANTITY", "A001", "A002", "A003", "A004", "A005", "A006", "A007", "A008", "A009", "A010", "A011", "A012" })
+            )
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        initDateColumnHeader();
+    });
+
+    function initDateColumnHeader() {
+
+        $.ajax({
+            url: '@Url.Action("getDefectList", "RPTA042WebApi", new { httproute = "DefaultApi", })',
+            type: 'GET',
+            success: function (e) {
+                console.log(e);
+                var grid = $('#grdDefectMaster').dxDataGrid('instance');
+                var columns = grid.option("columns");
+
+                e.data.forEach(function (row) {
+                    for (var i = 0; i <= columns.length; i++) {
+                        if (row.DEFECTCODE == columns[i].dataField) {
+                            grid.columnOption(row.DEFECTCODE, 'caption', row.DEFECTNAME);
+                            break;
+                        }
+                    }
+                })                
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+
+    function grdWorkResult_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

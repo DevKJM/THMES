@@ -1,0 +1,135 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCF;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<PRCF003_LIST>()
+                .ID("grdWIPHistory")
+                .DataSource(d => d.WebApi().Controller("PRCF003WebApi").Key("WIPSEQUENCE"))
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.WORKDATE).Format(Format.ShortDate)
+                        .SelectedFilterOperation(FilterOperations.Between)
+                        .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date }).SortOrder(SortOrder.Desc);
+                    columns.AddFor(m => m.LOTNUMBER);
+                    columns.AddFor(m => m.SERIALNUMBER).SortOrder(SortOrder.Asc);
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.PROCESSCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("PROCESSCODE")
+                            .LoadAction("PROCESS_LIST"))
+                            .DisplayExpr("PROCESSNAME")
+                            .ValueExpr("PROCESSCODE")
+                        );
+                    columns.AddFor(m => m.NEXTPROCESSCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("PROCESSCODE")
+                            .LoadAction("PROCESS_LIST"))
+                            .DisplayExpr("PROCESSNAME")
+                            .ValueExpr("PROCESSCODE")
+                        );
+                    columns.AddFor(m => m.EQUIPMENTCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("EQUIPMENTCODE")
+                            .LoadAction("EQUIPMENT_LIST"))
+                            .DisplayExpr("EQUIPMENTNAME")
+                            .ValueExpr("EQUIPMENTCODE")
+                        );
+                    columns.AddFor(m => m.TRANSCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                           .Controller("COMA001WebApi").Key("TRANSCODE")
+                           .LoadAction("TRANSACTION_LIST"))
+                           .DisplayExpr("TRANSNAME")
+                           .ValueExpr("TRANSCODE")
+                         );
+                    columns.AddFor(m => m.SHIFTCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                           .Controller("COMA003WebApi").Key("SYSCODE")
+                           .LoadAction("SHIFT_LIST"))
+                           .DisplayExpr("SYSCODENAME")
+                           .ValueExpr("SYSCODE")
+                         );
+                    columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.WORKER);
+                    columns.AddFor(m => m.ORDERNUMBER);
+                    columns.AddFor(m => m.ORDERSEQUENCE);
+                    columns.AddFor(m => m.PREVSEQUENCE);
+                    columns.AddFor(m => m.WORKCENTERCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                           .Controller("COMA001WebApi").Key("WORKCENTERCODE")
+                           .LoadAction("WORKCENTER_LIST"))
+                           .DisplayExpr("WORKCENTERNAME")
+                           .ValueExpr("WORKCENTERCODE")
+                         );
+                    columns.AddFor(m => m.WAREHOUSECODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                           .Controller("COMA001WebApi").Key("WAREHOUSECODE")
+                           .LoadAction("WAREHOUSE_LIST"))
+                           .DisplayExpr("WAREHOUSENAME")
+                           .ValueExpr("WAREHOUSECODE")
+                         );
+                    columns.AddFor(m => m.LOCATIONCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                           .Controller("COMA001WebApi").Key("LOCATIONCODE")
+                           .LoadAction("LOCATION_LIST"))
+                           .DisplayExpr("LOCATIONNAME")
+                           .ValueExpr("LOCATIONCODE")
+                         );
+                    columns.AddFor(m => m.PLANTCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                           .Controller("COMA001WebApi").Key("PLANTCODE")
+                           .LoadAction("PLANT_LIST"))
+                           .DisplayExpr("PLANTNAME")
+                           .ValueExpr("PLANTCODE")
+                         );
+                    columns.AddFor(m => m.HOLDINGYN)
+                        .Lookup(lookup => lookup.DataSource(new JS("USE_YN"))
+                              .DisplayExpr("NAME")
+                              .ValueExpr("CODE"));
+                    columns.AddFor(m => m.MEMO);
+                    columns.AddFor(m => m.CANCELYN)
+                        .Lookup(lookup => lookup.DataSource(new JS("USE_YN"))
+                              .DisplayExpr("NAME")
+                              .ValueExpr("CODE"));
+                    columns.AddFor(m => m.CANCELTIME);
+                    columns.AddFor(m => m.CREATEUSER)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                           .Controller("COMA001WebApi").Key("EMPCODE")
+                           .LoadAction("HR_LIST"))
+                           .DisplayExpr("EMPNAME")
+                           .ValueExpr("EMPCODE")
+                         );
+                    columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                })
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .ShowRowLines(true)
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+            )
+        </div>
+    </div>
+</div>

@@ -1,0 +1,118 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.POD.PODE;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<PODE041_LIST>()
+                .ID("grdProductInout")
+                .DataSource(d => d.WebApi().Controller("PODE041WebApi").Key("PRODHISSEQ"))
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.WORKDATE).Width(170)
+                        .Format(f => f.Type(Format.ShortDate))
+                        .SelectedFilterOperation(FilterOperations.Between)
+                        .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date }).SortOrder(SortOrder.Desc);
+                    columns.AddFor(m => m.SERIALNUMBER).SortOrder(SortOrder.Asc);
+                    columns.AddFor(m => m.LOTNUMBER);
+                    columns.AddFor(m => m.PRODUCTTYPE).Visible(false)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA003WebApi").Key("SYSCODE")
+                            .LoadAction("PRODUCTTYPE_LIST"))
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        );
+                    columns.AddFor(m => m.CARTYPE)
+                        .Lookup(lookup => lookup
+                        .DataSource(d => d.WebApi()
+                        .Controller("COMA003WebApi").Key("SYSCODE")
+                        .LoadAction("CARTYPE_LIST"))
+                        .DisplayExpr("SYSCODENAME")
+                        .ValueExpr("SYSCODE")
+                    );
+                    columns.AddFor(m => m.COLOR)
+                        .Lookup(lookup => lookup
+                        .DataSource(d => d.WebApi()
+                        .Controller("COMA003WebApi").Key("SYSCODE")
+                        .LoadAction("COLOR_LIST"))
+                        .DisplayExpr("SYSCODENAME")
+                        .ValueExpr("SYSCODE")
+                    );
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.WAREHOUSECODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("WAREHOUSECODE")
+                            .LoadAction("WAREHOUSE_LIST"))
+                            .DisplayExpr("WAREHOUSENAME")
+                            .ValueExpr("WAREHOUSECODE")
+                        );
+                    columns.AddFor(m => m.TRANSCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("TRANSCODE")
+                            .LoadAction("TRANSACTION_LIST"))
+                            .DisplayExpr("TRANSNAME")
+                            .ValueExpr("TRANSCODE")
+                        );
+                    columns.AddFor(m => m.VENDORCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("VENDORCODE")
+                            .LoadAction("VENDOR_LIST"))
+                            .DisplayExpr("VENDORNAME")
+                            .ValueExpr("VENDORCODE")
+                        );
+                    columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.UNITCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA003WebApi").Key("SYSCODE")
+                            .LoadAction("UNITCODE_LIST")
+                            )
+                        .DisplayExpr("SYSCODENAME")
+                        .ValueExpr("SYSCODE")
+                        );
+                    columns.AddFor(m => m.MEMO);
+                })
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .Editing(e =>
+                    e.Mode(GridEditMode.Batch)
+                        .AllowAdding(false)
+                        .AllowUpdating(false)
+                        .AllowDeleting(false)
+                )
+                //.StateStoring(s => s.Enabled(true).StorageKey("PODE001_grdProductInout").Type(StateStoringType.LocalStorage))
+                .RowAlternationEnabled(true)
+                .Export(e=>e.Enabled(true))
+                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                .ShowRowLines(true)
+                .OnInitialized("grdProductInout_OnInitialized")
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdProductInout_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

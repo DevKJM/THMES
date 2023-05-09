@@ -1,0 +1,158 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+
+@{
+    ViewBag.Title = "MSTD002";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<MaterialMaster>()
+                  .DataSource(d => d.WebApi().Controller("MSTD022WebApi").Key("MATERIALID")
+                      .OnBeforeSend("grdMaterial_OnBeforeSend"))
+                  .ID("grdMaterial")
+                  .Columns(columns =>
+                  {
+                  columns.AddFor(m => m.MATERIALCODE).SortOrder(SortOrder.Asc);
+                  columns.AddFor(m => m.MATERIALNAME);
+                  columns.AddFor(m => m.MATERIALTYPE)
+                      .Lookup(lookup => lookup
+                          .DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("MATERIALTYPE_LIST"))
+                          .DisplayExpr("SYSCODENAME")
+                          .ValueExpr("SYSCODE")
+                      );
+
+                  columns.AddFor(m => m.SPEC1).Caption("두께");
+                  columns.AddFor(m => m.SPEC2).Caption("폭");
+                  columns.AddFor(m => m.SPEC3).Caption("피치");
+                  columns.AddFor(m => m.TEXTURE);
+                  columns.AddFor(m => m.COLOR).Visible(false);
+                  columns.AddFor(m => m.SAFETYINVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                  columns.AddFor(m => m.BOXPERQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                  columns.AddFor(m => m.UNITCODE)
+                      .Lookup(lookup => lookup
+                          .DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("UNITCODE_LIST"))
+                          .DisplayExpr("SYSCODENAME")
+                          .ValueExpr("SYSCODE")
+                      );
+                  columns.AddFor(m => m.MEMO).EditCellTemplate(@<text>@(Html.DevExtreme().TextArea().Height(100).Value(new JS("data.MEMO")).OnValueChanged("function(e){setValue(e.value);}"))</text>);
+                      columns.AddFor(m => m.USEYN);
+                      columns.AddFor(m => m.CREATEUSER);
+                      columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                      columns.AddFor(m => m.RECENTUSER);
+                      columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                  })
+                  .AllowColumnResizing(true)
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  //.StateStoring(s => s.Enabled(true).StorageKey("MSTD002_grdMaterial").Type(StateStoringType.LocalStorage))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .ShowRowLines(true)
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowUpdating(new JS("iudAuth()"))
+                          .AllowAdding(new JS("iudAuth()"))
+                          .AllowDeleting(new JS("iudAuth()"))
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                  .OnInitialized("grdMaterial_OnInitialized")
+                  .Option("KEY_FIELD", new object[] { "MATERIALCODE" })
+                  .Option("INIT_FIELD", new object[] { "USEYN", "MATERIALCODE" })
+                  .OnInitNewRow("grdMaterial_OnInitNewRow")
+                  //.OnEditingStart("onEditingStart")
+                  
+                  )
+        </div>
+    </div>
+</div>
+
+<script>
+    var activeCell;
+
+    function onEditingStart(e) {
+        setTimeout(function() {  
+            activeCell = e.element.find(".dx-editor-cell.dx-focused");  
+        }, 100);  
+    }
+    function grdMaterial_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdMaterial_OnInitNewRow(e) {
+        e.data.PARTNUMBERPHOTO = new DevExpress.data.Guid().toString();
+        e.data.SAFETYINVENTQUANTITY = 0;
+    }
+
+    function grdMaterial_OnBeforeSend(method, ajaxOptions) {
+        if (method == "insert") {
+
+            var tmp = JSON.parse(ajaxOptions.data.values);
+
+            if (tmp.UNITCODE == "U02") {
+                if (tmp.SAFETYINVENTQUANTITY != undefined)
+                    tmp.SAFETYINVENTQUANTITY = Math.round(tmp.SAFETYINVENTQUANTITY * 1000);
+                if (tmp.BOXPERQUANTITY != undefined)
+                    tmp.BOXPERQUANTITY = Math.round(tmp.BOXPERQUANTITY * 1000);
+            } else {
+                if (tmp.SAFETYINVENTQUANTITY != undefined)
+                    tmp.SAFETYINVENTQUANTITY = Math.round(tmp.SAFETYINVENTQUANTITY);
+                if (tmp.BOXPERQUANTITY != undefined)
+                    tmp.BOXPERQUANTITY = Math.round(tmp.BOXPERQUANTITY);
+            }
+            ajaxOptions.data.values = JSON.stringify(tmp);
+
+        } else if (method == "update") {
+            var index = $('#grdMaterial').dxDataGrid('instance').getRowIndexByKey(ajaxOptions.data.key);
+            var unitcode = $('#grdMaterial').dxDataGrid('instance').cellValue(index, 'UNITCODE');
+
+            var tmp = JSON.parse(ajaxOptions.data.values);
+
+            if (unitcode == "U02") {
+                if (tmp.SAFETYINVENTQUANTITY != undefined)
+                    tmp.SAFETYINVENTQUANTITY = Math.round(tmp.SAFETYINVENTQUANTITY * 1000);
+                if (tmp.BOXPERQUANTITY != undefined)
+                    tmp.BOXPERQUANTITY = Math.round(tmp.BOXPERQUANTITY * 1000);
+            } else {
+                if (tmp.SAFETYINVENTQUANTITY != undefined)
+                    tmp.SAFETYINVENTQUANTITY = Math.round(tmp.SAFETYINVENTQUANTITY);
+                if (tmp.BOXPERQUANTITY != undefined)
+                    tmp.BOXPERQUANTITY = Math.round(tmp.BOXPERQUANTITY);
+            }
+            ajaxOptions.data.values = JSON.stringify(tmp);
+        }
+    }
+</script>
+
+
+@Html.Partial("_DropdownPartial")

@@ -1,0 +1,908 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAK;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Infrastructure.Enums
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            <div id="tabs" class="animated">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs ">
+                        <li>
+                            <a class="nav-link active" data-toggle="tab" href="#tab-sidegrd-1">
+                                <i class="fa fa-calendar"> 수입검사</i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" data-toggle="tab" href="#tab-sidegrd-2">
+                                <i class="fa fa-wrench"> 초종검사</i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" data-toggle="tab" href="#tab-sidegrd-3">
+                                <i class="fa fa-wrench"> 공정순회검사</i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" data-toggle="tab" href="#tab-sidegrd-4">
+                                <i class="fa fa-wrench"> 출하검사</i>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content onlyHeader">
+                        <div id="tab-sidegrd-1" class="tab-pane active">
+                            @(Html.DevExtreme().DataGrid<QUAK021_LIST>
+                                                                  ()
+                                                                  .ID("grdInbondInspect")
+                                                                  .DataSource(d => d.WebApi().Controller("QUAK021WebApi")
+                                                                      .LoadAction("getInbondInspect"))
+                                                                  .Columns(columns =>
+                                                                  {
+                                                                      columns.AddFor(m => m.INSPECTIONSEQUENCE).Visible(false);
+                                                                      columns.AddFor(m => m.INSPECTDATE).Visible(true).Format(f => f.Type(Format.ShortDate))
+                                                                          .SelectedFilterOperation(FilterOperations.Between)
+                                                                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                                                                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                                                                      columns.AddFor(m => m.VENDORCODE).Visible(false);
+                                                                      columns.AddFor(m => m.VENDORNAME).Visible(true);
+                                                                      columns.AddFor(m => m.MATERIALCODE).Visible(true);
+                                                                      columns.AddFor(m => m.MATERIALNAME).Visible(true);
+                                                                      columns.AddFor(m => m.UNITCODE).Visible(false);
+                                                                      columns.AddFor(m => m.UNITNAME).Visible(true);
+                                                                      columns.AddFor(m => m.RECEIVINGQUANTITY).Visible(true).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                                                      columns.AddFor(m => m.INSPECTIONRESULT).Alignment(HorizontalAlignment.Center).Visible(true);
+                                                                                  //columns.AddFor(m => m.INSPECTOR).Visible(true);
+
+                                                                                  //columns.AddFor(m => m.CREATEUSER).Visible(true)
+                                                                                  //    .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                                                  //    .Controller("COMA001WebApi")
+                                                                                  //    .Key("EMPCODE")
+                                                                                  //    .LoadAction("HR_LIST")
+                                                                                  //    )
+                                                                                  //    .DisplayExpr("EMPNAME")
+                                                                                  //    .ValueExpr("EMPCODE")
+                                                                                  //    );
+                                                                              })
+                                                                  .RemoteOperations(true)
+                                                                  .FilterPanel(f => f.Visible(true))
+                                                                  .ColumnAutoWidth(true)
+                                                                  .Paging(p => p.PageSize(25).Enabled(true))
+                                                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                  .SearchPanel(searchPanel => searchPanel
+                                                                      .Visible(true)
+                                                                      .Width(180)
+                                                                      .Placeholder("Search...")
+                                                                  )
+                                                                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                                                                  .FilterRow(filterRow => filterRow
+                                                                      .Visible(true)
+                                                                      .ApplyFilter(GridApplyFilterMode.Auto)
+                                                                  )
+                                                                  .ShowBorders(true)
+                                                                  .AllowColumnResizing(true)
+                                                                  .Editing(e =>
+                                                                      e.Mode(GridEditMode.Batch)
+                                                                          .AllowAdding(false)
+                                                                          .AllowUpdating(false)
+                                                                          .AllowDeleting(false)
+                                                                  )
+                                                                  .RowAlternationEnabled(true)
+                                                                  .Export(e => e.Enabled(true))
+                                                                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                                                                  .ShowRowLines(true)
+                                                                  //.OnInitialized("grdDefectRate_OnInitialized")
+                                                                  .Option("KEY_FIELD", new object[]
+                                                                  {
+                                                                                                                      "PLANTCODE", "WORKDATE", "PARTNUMBER", "PRODUCTNAME", "SHIFTCODE", "PROCESSCODE", "EQUIPMENTCODE"
+                                                                                                                      , "DEFECTRATE"
+                                                                  })
+                                                                  //.OnRowClick("grdInbondInspect_OnRowClick")
+                                                                  //.OnCellClick("grdInbondInspect_OnCellClick")
+                                                                  .MasterDetail(m => m
+                                                                      .Enabled(true)
+                                                                      .Template(new TemplateName("tempGrdInbondInspect"))
+                                                                  )
+                                    //.Option("USE_REQUIRED_HEADER", true)
+                            )
+                        </div>
+                        <div id="tab-sidegrd-2" class="tab-pane">
+                            @(Html.DevExtreme().DataGrid<QUAK021B_LIST>
+                                                                  ()
+                                                                  .ID("grdSampleInspect")
+                                                                  .DataSource(d => d.WebApi().Controller("QUAK021WebApi")
+                                                                      .LoadAction("getSampleInspect"))
+                                                                  .Columns(columns =>
+                                                                  {
+
+                                                                      columns.AddFor(m => m.INSPECTDATE).Visible(true).Format(f => f.Type(Format.ShortDate))
+                                                                          .SelectedFilterOperation(FilterOperations.Between)
+                                                                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                                                                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                                                                      columns.AddFor(m => m.PROCESSCODE).Visible(true)
+                                                                          .Lookup(lookup => lookup
+                                                                              .DataSource(d => d.WebApi()
+                                                                                  .Controller("COMA001WebApi").Key("PROCESSCODE")
+                                                                                  .LoadAction("PROCESS_LIST")
+                                                                              )
+                                                                              .DisplayExpr("PROCESSNAME")
+                                                                              .ValueExpr("PROCESSCODE")
+                                                                          );
+                                                                      columns.AddFor(m => m.EQUIPMENTCODE).Visible(true)
+                                                                          .Lookup(lookup => lookup
+                                                                              .DataSource(d => d.WebApi()
+                                                                                  .Controller("COMA001WebApi").Key("EQUIPMENTCODE")
+                                                                                  .LoadAction("EQUIPMENT_LIST")
+                                                                              )
+                                                                              .DisplayExpr("EQUIPMENTNAME")
+                                                                              .ValueExpr("EQUIPMENTCODE")
+                                                                          );
+                                                                      columns.AddFor(m => m.PARTNUMBER).Visible(true)
+                                                                          .Lookup(lookup => lookup
+                                                                              .DataSource(d => d.WebApi()
+                                                                                  .Controller("COMA001WebApi").Key("PARTNUMBER")
+                                                                                  .LoadAction("PARTNUM_LIST")
+                                                                              )
+                                                                              .DisplayExpr("PRODUCTNAME")
+                                                                              .ValueExpr("PARTNUMBER")
+                                                                          );
+                                                                      columns.AddFor(m => m.CARTYPE).Visible(true)
+                                                                          .Lookup(lookup => lookup
+                                                                              .DataSource(d => d.WebApi()
+                                                                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                                                                  .LoadAction("CARTYPE_LIST")
+                                                                              )
+                                                                              .DisplayExpr("SYSCODENAME")
+                                                                              .ValueExpr("SYSCODE")
+                                                                          );
+                                                                      columns.AddFor(m => m.INSPECTCLASSIFY).Visible(true)
+                                                                          .Lookup(lookup => lookup
+                                                                              .DataSource(d => d.WebApi()
+                                                                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                                                                  .LoadAction("INSPECTIONCLASSIFY_LIST")
+                                                                              )
+                                                                              .DisplayExpr("SYSCODENAME")
+                                                                              .ValueExpr("SYSCODE")
+                                                                          );
+                                                                      columns.AddFor(m => m.INSPECTNO).Visible(true).Alignment(HorizontalAlignment.Center).Caption("검사회차");
+                                                                      columns.AddFor(m => m.ORDERNUMBER).Visible(false);
+                                                                  })
+                                                                  .RemoteOperations(true)
+                                                                  .FilterPanel(f => f.Visible(true))
+                                                                  .ColumnAutoWidth(true)
+                                                                  .Paging(p => p.PageSize(25).Enabled(true))
+                                                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                  .SearchPanel(searchPanel => searchPanel
+                                                                      .Visible(true)
+                                                                      .Width(180)
+                                                                      .Placeholder("Search...")
+                                                                  )
+                                                                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                                                                  .FilterRow(filterRow => filterRow
+                                                                      .Visible(true)
+                                                                      .ApplyFilter(GridApplyFilterMode.Auto)
+                                                                  )
+                                                                  .ShowBorders(true)
+                                                                  .AllowColumnResizing(true)
+                                                                  .Editing(e =>
+                                                                      e.Mode(GridEditMode.Batch)
+                                                                          .AllowAdding(false)
+                                                                          .AllowUpdating(false)
+                                                                          .AllowDeleting(false)
+                                                                  )
+                                                                  .RowAlternationEnabled(true)
+                                                                  .Export(e => e.Enabled(true))
+                                                                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                                                                  .ShowRowLines(true)
+                                                                  //.OnInitialized("grdDefectStatus_OnInitialized")
+                                                                  .Option("KEY_FIELD", new object[]
+                                                                  {
+                                                                                                                      "PLANTCODE", "WORKDATE", "PARTNUMBER", "PRODUCTNAME", "SHIFTCODE", "PROCESSCODE", "EQUIPMENTCODE"
+                                                                                                                      , "DEFECTQUANTITY", "DEFECTCODE", "DEFECTRATE", "INSPECTNO"
+                                                                  })
+                                                                  .MasterDetail(m => m
+                                                                      .Enabled(true)
+                                                                      .Template(new TemplateName("tempGrdSampleInspect"))
+                                                                  )
+                                    //.Option("USE_REQUIRED_HEADER", true)
+                            )
+                        </div>
+                        <div id="tab-sidegrd-3" class="tab-pane">
+                            @(Html.DevExtreme().DataGrid<QUAK021D_LIST>
+                                                                          ()
+                                                                          .ID("grdCircuitInspect")
+                                                                          .DataSource(d => d.WebApi().Controller("QUAK021WebApi")
+                                                                              .LoadAction("getCircuitInspect"))
+                                                                          .Columns(columns =>
+                                                                          {
+                                                                                          //columns.AddFor(m => m.INDEX).Visible(false);
+                                                                                          columns.AddFor(m => m.INSPECTDATE).Visible(true).Format(f => f.Type(Format.ShortDate))
+                                                                                  .SelectedFilterOperation(FilterOperations.Between)
+                                                                                  .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                                                                                  .SortOrder(SortOrder.Desc).SortIndex(0);
+                                                                              columns.AddFor(m => m.PROCESSCODE).Visible(false);
+                                                                              columns.AddFor(m => m.PROCESSNAME).Visible(true);
+                                                                              columns.AddFor(m => m.PARTNUMBER).Visible(true);
+                                                                              columns.AddFor(m => m.PRODUCTNAME).Visible(true);
+                                                                              columns.AddFor(m => m.INSPECTOR).Visible(true);
+                                                                              columns.AddFor(m => m.GROUPDATA).Visible(false);
+
+                                                                                          //columns.AddFor(m => m.PARTNUMBER).Visible(true);
+                                                                                          //columns.AddFor(m => m.PRODUCTNAME).Visible(true);
+                                                                                          //columns.AddFor(m => m.EQUIPMENTCODE).Visible(false);
+                                                                                          //columns.AddFor(m => m.EQUIPMENTNAME).Visible(true);
+                                                                                          //columns.AddFor(m => m.INSPECTCLASSIFY).Visible(false);
+                                                                                          //columns.AddFor(m => m.INSPECTCLASSIFYNAME).Visible(true);
+                                                                                          ////columns.AddFor(m => m.SAMPLECOUNT).Visible(true).Alignment(HorizontalAlignment.Center);
+                                                                                          //columns.AddFor(m => m.INSPECTRESULT).Visible(true).Alignment(HorizontalAlignment.Center);
+                                                                                          //columns.AddFor(m => m.INSPECTOR).Visible(true);
+                                                                                          //columns.AddFor(m => m.INSPECTNO).Visible(false);
+                                                                                          //columns.AddFor(m => m.ORDERNUMBER).Visible(false);
+                                                                                      })
+                                                                          .RemoteOperations(true)
+                                                                          .FilterPanel(f => f.Visible(true))
+                                                                          .ColumnAutoWidth(true)
+                                                                          .Paging(p => p.PageSize(25).Enabled(true))
+                                                                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                          .SearchPanel(searchPanel => searchPanel
+                                                                              .Visible(true)
+                                                                              .Width(180)
+                                                                              .Placeholder("Search...")
+                                                                          )
+                                                                          .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                                                                          .FilterRow(filterRow => filterRow
+                                                                              .Visible(true)
+                                                                              .ApplyFilter(GridApplyFilterMode.Auto)
+                                                                          )
+                                                                          .ShowBorders(true)
+                                                                          .AllowColumnResizing(true)
+                                                                          .Editing(e =>
+                                                                              e.Mode(GridEditMode.Batch)
+                                                                                  .AllowAdding(false)
+                                                                                  .AllowUpdating(false)
+                                                                                  .AllowDeleting(false)
+                                                                          )
+                                                                          .RowAlternationEnabled(true)
+                                                                          .Export(e => e.Enabled(true))
+                                                                          .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                                                                          .ShowRowLines(true)
+                                                                          //.OnInitialized("grdDefectStatus_OnInitialized")
+                                                                          .Option("KEY_FIELD", new object[]
+                                                                          {
+                                                                                                                                      "PLANTCODE", "WORKDATE", "PARTNUMBER", "PRODUCTNAME", "SHIFTCODE", "PROCESSCODE", "EQUIPMENTCODE"
+                                                                                                                                      , "DEFECTQUANTITY", "DEFECTCODE", "DEFECTRATE"
+                                                                          })
+                                                                          .MasterDetail(m => m
+                                                                              .Enabled(true)
+                                                                              .Template(new TemplateName("tempGrdCircuitInspect"))
+                                                                          )
+                                    //.Option("USE_REQUIRED_HEADER", true)
+                            )
+                        </div>
+
+                        <div id="tab-sidegrd-4" class="tab-pane">
+                            @(Html.DevExtreme().DataGrid<QUAK021F_LIST>
+                                                                  ()
+                                                                  .ID("grdShippingInspect")
+                                                                  .DataSource(d => d.WebApi().Controller("QUAK021WebApi")
+                                                                      .LoadAction("getShippingInspect"))
+                                                                  .Columns(columns =>
+                                                                  {
+                                                                                  //columns.AddFor(m => m.INDEX).Visible(false);
+                                                                                  columns.AddFor(m => m.INSPECTDATE).Visible(true).Format(f => f.Type(Format.ShortDate))
+                                                                          .SelectedFilterOperation(FilterOperations.Between)
+                                                                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                                                                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                                                                      columns.AddFor(m => m.PARTNUMBER).Visible(true);
+                                                                      columns.AddFor(m => m.PRODUCTNAME).Visible(true);
+                                                                      columns.AddFor(m => m.INSPECTOR).Visible(true);
+                                                                      columns.AddFor(m => m.GROUPDATA).Visible(false);
+
+                                                                  })
+                                                                  .RemoteOperations(true)
+                                                                  .FilterPanel(f => f.Visible(true))
+                                                                  .ColumnAutoWidth(true)
+                                                                  .Paging(p => p.PageSize(25).Enabled(true))
+                                                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                  .SearchPanel(searchPanel => searchPanel
+                                                                      .Visible(true)
+                                                                      .Width(180)
+                                                                      .Placeholder("Search...")
+                                                                  )
+                                                                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                                                                  .FilterRow(filterRow => filterRow
+                                                                      .Visible(true)
+                                                                      .ApplyFilter(GridApplyFilterMode.Auto)
+                                                                  )
+                                                                  .ShowBorders(true)
+                                                                  .AllowColumnResizing(true)
+                                                                  .Editing(e =>
+                                                                      e.Mode(GridEditMode.Batch)
+                                                                          .AllowAdding(false)
+                                                                          .AllowUpdating(false)
+                                                                          .AllowDeleting(false)
+                                                                  )
+                                                                  .RowAlternationEnabled(true)
+                                                                  .Export(e => e.Enabled(true))
+                                                                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                                                                  .ShowRowLines(true)
+                                                                  //.OnInitialized("grdDefectStatus_OnInitialized")
+                                                                  .Option("KEY_FIELD", new object[]
+                                                                  {
+                                                                                                                          "PLANTCODE", "WORKDATE", "PARTNUMBER", "PRODUCTNAME", "SHIFTCODE", "PROCESSCODE", "EQUIPMENTCODE"
+                                                                                                                          , "DEFECTQUANTITY", "DEFECTCODE", "DEFECTRATE"
+                                                                  })
+                                                                  .MasterDetail(m => m
+                                                                      .Enabled(true)
+                                                                      .Template(new TemplateName("tempGrdShippingInspect"))
+                                                                  )
+                                    //.Option("USE_REQUIRED_HEADER", true)
+                            )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*수입검사 하위 그리드*@
+@using (Html.DevExtreme().NamedTemplate("tempGrdInbondInspect"))
+{
+    @(Html.DevExtreme().DataGrid<QUAK021A_LIST>()
+                                                                  .ID(new JS("'grdInbondInspect-' + data.INSPECTIONSEQUENCE"))
+                                                                  .ElementAttr("class", "detail-grid")
+                                                                  .ShowBorders(true)
+                                                                  .AllowColumnResizing(false)
+                                                                  .ColumnAutoWidth(false)
+                                                                  .FilterPanel(f => f.Visible(false))
+                                                                  .RowAlternationEnabled(true)
+                                                                  .DataSource(d => d.WebApi()
+                                                                      .Controller("QUAK021WebApi")
+                                                                      .LoadAction("getInbondInspectDetail")
+                                                                      .LoadParams(new
+                                                                      {
+                                                                          seq = new JS("function() { return data.INSPECTIONSEQUENCE; }")
+                                                                      })
+                                                                  )
+                                                                  .Paging(p => p.PageSize(10))
+                                                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                  .Columns(columns =>
+                                                                  {
+
+                                                                      columns.AddFor(m => m.DISPLAYSEQUENCE).AllowEditing(false).Visible(false);
+                                                                      columns.AddFor(m => m.INSPECTCODE).AllowEditing(false).Width(120)
+                                                                          .Lookup(l => l.DataSource(d => d.WebApi()
+                                                                              .Controller("MSTL003WebApi")
+                                                                              .LoadAction("getInspectItem")
+                                                                              .Key("INSPECTCODE")
+                                                                              )
+                                                                              .ValueExpr("INSPECTCODE")
+                                                                              .DisplayExpr("INSPECTNAME")
+                                                                              .AllowClearing(true)
+                                                                          );
+                                                      //columns.AddFor(m => m.SPEC).AllowEditing(false);//.CalculateCellValue("function(rowdata){ return rowdata.LSL + ' ~ ' + rowdata.USL;}");
+                                                      columns.AddFor(m => m.INSPECTUNIT).AllowEditing(false).Width(80).Visible(false)
+                                                                                          .Lookup(lookup => lookup
+                                                                                              .DataSource(d => d.WebApi()
+                                                                                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                                                                                  .LoadAction("INSPECTUNIT_LIST")
+                                                                                              )
+                                                                                              .DisplayExpr("SYSCODENAME")
+                                                                                              .ValueExpr("SYSCODE")
+                                                                                          );
+                                                                      columns.AddFor(m => m.DATATYPE).Visible(false);
+                                                      //columns.AddFor(m => m.SPECCLASS).Visible(false);
+                                                      columns.AddFor(m => m.USL).Visible(false);
+                                                                      columns.AddFor(m => m.LSL).Visible(false);
+                                                                      columns.AddFor(m => m.CSL).Visible(false);
+                                                                      columns.AddFor(m => m.UCL).Visible(false);
+                                                                      columns.AddFor(m => m.LCL).Visible(false);
+                                                                      columns.AddFor(m => m.RESULT1).AllowSorting(false).AllowEditing(false).Caption("1회차").Visible(new JS("maxSample(1,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT2).AllowSorting(false).AllowEditing(false).Caption("2회차").Visible(new JS("maxSample(2,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT3).AllowSorting(false).AllowEditing(false).Caption("3회차").Visible(new JS("maxSample(3,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT4).AllowSorting(false).AllowEditing(false).Caption("4회차").Visible(new JS("maxSample(4,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT5).AllowSorting(false).AllowEditing(false).Caption("5회차").Visible(new JS("maxSample(5,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT6).AllowSorting(false).AllowEditing(false).Caption("6회차").Visible(new JS("maxSample(6,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT7).AllowSorting(false).AllowEditing(false).Caption("7회차").Visible(new JS("maxSample(7,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT8).AllowSorting(false).AllowEditing(false).Caption("8회차").Visible(new JS("maxSample(8,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT9).AllowSorting(false).AllowEditing(false).Caption("9회차").Visible(new JS("maxSample(9,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT10).AllowSorting(false).AllowEditing(false).Caption("10회차").Visible(new JS("maxSample(10,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT11).AllowSorting(false).AllowEditing(false).Caption("11회차").Visible(new JS("maxSample(11,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT12).AllowSorting(false).AllowEditing(false).Caption("12회차").Visible(new JS("maxSample(12,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT13).AllowSorting(false).AllowEditing(false).Caption("13회차").Visible(new JS("maxSample(13,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT14).AllowSorting(false).AllowEditing(false).Caption("14회차").Visible(new JS("maxSample(14,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT15).AllowSorting(false).AllowEditing(false).Caption("15회차").Visible(new JS("maxSample(15,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT16).AllowSorting(false).AllowEditing(false).Caption("16회차").Visible(new JS("maxSample(16,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT17).AllowSorting(false).AllowEditing(false).Caption("17회차").Visible(new JS("maxSample(17,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT18).AllowSorting(false).AllowEditing(false).Caption("18회차").Visible(new JS("maxSample(18,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT19).AllowSorting(false).AllowEditing(false).Caption("19회차").Visible(new JS("maxSample(19,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT20).AllowSorting(false).AllowEditing(false).Caption("20회차").Visible(new JS("maxSample(20,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT21).AllowSorting(false).AllowEditing(false).Caption("21회차").Visible(new JS("maxSample(21,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT22).AllowSorting(false).AllowEditing(false).Caption("22회차").Visible(new JS("maxSample(22,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT23).AllowSorting(false).AllowEditing(false).Caption("23회차").Visible(new JS("maxSample(23,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT24).AllowSorting(false).AllowEditing(false).Caption("24회차").Visible(new JS("maxSample(24,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT25).AllowSorting(false).AllowEditing(false).Caption("25회차").Visible(new JS("maxSample(25,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT26).AllowSorting(false).AllowEditing(false).Caption("26회차").Visible(new JS("maxSample(26,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT27).AllowSorting(false).AllowEditing(false).Caption("27회차").Visible(new JS("maxSample(27,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT28).AllowSorting(false).AllowEditing(false).Caption("28회차").Visible(new JS("maxSample(28,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT29).AllowSorting(false).AllowEditing(false).Caption("29회차").Visible(new JS("maxSample(29,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.RESULT30).AllowSorting(false).AllowEditing(false).Caption("30회차").Visible(new JS("maxSample(30,'I')")).Alignment(HorizontalAlignment.Center);
+                                                                      columns.AddFor(m => m.INSPECTOR).Visible(true);
+
+                                                      //columns.AddFor(m => m.INSPECTDATE).Visible(false);
+                                                      //columns.AddFor(m => m.INSPREPORTSEQUENCE).Visible(false);
+                                                      //columns.AddFor(m => m.INSPECTIONSEQUENCE).Visible(false);
+                                                      //columns.AddFor(m => m.MATERIALCODE).Visible(false);
+                                                      //columns.AddFor(m => m.MATERIALNAME).Visible(false);
+                                                      //columns.AddFor(m => m.INSPECTCODE).Visible(false);
+                                                      //columns.AddFor(m => m.INSPECTNAME).Visible(true);
+                                                      //columns.AddFor(m => m.INSPECTORDER).Visible(true).SortOrder(SortOrder.Asc);
+                                                      //columns.AddFor(m => m.USL).Visible(true);
+                                                      //columns.AddFor(m => m.CSL).Visible(true);
+                                                      //columns.AddFor(m => m.LSL).Visible(true);
+                                                      //columns.AddFor(m => m.SPECCLASS).Visible(false);
+                                                      //columns.AddFor(m => m.DATATYPE).Visible(false);
+                                                      //columns.AddFor(m => m.INSPECTVALUE).Visible(false);
+                                                      //columns.AddFor(m => m.INSPECTVALUE_TEXT).Visible(false);
+                                                      //columns.AddFor(m => m.INSPECTIONVALUE).Visible(true).Alignment(HorizontalAlignment.Center);
+                                                      //columns.AddFor(m => m.INSPECTRESULT).Visible(true).Alignment(HorizontalAlignment.Center);
+                                                      //columns.AddFor(m => m.INSPECTOR).Visible(true);
+                                                      //.Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                      //    .Controller("COMA001WebApi")
+                                                      //    .Key("EMPCODE")
+                                                      //    .LoadAction("HR_LIST")
+                                                      //    )
+                                                      //    .DisplayExpr("EMPNAME")
+                                                      //    .ValueExpr("EMPCODE")
+                                                      //);
+                                                  })
+                                                                  .Selection(s => s.Mode(SelectionMode.Single))
+    )
+}
+
+@*초종검사 하위 그리드*@
+@using (Html.DevExtreme().NamedTemplate("tempGrdSampleInspect"))
+{
+    @(Html.DevExtreme().DataGrid<QUAK021Z_LIST>()
+                  .ID(new JS("'grdSampleInspect-' + data.INSPECTDATE + data.ORDERNUMBER"))
+                  .ElementAttr("class", "detail-grid")
+                  .ShowBorders(true)
+                  .AllowColumnResizing(false)
+                  .ColumnAutoWidth(false)
+                  .FilterPanel(f => f.Visible(false))
+                  .RowAlternationEnabled(true)
+                  .DataSource(d => d.WebApi()
+                      .Controller("QUAK021WebApi")
+                      .LoadAction("getSampleInspectDetail")
+                      .LoadParams(new
+                      {
+                          ordernum = new JS("function() { return data.ORDERNUMBER; }"),
+                          processcode = new JS("function() { return data.PROCESSCODE; }"),
+                          equipmentCode = new JS("function() { return data.EQUIPMENTCODE; }"),
+                          partnumber = new JS("function() { return data.PARTNUMBER; }")
+                      })
+                  )
+                  .Paging(p => p.PageSize(10))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.DISPLAYSEQUENCE).AllowEditing(false).Visible(false);
+                      columns.AddFor(m => m.INSPECTCODE).AllowEditing(false).Width(120)
+                          .Lookup(l => l.DataSource(d => d.WebApi()
+                              .Controller("MSTL002WebApi")
+                              .LoadAction("getInspectItem")
+                              .Key("INSPECTCODE")
+                              )
+                              .ValueExpr("INSPECTCODE")
+                              .DisplayExpr("INSPECTNAME")
+                              .AllowClearing(true)
+                          );
+      //columns.AddFor(m => m.SPEC).AllowEditing(false);//.CalculateCellValue("function(rowdata){ return rowdata.LSL + ' ~ ' + rowdata.USL;}");
+      columns.AddFor(m => m.INSPECTUNIT).AllowEditing(false).Width(80).Visible(false)
+                          .Lookup(lookup => lookup
+                              .DataSource(d => d.WebApi()
+                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                  .LoadAction("INSPECTUNIT_LIST")
+                              )
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.DATATYPE).Visible(false);
+      //columns.AddFor(m => m.SPECCLASS).Visible(false);
+      columns.AddFor(m => m.USL).Visible(false);
+                      columns.AddFor(m => m.LSL).Visible(false);
+                      columns.AddFor(m => m.CSL).Visible(false);
+                      columns.AddFor(m => m.UCL).Visible(false);
+                      columns.AddFor(m => m.LCL).Visible(false);
+                      columns.AddFor(m => m.RESULT1).AllowSorting(false).AllowEditing(false).Caption("1회차").Visible(new JS("maxSample(1,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT2).AllowSorting(false).AllowEditing(false).Caption("2회차").Visible(new JS("maxSample(2,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT3).AllowSorting(false).AllowEditing(false).Caption("3회차").Visible(new JS("maxSample(3,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT4).AllowSorting(false).AllowEditing(false).Caption("4회차").Visible(new JS("maxSample(4,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT5).AllowSorting(false).AllowEditing(false).Caption("5회차").Visible(new JS("maxSample(5,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT6).AllowSorting(false).AllowEditing(false).Caption("6회차").Visible(new JS("maxSample(6,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT7).AllowSorting(false).AllowEditing(false).Caption("7회차").Visible(new JS("maxSample(7,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT8).AllowSorting(false).AllowEditing(false).Caption("8회차").Visible(new JS("maxSample(8,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT9).AllowSorting(false).AllowEditing(false).Caption("9회차").Visible(new JS("maxSample(9,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT10).AllowSorting(false).AllowEditing(false).Caption("10회차").Visible(new JS("maxSample(10,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT11).AllowSorting(false).AllowEditing(false).Caption("11회차").Visible(new JS("maxSample(11,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT12).AllowSorting(false).AllowEditing(false).Caption("12회차").Visible(new JS("maxSample(12,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT13).AllowSorting(false).AllowEditing(false).Caption("13회차").Visible(new JS("maxSample(13,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT14).AllowSorting(false).AllowEditing(false).Caption("14회차").Visible(new JS("maxSample(14,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT15).AllowSorting(false).AllowEditing(false).Caption("15회차").Visible(new JS("maxSample(15,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT16).AllowSorting(false).AllowEditing(false).Caption("16회차").Visible(new JS("maxSample(16,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT17).AllowSorting(false).AllowEditing(false).Caption("17회차").Visible(new JS("maxSample(17,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT18).AllowSorting(false).AllowEditing(false).Caption("18회차").Visible(new JS("maxSample(18,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT19).AllowSorting(false).AllowEditing(false).Caption("19회차").Visible(new JS("maxSample(19,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT20).AllowSorting(false).AllowEditing(false).Caption("20회차").Visible(new JS("maxSample(20,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT21).AllowSorting(false).AllowEditing(false).Caption("21회차").Visible(new JS("maxSample(21,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT22).AllowSorting(false).AllowEditing(false).Caption("22회차").Visible(new JS("maxSample(22,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT23).AllowSorting(false).AllowEditing(false).Caption("23회차").Visible(new JS("maxSample(23,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT24).AllowSorting(false).AllowEditing(false).Caption("24회차").Visible(new JS("maxSample(24,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT25).AllowSorting(false).AllowEditing(false).Caption("25회차").Visible(new JS("maxSample(25,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT26).AllowSorting(false).AllowEditing(false).Caption("26회차").Visible(new JS("maxSample(26,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT27).AllowSorting(false).AllowEditing(false).Caption("27회차").Visible(new JS("maxSample(27,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT28).AllowSorting(false).AllowEditing(false).Caption("28회차").Visible(new JS("maxSample(28,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT29).AllowSorting(false).AllowEditing(false).Caption("29회차").Visible(new JS("maxSample(29,'N')")).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.RESULT30).AllowSorting(false).AllowEditing(false).Caption("30회차").Visible(new JS("maxSample(30,'N')")).Alignment(HorizontalAlignment.Center);
+
+                  })
+                  .Selection(s => s.Mode(SelectionMode.Single))
+    )
+}
+
+@*공정순회 하위 그리드*@
+@using (Html.DevExtreme().NamedTemplate("tempGrdCircuitInspect"))
+{
+    @(Html.DevExtreme().DataGrid<QUAK021E_LIST>()
+                          .ID(new JS("'grdCircuitInspect-' + data.GROUPDATA"))
+                          .ElementAttr("class", "detail-grid")
+                          .ShowBorders(true)
+                          .AllowColumnResizing(false)
+                          .ColumnAutoWidth(false)
+                          .FilterPanel(f => f.Visible(false))
+                          .RowAlternationEnabled(true)
+                          .DataSource(d => d.WebApi()
+                              .Controller("QUAK021WebApi")
+                              .LoadAction("getCircuitInspectDetail")
+                              .LoadParams(new
+                              {
+                                  date = new JS("function() { return data.GROUPDATA; }"),
+                                  partnumber = new JS("function() { return data.PARTNUMBER; }"),
+
+                              })
+                          )
+                          .Paging(p => p.PageSize(10))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .Columns(columns =>
+                          {
+                              columns.AddFor(m => m.DISPLAYSEQUENCE).AllowEditing(false).Visible(false);
+                              columns.AddFor(m => m.INSPECTCODE).AllowEditing(false).Width(120)
+                                  .Lookup(l => l.DataSource(d => d.WebApi()
+                                      .Controller("MSTL002WebApi")
+                                      .LoadAction("getInspectItem")
+                                      .Key("INSPECTCODE")
+                                      )
+                                      .ValueExpr("INSPECTCODE")
+                                      .DisplayExpr("INSPECTNAME")
+                                      .AllowClearing(true)
+                                  );
+              //columns.AddFor(m => m.SPEC).AllowEditing(false);//.CalculateCellValue("function(rowdata){ return rowdata.LSL + ' ~ ' + rowdata.USL;}");
+              columns.AddFor(m => m.INSPECTUNIT).AllowEditing(false).Width(80).Visible(false)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                          .LoadAction("INSPECTUNIT_LIST")
+                                      )
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  );
+                              columns.AddFor(m => m.DATATYPE).Visible(false);
+              //columns.AddFor(m => m.SPECCLASS).Visible(false);
+              columns.AddFor(m => m.USL).Visible(false);
+                              columns.AddFor(m => m.LSL).Visible(false);
+                              columns.AddFor(m => m.CSL).Visible(false);
+                              columns.AddFor(m => m.UCL).Visible(false);
+                              columns.AddFor(m => m.LCL).Visible(false);
+                              columns.AddFor(m => m.RESULT1).AllowSorting(false).AllowEditing(false).Caption("1회차").Visible(new JS("maxSample(1,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT2).AllowSorting(false).AllowEditing(false).Caption("2회차").Visible(new JS("maxSample(2,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT3).AllowSorting(false).AllowEditing(false).Caption("3회차").Visible(new JS("maxSample(3,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT4).AllowSorting(false).AllowEditing(false).Caption("4회차").Visible(new JS("maxSample(4,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT5).AllowSorting(false).AllowEditing(false).Caption("5회차").Visible(new JS("maxSample(5,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT6).AllowSorting(false).AllowEditing(false).Caption("6회차").Visible(new JS("maxSample(6,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT7).AllowSorting(false).AllowEditing(false).Caption("7회차").Visible(new JS("maxSample(7,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT8).AllowSorting(false).AllowEditing(false).Caption("8회차").Visible(new JS("maxSample(8,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT9).AllowSorting(false).AllowEditing(false).Caption("9회차").Visible(new JS("maxSample(9,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT10).AllowSorting(false).AllowEditing(false).Caption("10회차").Visible(new JS("maxSample(10,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT11).AllowSorting(false).AllowEditing(false).Caption("11회차").Visible(new JS("maxSample(11,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT12).AllowSorting(false).AllowEditing(false).Caption("12회차").Visible(new JS("maxSample(12,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT13).AllowSorting(false).AllowEditing(false).Caption("13회차").Visible(new JS("maxSample(13,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT14).AllowSorting(false).AllowEditing(false).Caption("14회차").Visible(new JS("maxSample(14,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT15).AllowSorting(false).AllowEditing(false).Caption("15회차").Visible(new JS("maxSample(15,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT16).AllowSorting(false).AllowEditing(false).Caption("16회차").Visible(new JS("maxSample(16,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT17).AllowSorting(false).AllowEditing(false).Caption("17회차").Visible(new JS("maxSample(17,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT18).AllowSorting(false).AllowEditing(false).Caption("18회차").Visible(new JS("maxSample(18,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT19).AllowSorting(false).AllowEditing(false).Caption("19회차").Visible(new JS("maxSample(19,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT20).AllowSorting(false).AllowEditing(false).Caption("20회차").Visible(new JS("maxSample(20,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT21).AllowSorting(false).AllowEditing(false).Caption("21회차").Visible(new JS("maxSample(21,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT22).AllowSorting(false).AllowEditing(false).Caption("22회차").Visible(new JS("maxSample(22,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT23).AllowSorting(false).AllowEditing(false).Caption("23회차").Visible(new JS("maxSample(23,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT24).AllowSorting(false).AllowEditing(false).Caption("24회차").Visible(new JS("maxSample(24,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT25).AllowSorting(false).AllowEditing(false).Caption("25회차").Visible(new JS("maxSample(25,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT26).AllowSorting(false).AllowEditing(false).Caption("26회차").Visible(new JS("maxSample(26,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT27).AllowSorting(false).AllowEditing(false).Caption("27회차").Visible(new JS("maxSample(27,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT28).AllowSorting(false).AllowEditing(false).Caption("28회차").Visible(new JS("maxSample(28,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT29).AllowSorting(false).AllowEditing(false).Caption("29회차").Visible(new JS("maxSample(29,'C')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT30).AllowSorting(false).AllowEditing(false).Caption("30회차").Visible(new JS("maxSample(30,'C')")).Alignment(HorizontalAlignment.Center);
+
+                          })
+                          .Selection(s => s.Mode(SelectionMode.Single))
+    )
+}
+
+@*출하검사 하위 그리드*@
+@using (Html.DevExtreme().NamedTemplate("tempGrdShippingInspect"))
+{
+    @(Html.DevExtreme().DataGrid<QUAK021G_LIST>()
+                          .ID(new JS("'grdShippingInspect-' + data.GROUPDATA"))
+                          .ElementAttr("class", "detail-grid")
+                          .ShowBorders(true)
+                          .AllowColumnResizing(false)
+                          .ColumnAutoWidth(false)
+                          .FilterPanel(f => f.Visible(false))
+                          .RowAlternationEnabled(true)
+                          .DataSource(d => d.WebApi()
+                              .Controller("QUAK021WebApi")
+                              .LoadAction("getShippingInspectDetail")
+                              .LoadParams(new
+                              {
+                                  date = new JS("function() { return data.GROUPDATA; }"),
+                                  partnumber = new JS("function() { return data.PARTNUMBER; }"),
+                              })
+                          )
+                          .Paging(p => p.PageSize(10))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .Columns(columns =>
+                          {
+                              columns.AddFor(m => m.DISPLAYSEQUENCE).AllowEditing(false).Visible(false);
+                              columns.AddFor(m => m.INSPECTCODE).AllowEditing(false).Width(120)
+                                  .Lookup(l => l.DataSource(d => d.WebApi()
+                                      .Controller("MSTL002WebApi")
+                                      .LoadAction("getInspectItem")
+                                      .Key("INSPECTCODE")
+                                      )
+                                      .ValueExpr("INSPECTCODE")
+                                      .DisplayExpr("INSPECTNAME")
+                                      .AllowClearing(true)
+                                  );
+              //columns.AddFor(m => m.SPEC).AllowEditing(false);//.CalculateCellValue("function(rowdata){ return rowdata.LSL + ' ~ ' + rowdata.USL;}");
+              columns.AddFor(m => m.INSPECTUNIT).AllowEditing(false).Width(80).Visible(false)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                          .LoadAction("INSPECTUNIT_LIST")
+                                      )
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  );
+                              columns.AddFor(m => m.DATATYPE).Visible(false);
+              //columns.AddFor(m => m.SPECCLASS).Visible(false);
+              columns.AddFor(m => m.USL).Visible(false);
+                              columns.AddFor(m => m.LSL).Visible(false);
+                              columns.AddFor(m => m.CSL).Visible(false);
+                              columns.AddFor(m => m.UCL).Visible(false);
+                              columns.AddFor(m => m.LCL).Visible(false);
+                              columns.AddFor(m => m.RESULT1).AllowSorting(false).AllowEditing(false).Caption("1회차").Visible(new JS("maxSample(1,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT2).AllowSorting(false).AllowEditing(false).Caption("2회차").Visible(new JS("maxSample(2,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT3).AllowSorting(false).AllowEditing(false).Caption("3회차").Visible(new JS("maxSample(3,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT4).AllowSorting(false).AllowEditing(false).Caption("4회차").Visible(new JS("maxSample(4,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT5).AllowSorting(false).AllowEditing(false).Caption("5회차").Visible(new JS("maxSample(5,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT6).AllowSorting(false).AllowEditing(false).Caption("6회차").Visible(new JS("maxSample(6,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT7).AllowSorting(false).AllowEditing(false).Caption("7회차").Visible(new JS("maxSample(7,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT8).AllowSorting(false).AllowEditing(false).Caption("8회차").Visible(new JS("maxSample(8,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT9).AllowSorting(false).AllowEditing(false).Caption("9회차").Visible(new JS("maxSample(9,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT10).AllowSorting(false).AllowEditing(false).Caption("10회차").Visible(new JS("maxSample(10,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT11).AllowSorting(false).AllowEditing(false).Caption("11회차").Visible(new JS("maxSample(11,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT12).AllowSorting(false).AllowEditing(false).Caption("12회차").Visible(new JS("maxSample(12,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT13).AllowSorting(false).AllowEditing(false).Caption("13회차").Visible(new JS("maxSample(13,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT14).AllowSorting(false).AllowEditing(false).Caption("14회차").Visible(new JS("maxSample(14,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT15).AllowSorting(false).AllowEditing(false).Caption("15회차").Visible(new JS("maxSample(15,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT16).AllowSorting(false).AllowEditing(false).Caption("16회차").Visible(new JS("maxSample(16,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT17).AllowSorting(false).AllowEditing(false).Caption("17회차").Visible(new JS("maxSample(17,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT18).AllowSorting(false).AllowEditing(false).Caption("18회차").Visible(new JS("maxSample(18,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT19).AllowSorting(false).AllowEditing(false).Caption("19회차").Visible(new JS("maxSample(19,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT20).AllowSorting(false).AllowEditing(false).Caption("20회차").Visible(new JS("maxSample(20,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT21).AllowSorting(false).AllowEditing(false).Caption("21회차").Visible(new JS("maxSample(21,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT22).AllowSorting(false).AllowEditing(false).Caption("22회차").Visible(new JS("maxSample(22,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT23).AllowSorting(false).AllowEditing(false).Caption("23회차").Visible(new JS("maxSample(23,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT24).AllowSorting(false).AllowEditing(false).Caption("24회차").Visible(new JS("maxSample(24,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT25).AllowSorting(false).AllowEditing(false).Caption("25회차").Visible(new JS("maxSample(25,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT26).AllowSorting(false).AllowEditing(false).Caption("26회차").Visible(new JS("maxSample(26,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT27).AllowSorting(false).AllowEditing(false).Caption("27회차").Visible(new JS("maxSample(27,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT28).AllowSorting(false).AllowEditing(false).Caption("28회차").Visible(new JS("maxSample(28,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT29).AllowSorting(false).AllowEditing(false).Caption("29회차").Visible(new JS("maxSample(29,'S')")).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.RESULT30).AllowSorting(false).AllowEditing(false).Caption("30회차").Visible(new JS("maxSample(30,'S')")).Alignment(HorizontalAlignment.Center);
+
+                          })
+                          .Selection(s => s.Mode(SelectionMode.Single))
+    )
+}
+<script>
+
+    var InboundCount;
+    var InboundMaxCount;
+    var CircuitCount;
+    var CircuitMaxCount;
+    var ShippingCount;
+    var ShippingMaxCount;
+    var sampleCount;
+    var sampleMaxCount;
+    var inspectclassifycnt;
+    //var viewMaxSampleCnt;
+
+    $(function () {
+
+        // 출하검사
+        $.ajax({
+            url: '@Url.Action("getShippingCount", "QUAK021WebApi", new { httproute = "DefaultApi", })',
+            type: 'GET',
+            async: false,
+            success: function (data) {
+                console.log("OK");
+                console.log(data);
+                var cnt = data.data[0].CNT;
+                var maxcnt = data.data[0].MAXCNT;
+                if (isNaN(cnt) == false)
+                    ShippingCount = Number(cnt) > Number(maxcnt) ? Number(maxcnt) : Number(cnt);
+                else
+                    ShippingCount = Number(maxcnt);
+
+                ShippingMaxCount = Number(maxcnt)
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+        // 공정순회검사
+        $.ajax({
+            url: '@Url.Action("getCircuitCount", "QUAK021WebApi", new { httproute = "DefaultApi", })',
+            type: 'GET',
+            async: false,
+            success: function (data) {
+                console.log("OK");
+                console.log(data);
+                var cnt = data.data[0].CNT;
+                var maxcnt = data.data[0].MAXCNT;
+                if (isNaN(cnt) == false)
+                    CircuitCount = Number(cnt) > Number(maxcnt) ? Number(maxcnt) : Number(cnt);
+                else
+                    CircuitCount = Number(maxcnt);
+
+                CircuitMaxCount = Number(maxcnt)
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+        // 수입검사
+        $.ajax({
+            url: '@Url.Action("getInboundCount", "QUAK021WebApi", new { httproute = "DefaultApi", })',
+            type: 'GET',
+            async: false,
+            success: function (data) {
+                console.log("OK");
+                console.log(data);
+                var cnt = data.data[0].CNT;
+                var maxcnt = data.data[0].MAXCNT;
+                if (isNaN(cnt) == false)
+                    InboundCount = Number(cnt) > Number(maxcnt) ? Number(maxcnt) : Number(cnt);
+                else
+                    InboundCount = Number(maxcnt);
+
+                InboundMaxCount = Number(maxcnt)
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+        // 초중종 회차
+        $.ajax({
+            url: '@Url.Action("getSampleCount", "QUAK021WebApi", new { httproute = "DefaultApi", })',
+            type: 'GET',
+            async: false,
+            success: function (data) {
+                console.log("OK");
+                console.log(data);
+                var cnt = data.data[0].CNT;
+                var maxcnt = data.data[0].MAXCNT;
+                if (isNaN(cnt) == false)
+                    sampleCount = Number(cnt) > Number(maxcnt) ? Number(maxcnt) : Number(cnt);
+                else
+                    sampleCount = Number(maxcnt);
+
+                sampleMaxCount = Number(maxcnt)
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+        // 초/중/종 구분 cnt
+        $.ajax({
+            url: '@Url.Action("getInspClassify", "QUAK021WebApi", new { httproute = "DefaultApi", })',
+            type: 'GET',
+            async: false,
+            success: function (data) {
+                console.log("OK");
+                console.log(data);
+                //inspectclassify = data.data;
+                inspectclassifycnt = data.data[0] == undefined ? 1 : data.data[0].CNT == null ? 1 : undefined ? 1 : data.data[0].CNT;
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+    });
+
+    function maxSample(cnt, type) {
+
+        var rtnvalue = false;
+
+        switch (type) {
+            case "I":
+                if (cnt <= InboundMaxCount)
+                    rtnvalue = true;
+                else
+                    rtnvalue = false;
+                break;
+
+            case "C":
+                if (cnt <= CircuitMaxCount)
+                    rtnvalue = true;
+                else
+                    rtnvalue = false;
+                break;
+
+            case "S":
+                if (cnt <= ShippingMaxCount)
+                    rtnvalue = true;
+                else
+                    rtnvalue = false;
+                break;
+
+            case "N":
+                var viewSampleCnt = sampleMaxCount * inspectclassifycnt;
+                if (cnt <= viewSampleCnt)
+                    rtnvalue = true;
+                else
+                    rtnvalue = false;
+                break;
+
+            default:
+                break;
+        }
+
+        return rtnvalue;
+    }
+
+
+</script>

@@ -1,0 +1,549 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTD;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-5 col-sm-12">
+            @(Html.DevExtreme().Form()
+                .ID("form")
+                .ColCount(4)
+                .Items(items =>
+                {
+                    items.AddSimple().ColSpan(4)
+                         .Editor(e => e.Lookup()
+                            .DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi")
+                                .Key("SYSCODE")
+                                .LoadAction("CARTYPE_LIST")
+                            )
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                            .SearchEnabled(false)
+                            .CloseOnOutsideClick(true)
+                            .OnValueChanged("form_luCartype_OnValueChanged")
+                        )
+                        .Name("CARTYPE")
+                        .Label(T => T.Text(string.Format("{0}", LabelText.CARTYPE)));
+
+                    items.AddSimple().ColSpan(4)
+                        .Editor(e => e.Lookup()
+                            .DataSource(d => d.WebApi()
+                                .Controller("MSTD043WebApi").Key("COLOR")
+                                .LoadAction("getColorList")
+                                .LoadParams(new{
+                                    cartype = new JS("function() { return $('#form').dxForm('instance').getEditor('CARTYPE').option('value'); }")
+                                })
+                                .OnBeforeSend("form_luColor_OnBeforeSend")
+                                )
+                            .DisplayExpr("COLOR")
+                            .ValueExpr("COLOR")
+                            .SearchEnabled(false)
+                            .CloseOnOutsideClick(true)
+                            .OnOpened("form_luColor_OnOpened")
+                            .OnValueChanged("form_luColor_OnValueChanged")
+                        ).Name("COLOR")
+                        .Label(T => T.Text(string.Format("{0}", LabelText.COLOR)));
+
+                    items.AddSimple().ColSpan(4)
+                        .Editor(e => e.Lookup()
+                            .DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("PRODUCTGROUP_LIST"))
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                            .SearchEnabled(false)
+                            .CloseOnOutsideClick(true)
+                            .OnValueChanged("form_luProductGroup_OnValueChanged")
+                        ).Name("PRODUCTGROUP")
+                        .Label(T => T.Text(string.Format("{0}", LabelText.PRODUCTGROUP)));
+
+                    items.AddSimple().ColSpan(4)
+                        .Name("USAGE")
+                        .Editor(e => e.NumberBox())
+                        .Label(T => T.Text(LabelText.USAGE));
+
+                    items.AddSimple().ColSpan(4)
+                        .Name("MEMO")
+                        .Editor(e => e.TextBox())
+                        .Label(T => T.Text(LabelText.MEMO));
+
+                    items.AddSimple()
+                      .ColSpan(4)
+                      .Template(@<text>
+                        @( Html.DevExtreme().DataGrid<MSTD043B_LIST>()
+                            .ID("grdPartnumber")
+                            .DataSource(d => d.WebApi().Controller("MSTD043WebApi").Key("PARTNUMBER")
+                                .LoadAction("getPartnumberList")
+                                .OnBeforeSend("grdPartnumber_OnBeforeSend")
+                                )
+                            .Columns(columns =>
+                            {
+                                columns.AddFor(m => m.PARTNUMBER).SortOrder(SortOrder.Asc).SortIndex(0).AllowEditing(false);
+                                columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false);
+                            })
+                            .RemoteOperations(true)
+                            .ColumnAutoWidth(true)
+                            .Paging(p => p.PageSize(25).Enabled(true))
+                            .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                            .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                            .FilterRow(filterRow => filterRow
+                                .Visible(true)
+                                .ApplyFilter(GridApplyFilterMode.Auto)
+                            )
+                            .Editing(e =>
+                                e.Mode(GridEditMode.Batch)
+                                    .AllowUpdating(new JS("iudAuth()"))
+                            )
+                            .Selection(s => s.Mode(SelectionMode.Multiple))
+                            .AllowColumnResizing(true)
+                            .OnInitialized("grdPartnumber_OnInitialized")
+                            .OnSelectionChanged("grdPartnumber_OnSelectionChanged")
+                            .OnToolbarPreparing("grdPartnumber_OnToolbarPreparing")
+                            .Option("IGNORE_AUTOWIDTH", new object[] { "PARTNUMBER", "PRODUCTNAME" })
+                        )</text>
+                    );
+
+                    items.AddButton().ColSpan(2)
+                        .HorizontalAlignment(HorizontalAlignment.Left)
+                        .ButtonOptions(b => b.Text(LabelText.INSERTION)
+                            .OnClick("form_save_onClick")
+                            .Type(ButtonType.Success)
+                            .Icon("check")
+                            .Width("100%")
+                            .Disabled(new JS("!iudAuth()"))
+                    );
+
+                    items.AddButton().ColSpan(2)
+                        .HorizontalAlignment(HorizontalAlignment.Left)
+                        .ButtonOptions(b => b.Text(LabelText.REMOVE)
+                            .Type(ButtonType.Normal)
+                            .OnClick("form_clear_onClick")
+                            .Icon("refresh")
+                            .Width("100%")
+                            .Disabled(new JS("!iudAuth()"))
+                    );
+                })
+                .FormData(Model)
+            )
+        </div>
+        <div class="col-lg-7 col-sm-12">
+            @(Html.DevExtreme().DataGrid<MSTD043_LIST>()
+                  .ID("grdMatCutUsage")
+                  .DataSource(d => d.WebApi().Controller("MSTD043WebApi").Key("CUTID"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.CUTID).Visible(false);
+                      columns.AddFor(m => m.CARTYPE).SortOrder(SortOrder.Asc).SortIndex(0).AllowEditing(false).GroupIndex(0).AutoExpandGroup(true)
+                        .Lookup(lookup => lookup
+                            .DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("CARTYPE_LIST"))
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        );
+                      columns.AddFor(m => m.COLOR).SortOrder(SortOrder.Asc).SortIndex(1).AllowEditing(false).GroupIndex(1).AutoExpandGroup(true)
+                        .Lookup(lookup => lookup
+                            .DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("COLOR_LIST"))
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        );
+                      columns.AddFor(m => m.PRODUCTGROUP).SortOrder(SortOrder.Asc).SortIndex(2).AllowEditing(false).GroupIndex(2).AutoExpandGroup(false)
+                        .Lookup(lookup => lookup
+                            .DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("PRODUCTGROUP_LIST"))
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        );
+                      columns.AddFor(m => m.PARTNUMBER).Width(300).ShowEditorAlways(true).AllowEditing(false).Visible(false).SortOrder(SortOrder.Asc).SortIndex(4);
+                      columns.AddFor(m => m.PRODUCTNAME).Width(300).ShowEditorAlways(true).AllowEditing(false);
+                      columns.AddFor(m => m.USAGE).AllowEditing(true).SortOrder(SortOrder.Desc).SortIndex(3);
+                      columns.AddFor(m => m.MEMO).AllowEditing(true);
+                      columns.AddFor(m => m.CREATEUSER).AllowEditing(false)
+                        .Lookup(lookup => lookup
+                            .DataSource(d => d.WebApi()
+                                .Controller("COMA001WebApi").Key("EMPCODE")
+                                .LoadAction("HR_LIST"))
+                            .DisplayExpr("EMPNAME")
+                            .ValueExpr("EMPCODE")
+                        ); ;
+                      columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime)).AllowEditing(false);
+                  })
+                  .WordWrapEnabled(true)
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .Editing(e =>
+                  {
+                      e.Mode(GridEditMode.Batch);
+                      e.AllowUpdating(new JS("iudAuth()"));
+                      e.AllowDeleting(new JS("iudAuth()"));
+                  })
+                  .Selection(s => s.Mode(SelectionMode.Single))
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  .OnInitialized("grdMatCutUsage_OnInitialized")
+                  .OnEditorPreparing("grdMatCutUasge_OnEditorPreparing")
+                  .OnCellPrepared("grdMatCutUasge_OnEditorPreparing")
+                  .OnRowPrepared("grdMatCutUsage_OnRowPrepared")
+                  .Option("IGNORE_AUTOWIDTH", new object[] { "CUTID", "CARTYPE", "COLOR", "PRODUCTGROUP", "PARTNUMBER", "PRODUCTNAME", "USAGE", "MEMO", "CREATEUSER", "CREATEDATE" })
+                )
+        </div>
+    </div>
+</div>
+
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPART"))
+{
+    @(Html.DevExtreme().DropDownBox()
+        .ID("ddbPart")
+        .Value(new JS("data.PARTNUMBER"))
+        .ValueExpr("PARTNUMBER")
+        .DisplayExpr("PRODUCTNAME")
+        .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("PARTNUM_LIST").Key("PARTNUMBER"))
+        .AcceptCustomValue(true)
+        .DropDownOptions(o => o.Width(450))
+        .OnValueChanged(@<text>
+            function(e){
+                setValue(e.value[0]);
+            }
+            </text>)
+        .ContentTemplate(new TemplateName("EmbeddedPARTSingle"))
+    )
+}
+
+@using(Html.DevExtreme().NamedTemplate("EmbeddedPARTSingle")) {
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+        .ID("grdPartSingle")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns => {
+            columns.AddFor(m=>m.PARTNUMBER);
+            columns.AddFor(m=>m.PRODUCTNAME);
+        })
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"component.option(""value"")"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var keys = selectedItems.selectedRowKeys;
+                component.option("value", keys);
+            }
+        </text>)
+    )
+}
+
+<script>
+
+    
+    function grdPartnumber_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdMatCutUsage_OnInitialized(e) {
+        //userCustomGrid(e);
+    }
+
+    function grdPartnumber_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            var processCode = $('#form').dxForm('instance').getEditor("PROCESSCODE");
+            var color = $('#form').dxForm('instance').getEditor("COLOR");
+            var cartype = $('#form').dxForm('instance').getEditor("CARTYPE");
+            var productgroup = $('#form').dxForm('instance').getEditor("PRODUCTGROUP");
+
+            if (cartype.option('value') != null && cartype.option('value') != "") {
+                ajaxOptions.data.cartype = cartype.option('value');
+            }
+            else {
+                ajaxOptions.data.cartype = "";
+            }
+
+            if (color.option('value') != null && color.option('value') != "") {
+                ajaxOptions.data.color = color.option('value');
+            }
+            else {
+                ajaxOptions.data.color = "";
+            }
+
+            if (productgroup.option('value') != null && productgroup.option('value') != "") {
+                ajaxOptions.data.productgroup = productgroup.option('value');
+            }
+            else {
+                ajaxOptions.data.productgroup = "";
+            }
+        }
+    }
+
+    function grdPartnumber_OnSelectionChanged(e) {
+        var qty = $('#form').dxForm('instance').option('formData.ORDERQUANTITY');
+        if (e.currentSelectedRowKeys.length > 0) {
+            if (qty != undefined && qty != 0) {
+                if (e.currentSelectedRowKeys.length == 1) {
+                    var index = e.component.getRowIndexByKey(e.currentSelectedRowKeys[0]);
+                    $('#grdPartnumber').dxDataGrid('instance').cellValue(index, 'ORDERQUANTITY', qty);
+                }
+
+                else {
+                    for (var i = 0; i < e.currentSelectedRowKeys.length; i++) {
+                        var index = e.component.getRowIndexByKey(e.currentSelectedRowKeys[i]);
+                        $('#grdPartnumber').dxDataGrid('instance').cellValue(index, 'ORDERQUANTITY', qty);
+                    }
+                }
+            }
+            else {
+                if (e.currentSelectedRowKeys.length == 1) {
+                    var index = e.component.getRowIndexByKey(e.currentSelectedRowKeys[0]);
+                    $('#grdPartnumber').dxDataGrid('instance').cellValue(index, 'ORDERQUANTITY', 0);
+                }
+
+                else {
+                    for (var i = 0; i < e.currentSelectedRowKeys.length; i++) {
+                        var index = e.component.getRowIndexByKey(e.currentSelectedRowKeys[i]);
+                        $('#grdPartnumber').dxDataGrid('instance').cellValue(index, 'ORDERQUANTITY', 0);
+                    }
+                }
+            }
+        }
+        else {
+            if (qty != undefined && qty != 0) {
+                if (e.currentSelectedRowKeys.length == 1) {
+                    var index = e.component.getRowIndexByKey(e.currentDeselectedRowKeys[0]);
+                    $('#grdPartnumber').dxDataGrid('instance').cellValue(index, 'ORDERQUANTITY', 0);
+                }
+
+                else {
+                    for (var i = 0; i < e.currentSelectedRowKeys.length; i++) {
+                        var index = e.component.getRowIndexByKey(e.currentDeselectedRowKeys[i]);
+                        $('#grdPartnumber').dxDataGrid('instance').cellValue(index, 'ORDERQUANTITY', 0);
+                    }
+                }
+            }
+        }
+    }
+
+    function form_luCartype_OnValueChanged(e) {
+        var form = $('#form').dxForm('instance');
+        form.getEditor("CARTYPE")._refreshDataSource();
+        form.getEditor("COLOR").option('value', null);
+        $('#grdPartnumber').dxDataGrid('instance').refresh();
+    }
+
+    function form_luColor_OnValueChanged(e) {
+        $('#grdPartnumber').dxDataGrid('instance').refresh();
+    }
+
+    function form_luProductGroup_OnValueChanged(e) {
+        $('#grdPartnumber').dxDataGrid('instance').refresh();
+    }
+
+    function form_luColor_OnOpened(e) {
+        if (!e.component.isFirstLoadFlag) {
+            e.component.getDataSource().reload();
+        }
+    }
+
+    function form_luColor_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            var form = $('#form').dxForm('instance');
+            var cartype = form.getEditor("CARTYPE").option('value');
+
+            if (cartype != null && cartype != '') {
+                ajaxOptions.data.cartype = cartype;
+            }
+            else {
+                
+            }
+        }
+    }
+
+    function form_save_onClick(e) {
+        var form = $('#form').dxForm('instance');
+        if (form.getEditor('CARTYPE').option('value') <= 0) {
+            DevExpress.ui.dialog.alert('차종을 입력해주세요.', 'success', globalNotificationSuccessTime);
+            return;
+        }
+        if (form.getEditor('COLOR').option('value') <= 0) {
+            DevExpress.ui.dialog.alert('색상을 입력해주세요.', 'success', globalNotificationSuccessTime);
+            return;
+        }
+        if (form.getEditor('PRODUCTGROUP').option('value') <= 0) {
+            DevExpress.ui.dialog.alert('제품그룹을 입력해주세요.', 'success', globalNotificationSuccessTime);
+            return;
+        }
+        if (form.getEditor('USAGE').option('value') <= 0) {
+            DevExpress.ui.dialog.alert('소요량을 입력해주세요.', 'success', globalNotificationSuccessTime);
+            return;
+        }
+
+        var grid = $('#grdPartnumber').dxDataGrid('instance');
+        var data = grid.getSelectedRowsData();
+
+        if (data.length <= 0) {
+            DevExpress.ui.dialog.alert('품번을 선택해주세요.', 'success', globalNotificationSuccessTime);
+            return;
+        }
+
+        checkPartnumber();
+    }
+
+    function form_clear_onClick(e) {
+        formReset();
+    }
+
+    function checkPartnumber() {
+        var form = $('#form').dxForm('instance');
+        var cartype = form.getEditor("CARTYPE").option('value');
+        var partnumbers = "";
+
+        var grid = $('#grdPartnumber').dxDataGrid('instance');
+        var data = grid.getSelectedRowsData();
+
+        for (var i = 0; i < data.length; i++) {
+            partnumbers += data[i].PARTNUMBER + ',';
+        }
+
+        partnumbers = partnumbers.substring(0, partnumbers.length - 1);
+        
+        var param = $.param({
+            CARTYPE: cartype,
+            partnumbers: partnumbers,
+        });
+        $.ajax({
+            url: '@Url.Action("checkPartnumberList", "MSTD043WebApi", new { httproute = "DefaultApi" })',
+            type: 'get',
+            data: param,
+            success: function (data) {
+                if (data.data.length > 0) {
+                    DevExpress.ui.dialog.alert('이미 등록된 항목입니다.');
+                    return false;
+                }
+                else {
+                    var result = DevExpress.ui.dialog.confirm('@LabelText.QUESTIONINSERT');
+                    result.done(function (dialogResult) {
+                        if (!dialogResult) {
+                            return;
+                        }
+                        else {
+                            var requests = [];
+                            var partnumber = "";
+
+                            var aJsonArray = new Array();
+                            var aJson = new Object();
+
+                            aJson.CARTYPE = form.getEditor('CARTYPE').option('value');
+                            aJson.COLOR = form.getEditor('COLOR').option('value');
+                            aJson.PRODUCTGROUP = form.getEditor('PRODUCTGROUP').option('value');
+                            aJson.MEMO = form.getEditor('MEMO').option('value');
+                            aJson.USAGE = form.getEditor('USAGE').option('value');
+                            aJson.PARTNUMBER = partnumbers;
+                            aJsonArray.push(aJson);
+
+                            var data = new Object();
+                            data.values = JSON.stringify(aJsonArray);
+
+                            $.ajax({
+                                url: '@Url.Action("setPartnumberItems", "MSTD043WebApi", new { httproute = "DefaultApi", })',
+                                type: 'POST',
+                                data: data,
+                                success: function () {
+                                    DevExpress.ui.notify('@LabelText.SAVED', 'success', globalNotificationSuccessTime);
+                                    $('#grdMatCutUsage').dxDataGrid('instance').refresh();
+                                    formReset();
+                                },
+
+                                error: function (e) {
+                                    showError(this, e);
+                                }
+                            })
+                        }
+                    });
+                }
+            },
+            error: function (e) {
+                showError(this, e);
+                return false;
+            }
+        });
+    }
+
+
+    // FORM 그리드 상위 버튼 제거
+    function grdPartnumber_OnToolbarPreparing(e) {
+        var toolbarItems = e.toolbarOptions.items;
+        $.each(toolbarItems, function (_, item) {
+            if (item.name === "saveButton" || item.name == "resetButton" || item.name == "addRowButton") {
+                // Change the item options here
+                item.visible = false;
+            }
+        });
+    }
+
+    function grdMatCutUasge_OnEditorPreparing(e) {
+        if (e.parentType == 'dataRow') {
+            if (e.dataField === "PARTNUMBER") {
+                e.editorName = "dxTextArea";
+                e.editorElement.height(75);
+            }
+            if (e.dataField === "PRODUCTNAME") {
+                e.editorName = "dxTextArea";
+                e.editorElement.height(75);
+            }
+        }
+    }
+
+    function grdMatCutUsage_OnRowPrepared(e) {
+        if (e.rowType == 'data') {
+            e.rowElement.height(75);
+        }
+    }
+
+    function formReset() {
+        var form = $('#form').dxForm('instance');
+        form.getEditor("CARTYPE").option('value', null);
+        form.getEditor("COLOR").option('value', false);
+        form.getEditor("PRODUCTGROUP").option('value', false);
+        form.getEditor("USAGE").option('value', 0);
+        form.getEditor("MEMO").option('value', null);
+        $('#grdPartnumber').dxDataGrid('instance').refresh();
+    }
+
+</script>

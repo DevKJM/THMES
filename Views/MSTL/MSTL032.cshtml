@@ -1,0 +1,405 @@
+﻿@using JSMES.WebUI.Alpha.App_GlobalResources
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTL;
+
+
+@using DevExtreme.AspNet.Mvc.FileManagement
+
+@{
+    ViewBag.Title = "MSTL032";
+}
+
+<h2>MSTL032</h2>
+
+<div class="container-fluid">
+    <div class="row">
+        <div>
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @string.Format("{0} {1}", LabelText.PARTNUMBER, LabelText.LIST) </i></span></h4>
+            @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                                                                            .ID("grdPartnumber")
+                                                                            .DataSource(d => d.WebApi().Controller("MSTL032WebApi").Key("PARTNUMBERID").LoadAction("getPartnumber"))
+                                                                            .Columns(columns =>
+                                                                            {
+                                                                                columns.AddFor(m => m.PARTNUMBER);
+                                                                                columns.AddFor(m => m.PRODUCTNAME);
+                                                                                columns.AddFor(m => m.CREATEDATE);
+                                                                            })
+                                                                            .RemoteOperations(true)
+                                                                            .FilterPanel(f => f.Visible(true))
+                                                                            .ColumnAutoWidth(true)
+                                                                            .Paging(p => p.PageSize(25).Enabled(true))
+                                                                            .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                                            .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                            .SearchPanel(searchPanel => searchPanel
+                                                                            .Visible(true)
+                                                                            .Width(300)
+                                                                            .Placeholder("Search...")
+                                                                            )
+                                                                            .FilterRow(filterRow => filterRow
+                                                                            .Visible(true)
+                                                                            .ApplyFilter(GridApplyFilterMode.Auto)
+                                                                            )
+                                                                            .Selection(s => s.Mode(SelectionMode.Single))
+                                                                            .ShowBorders(true)
+                                                                            .AllowColumnResizing(true)
+                                                                            .RowAlternationEnabled(true)
+                                                                            .ShowRowLines(true)
+            )
+        </div>
+        <div>
+
+            @using (Html.BeginForm())
+            {
+                @(Html.DevExtreme().Form()
+                                                                                                                              .ID("formInfo")
+                                                                                                                              .ColCount(14)
+                                                                                                                              //.OnContentReady("formInfo_OnContentReady")
+                                                                                                                              .ScrollingEnabled(false)
+                                                                                                                              .Items(items =>
+                                                                                                                              {
+                                                                                                                                  items.AddButton().ColSpan(3)
+                                                                                                                                      .HorizontalAlignment(HorizontalAlignment.Left)
+                                                                                                                                      .ButtonOptions(b => b.Text("사진첨부")
+                                                                                                                                          .Icon("fa fa-paperclip")
+                                                                                                                                          .ID("dropFileUpload")
+                                                                                                                                          //.Height("90%")
+                                                                                                                                          .Width("100%")
+                                                                                                                                          .StylingMode(ButtonStylingMode.Outlined)
+                                                                                                                                          .Type(ButtonType.Success)
+                                                                                                                                      );
+                                                                                                                                  items.AddButton().ColSpan(3)
+                                                                                                                                      .HorizontalAlignment(HorizontalAlignment.Left)
+                                                                                                                                      .ButtonOptions(b => b.Text("첨부보기")
+                                                                                                                                          .Icon("fa fa-file-image-o")
+                                                                                                                                          .ID("imageView")
+                                                                                                                                          //.Height("90%")
+                                                                                                                                          .Width("100%")
+                                                                                                                                          .StylingMode(ButtonStylingMode.Outlined)
+                                                                                                                                          .Type(ButtonType.Success)
+                                                                                                                                      );
+                                                                                                                                  items.AddSimple()
+                                                                                                                                      .Editor(e => e.TextBox().ReadOnly(true).Value(""))
+                                                                                                                                      .Name("REVISION_NO")
+                                                                                                                                      .Label(T => T.Text("현개정번호"))
+                                                                                                                                      .ColSpan(3);
+                                                                                                                                  items.AddEmpty().ColSpan(1);
+                                                                                                                                  items.AddButton().ColSpan(4)
+                                                                                                                                      .HorizontalAlignment(HorizontalAlignment.Left)
+                                                                                                                                      .ButtonOptions(b => b.Text(LabelText.INSERTION)
+                                                                                                                                          .Icon("check")
+                                                                                                                                          .ID("btnSave")
+                                                                                                                                          //.Height("90%")
+                                                                                                                                          .Width("100%")
+                                                                                                                                          .StylingMode(ButtonStylingMode.Contained)
+                                                                                                                                          .Type(ButtonType.Success)
+                                                                                                                                      );
+
+                                                                                                                              })
+                )
+            }
+        </div>
+        <style>
+            .low.dx-radiobutton-checked .dx-radiobutton-icon .dx-radiobutton-icon-dot {
+                background: gray;
+            }
+
+            .normal.dx-radiobutton-checked .dx-radiobutton-icon .dx-radiobutton-icon-dot {
+                background: green;
+            }
+
+            .urgent.dx-radiobutton-checked .dx-radiobutton-icon .dx-radiobutton-icon-dot {
+                background: orange;
+            }
+
+            .high.dx-radiobutton-checked .dx-radiobutton-icon .dx-radiobutton-icon-dot {
+                background: red;
+            }
+
+            #radio-group-with-selection {
+                margin-bottom: 10px;
+            }
+
+            #tasks-list {
+                margin: 0 0 10px 10px;
+                white-space: normal;
+            }
+
+            #list {
+                margin: 10px 0 0 20px;
+                padding-left: 0;
+                text-align: left;
+            }
+        </style>
+
+
+
+
+        <div>
+
+            @{
+                var priorities = new[] { "Low", "Normal", "Urgent", "High" };
+                var priorityEntities = new[] {
+                                            new { id = 0, text = "Low" },
+                                            new { id = 1, text = "Normal" },
+                                            new { id = 2, text = "Urgent" },
+                                            new { id = 3, text = "High" },
+                                        };
+            }
+            <div class="form">
+                <div class="dx-fieldset">
+                    <div class="dx-field">
+                        <div class="dx-field-label">Default mode</div>
+                        <div class="dx-field-value">
+                            @(Html.DevExtreme().RadioGroup()
+                                                                        .Items(priorities)
+                                                                        .Value("Low")
+                            )
+                        </div>
+                    </div>
+                    <div class="dx-field">
+                        <div class="dx-field-label">Disabled</div>
+                        <div class="dx-field-value">
+                            @(Html.DevExtreme().RadioGroup()
+                                                                        .Items(priorities)
+                                                                        .Value("Normal")
+                                                                        .Disabled(true)
+                            )
+                        </div>
+                    </div>
+                    <div class="dx-field">
+                        <div class="dx-field-label">Horizontal layout</div>
+                        <div class="dx-field-value">
+                            @(Html.DevExtreme().RadioGroup()
+                                                                        .Items(priorities)
+                                                                        .Value("Low")
+                                                                        .Layout(Orientation.Horizontal)
+                            )
+                        </div>
+                    </div>
+                    <div class="dx-field">
+                        <div class="dx-field-label">Custom item template</div>
+                        <div class="dx-field-value">
+                            @(Html.DevExtreme().RadioGroup()
+                                                                        .Items(priorities)
+                                                                        .Value("Urgent")
+                                                                        .ItemTemplate(new JS("radioGroupItemTemplate"))
+                            )
+                        </div>
+                    </div>
+                    <div class="dx-field">
+                        <div class="dx-field-label">Event handling</div>
+                        <div class="dx-field-value">
+                            @(Html.DevExtreme().RadioGroup()
+                                                                        .ID("radio-group-with-selection")
+                                                                        .DataSource(priorityEntities)
+                                                                        .ValueExpr("id")
+                                                                        .DisplayExpr("text")
+                                                                        .Value(0)
+                                                                        .OnValueChanged("radioGroup_valueChanged")
+                            )
+                        </div>
+                    </div>
+                </div>
+                <div id="tasks-list">
+                    Tasks by selected priority:
+                    <ul id="list">
+                        <li>Non-Compete Agreements</li>
+                    </ul>
+                </div>
+            </div>
+
+            <script>
+                function radioGroupItemTemplate(itemData, _, itemElement) {
+                    itemElement
+                        .parent().addClass(itemData.toLowerCase())
+                        .text(itemData);
+                }
+
+                function radioGroup_valueChanged(e) {
+                    $("#list").children().remove();
+
+                    $.each([{
+                        subject: "Choose between PPO and HMO Health Plan",
+                        priority: 3
+                    }, {
+                        subject: "Non-Compete Agreements",
+                        priority: 0
+                    }, {
+                        subject: "Comment on Revenue Projections",
+                        priority: 1
+                    }, {
+                        subject: "Sign Updated NDA",
+                        priority: 2
+                    }, {
+                        subject: "Submit Questions Regarding New NDA",
+                        priority: 3
+                    }, {
+                        subject: "Rollout of New Website and Marketing Brochures",
+                        priority: 3
+                    }], function (_, item) {
+                        if (item.priority === e.value) {
+                            $("#list").append($("<li/>").text(item.subject));
+                        }
+                    });
+                }
+            </script>
+
+
+
+        </div>
+        <div>
+            @(Html.DevExtreme().DropDownBox()
+            )
+        </div>
+
+        <div>
+            @(Html.DevExtreme().DateBox() // create a DateBox
+                                                  // call methods to specify control options
+            )
+        </div>
+
+        <div>
+
+            @(Html.DevExtreme().Map() // create a Map
+                                              // call methods to specify control options
+            )
+
+        </div>
+
+        <div>
+
+            @(Html.DevExtreme().Map() // create a Map
+                                              // call methods to specify control options
+            )
+
+        </div>
+
+        <div>
+            @(Html.DevExtreme().PieChart()
+            .ID("pie")
+            .Size(s => s.Width(500))
+            .Palette(VizPalette.Bright)
+            .Series(s => s
+                .Add()
+                .ArgumentField("Country")
+                .ValueField("Area")
+                .Label(l => l
+                    .Visible(true)
+                    .Connector(c => c
+                        .Visible(true)
+                        .Width(1)
+                    )
+                )
+            )
+            .Title("Area of Countries")
+            .Export(e => e.Enabled(true))
+            .OnPointClick(@<text>
+                function (e) {
+                var point = e.target;
+                toggleVisibility(point);
+                }
+            </text>)
+            .OnLegendClick(@<text>
+                function (e) {
+                var arg = e.target;
+                toggleVisibility(this.getAllSeries()[0].getPointsByArg(arg)[0]);
+                }
+            </text>)
+            .DataSource(new[] {
+            new { Country = "Russia", Area = 12 },
+            new { Country = "Canada", Area = 7 },
+            new { Country = "USA", Area = 7 },
+            new { Country = "China", Area = 7 },
+            new { Country = "Brazil", Area = 6 },
+            new { Country = "Australia", Area = 5 },
+            new { Country = "India", Area = 2 },
+            new { Country = "Others", Area = 55 }
+            })
+            )
+
+            <script>
+                function toggleVisibility(item) {
+                    if (item.isVisible()) {
+                        item.hide();
+                    } else {
+                        item.show();
+                    }
+                }
+            </script>
+
+
+        </div>
+
+        <style>
+            #chart {
+                height: 440px;
+                width: 500px;
+            }
+
+        </style>
+
+        <div>
+
+            @(Html.DevExtreme().Chart()
+            .ID("chart")
+            .Rotated(true)
+            .CommonSeriesSettings(s => s
+                .ArgumentField("Country")
+                .Type(SeriesType.Bar)
+                .HoverMode(ChartSeriesHoverMode.AllArgumentPoints)
+                .SelectionMode(ChartSeriesSelectionMode.AllArgumentPoints)
+                .Label(l => l
+                    .Visible(true)
+                    .Format(f => f.Type(Format.Percent).Precision(1))
+                )
+            )
+            .ValueAxis(a => a.Add().Label(l => l.Format(f => f.Type(Format.Percent).Precision(1))))
+            .Series(s =>
+            {
+                s.Add().ValueField("Year2007").Name("2007 - 2008");
+                s.Add().ValueField("Year2008").Name("2008 - 2009");
+            })
+            .Title(t => t.Text("Economy - Export Change"))
+            .Legend(l => l
+                .VerticalAlignment(VerticalEdge.Bottom)
+                .HorizontalAlignment(HorizontalAlignment.Center)
+            )
+            .Export(e => e.Enabled(true))
+            .OnPointClick(@<text>
+                function(e) {
+                e.target.select();
+                }
+            </text>)
+            .OnLegendClick(@<text>
+                function(e) {
+                var series = e.target;
+                if(series.isVisible()) {
+                series.hide();
+                } else {
+                series.show();
+                }
+                }
+            </text>)
+            .DataSource(new[] {
+            new { Country = "China", Year2007 = 0.1732, Year2008 = -0.1588 },
+            new { Country = "Germany", Year2007 = 0.0964, Year2008 = -0.2231 },
+            new { Country = "United States", Year2007 = 0.1187, Year2008 = -0.1878 },
+            new { Country = "Japan", Year2007 = 0.1081, Year2008 = -0.2614 },
+            new { Country = "France", Year2007 = 0.1014, Year2008 = -0.2222 },
+            new { Country = "Netherlands", Year2007 = 0.1355, Year2008 = -0.2015 }
+            })
+            )
+
+        </div>
+
+
+
+
+
+
+
+
+
+    </div>
+</div>

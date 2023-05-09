@@ -1,0 +1,1114 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAF;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<QUAF011_LIST>()
+                                                          .DataSource(d => d.WebApi().Controller("QUAF011WebApi").Key("ROWSKEY").OnBeforeSend("grdProductionInspectionReport_OnBeforeSend"))
+                                                          .ID("grdProductionInspectionReport")
+                                                          .Columns(columns =>
+                                                          {
+                                                              columns.AddFor(m => m.ROWSKEY).AllowEditing(false).Visible(false);
+                                                              columns.AddFor(m => m.EQUIPMENTCODE).SortOrder(SortOrder.Asc).SortIndex(0)
+                                                                  .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                                      .Controller("COMA001WebApi")
+                                                                      .Key("EQUIPMENTCODE")
+                                                                      .LoadAction("EQUIPMENT_LIST")
+                                                                      )
+                                                                      .DisplayExpr("EQUIPMENTNAME")
+                                                                      .ValueExpr("EQUIPMENTCODE")
+                                                                  );
+                                                              columns.AddFor(m => m.PARTNUMBER).AllowEditing(false).SortOrder(SortOrder.Asc).SortIndex(1);
+                                                              columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false);
+                                                              columns.AddFor(m => m.CUSTOMERPARTNUMBER).AllowEditing(false);
+                                                              columns.AddFor(m => m.SAMPLECOUNT).AllowEditing(false).Alignment(HorizontalAlignment.Center);
+
+                                                              columns.AddFor(m => m.PRODINSPSEQUENCE1);
+                                                              columns.AddFor(m => m.INSPECTIONCODE1);
+                                                              columns.AddFor(m => m.DATATYPE1);
+                                                              columns.AddFor(m => m.SPECCLASS1);
+                                                              columns.AddFor(m => m.USL1);
+                                                              columns.AddFor(m => m.LSL1);
+                                                              columns.AddFor(m => m.INSPECTIONRESULT1).EditCellTemplate(new JS("edittest1")).ShowEditorAlways(true);
+                                                              columns.AddFor(m => m.RESULT1);
+
+                                                              columns.AddFor(m => m.PRODINSPSEQUENCE2);
+                                                              columns.AddFor(m => m.INSPECTIONCODE2);
+                                                              columns.AddFor(m => m.DATATYPE2);
+                                                              columns.AddFor(m => m.SPECCLASS2);
+                                                              columns.AddFor(m => m.USL2);
+                                                              columns.AddFor(m => m.LSL2);
+                                                              columns.AddFor(m => m.INSPECTIONRESULT2).EditCellTemplate(new JS("edittest2")).ShowEditorAlways(true);
+                                                              columns.AddFor(m => m.RESULT2);
+
+                                                              columns.AddFor(m => m.PRODINSPSEQUENCE3);
+                                                              columns.AddFor(m => m.INSPECTIONCODE3);
+                                                              columns.AddFor(m => m.DATATYPE3);
+                                                              columns.AddFor(m => m.SPECCLASS3);
+                                                              columns.AddFor(m => m.USL3);
+                                                              columns.AddFor(m => m.LSL3);
+                                                              columns.AddFor(m => m.INSPECTIONRESULT3).EditCellTemplate(new JS("edittest3")).ShowEditorAlways(true);
+                                                              columns.AddFor(m => m.RESULT3);
+
+                                                              columns.AddFor(m => m.PRODINSPSEQUENCE4);
+                                                              columns.AddFor(m => m.INSPECTIONCODE4);
+                                                              columns.AddFor(m => m.DATATYPE4);
+                                                              columns.AddFor(m => m.SPECCLASS4);
+                                                              columns.AddFor(m => m.USL4);
+                                                              columns.AddFor(m => m.LSL4);
+                                                              columns.AddFor(m => m.INSPECTIONRESULT4).EditCellTemplate(new JS("edittest4")).ShowEditorAlways(true);
+                                                              columns.AddFor(m => m.RESULT4);
+
+                                                              columns.AddFor(m => m.PRODINSPSEQUENCE5);
+                                                              columns.AddFor(m => m.INSPECTIONCODE5);
+                                                              columns.AddFor(m => m.DATATYPE5);
+                                                              columns.AddFor(m => m.SPECCLASS5);
+                                                              columns.AddFor(m => m.USL5);
+                                                              columns.AddFor(m => m.LSL5);
+                                                              columns.AddFor(m => m.INSPECTIONRESULT5).EditCellTemplate(new JS("edittest5")).ShowEditorAlways(true);
+                                                              columns.AddFor(m => m.RESULT5);
+
+                                                              columns.AddFor(m => m.PRODINSPSEQUENCE6);
+                                                              columns.AddFor(m => m.INSPECTIONCODE6);
+                                                              columns.AddFor(m => m.DATATYPE6);
+                                                              columns.AddFor(m => m.SPECCLASS6);
+                                                              columns.AddFor(m => m.USL6);
+                                                              columns.AddFor(m => m.LSL6);
+                                                              columns.AddFor(m => m.INSPECTIONRESULT6).EditCellTemplate(new JS("edittest6")).ShowEditorAlways(true);
+                                                              columns.AddFor(m => m.RESULT6);
+
+                                                              columns.AddFor(m => m.PRODINSPSEQUENCE7);
+                                                              columns.AddFor(m => m.INSPECTIONCODE7);
+                                                              columns.AddFor(m => m.DATATYPE7);
+                                                              columns.AddFor(m => m.SPECCLASS7);
+                                                              columns.AddFor(m => m.USL7);
+                                                              columns.AddFor(m => m.LSL7);
+                                                              columns.AddFor(m => m.INSPECTIONRESULT7).EditCellTemplate(new JS("edittest7")).ShowEditorAlways(true);
+                                                              columns.AddFor(m => m.RESULT7);
+
+                                                              columns.AddFor(m => m.PRODINSPSEQUENCE8);
+                                                              columns.AddFor(m => m.INSPECTIONCODE8);
+                                                              columns.AddFor(m => m.DATATYPE8);
+                                                              columns.AddFor(m => m.SPECCLASS8);
+                                                              columns.AddFor(m => m.USL8);
+                                                              columns.AddFor(m => m.LSL8);
+                                                              columns.AddFor(m => m.INSPECTIONRESULT8).EditCellTemplate(new JS("edittest8")).ShowEditorAlways(true);
+                                                              columns.AddFor(m => m.RESULT8);
+
+                                                              columns.AddFor(m => m.PRODINSPSEQUENCE9);
+                                                              columns.AddFor(m => m.INSPECTIONCODE9);
+                                                              columns.AddFor(m => m.DATATYPE9);
+                                                              columns.AddFor(m => m.SPECCLASS9);
+                                                              columns.AddFor(m => m.USL9);
+                                                              columns.AddFor(m => m.LSL9);
+                                                              columns.AddFor(m => m.INSPECTIONRESULT9).EditCellTemplate(new JS("edittest9")).ShowEditorAlways(true);
+                                                              columns.AddFor(m => m.RESULT9);
+
+                                                              columns.AddFor(m => m.PRODINSPSEQUENCE10);
+                                                              columns.AddFor(m => m.INSPECTIONCODE10);
+                                                              columns.AddFor(m => m.DATATYPE10);
+                                                              columns.AddFor(m => m.SPECCLASS10);
+                                                              columns.AddFor(m => m.USL10);
+                                                              columns.AddFor(m => m.LSL10);
+                                                              columns.AddFor(m => m.INSPECTIONRESULT10).EditCellTemplate(new JS("edittest10")).ShowEditorAlways(true);
+                                                              columns.AddFor(m => m.RESULT10);
+
+                                                              columns.AddFor(m => m.INSPECTRESULT).AllowEditing(false).Alignment(HorizontalAlignment.Center);
+
+                                                              columns.AddFor(m => m.MEMO).EditCellTemplate(@<text>@(Html.DevExtreme().TextArea().Height(100).Value(new JS("data.MEMO")).OnValueChanged("function(e){setValue(e.value);}"))</text>).Visible(false);
+                                                          })
+                                                        .AllowColumnResizing(true)
+                                                        .RemoteOperations(true)
+                                                        .FilterPanel(f => f.Visible(true))
+                                                        .ColumnAutoWidth(true)
+                                                        .Paging(p => p.PageSize(25).Enabled(true))
+                                                        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                        .ShowRowLines(true)
+                                                        //.SearchPanel(searchPanel => searchPanel
+                                                        //    .Visible(true)
+                                                        //    .Width(180)
+                                                        //    .Placeholder("Search...")
+                                                        //)
+                                                        //.FilterRow(filterRow => filterRow
+                                                        //    .Visible(true)
+                                                        //    .ApplyFilter(GridApplyFilterMode.Auto)
+                                                        //)
+                                                        .ShowBorders(true)
+                                                        .AllowColumnResizing(true)
+                                                        .Editing(e =>
+                                                            e.Mode(GridEditMode.Batch)
+                                                                .AllowUpdating(new JS("iudAuth()"))
+                                                                .AllowAdding(new JS("iudAuth()"))
+                                                        )
+                                                        .RowAlternationEnabled(true)
+                                                .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                                              .ElementAttr("class", "dx-dxdatagrid-no-highlight-outline")
+                                                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                                              .OnInitialized("grdProductionInspectionReport_OnInitialized")
+                                              .OnToolbarPreparing("grdProductionInspectionReport_OnToolbarPreparing")
+                                                .OnCellPrepared("grdProductionInspectionReport_OnCellPrepared")
+                                              .OnEditingStart("grdProductionInspectionReport_OnEditingStart")
+                                              .OnRowUpdating("grdProductionInspectionReport_OnRowUpdating")
+
+            )
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    var InspectionInfoArray = [];
+
+    $(function () {
+        $('#WorkResultDate').dxDateBox('instance').option('value', new Date());
+        $('#InspectDate').dxDateBox('instance').option('value', new Date());
+        initDateColumnHeader();
+    });
+
+    function initDateColumnHeader() {
+                $.ajax({
+            url: '@Url.Action("getInspectionItemList", "QUAF011WebApi", new { httproute = "DefaultApi", })',
+            type: 'GET',
+            //data: data,
+            success: function (data) {
+                if (data.data.length > 0) {
+                    InspectionInfoArray = data.data;
+
+                    var grid = $('#grdProductionInspectionReport').dxDataGrid('instance');
+                    var columns = grid.option("columns");
+
+                    $('#grdProductionInspectionReport').dxDataGrid('instance').beginUpdate();
+
+                    for (var i = 0; i < 10; i++) {
+                        var tempColNameINSPECTIONCODE = ("INSPECTIONCODE").concat(i + 1);
+                        var tempColNameDATATYPE = ("DATATYPE").concat(i + 1);
+                        var tempColNameINSPECTIONRESULT = ("INSPECTIONRESULT").concat(i + 1);
+                        var tempColNameSPECCLASS = ("SPECCLASS").concat(i + 1);
+                        var tempColNameUSL = ("USL").concat(i + 1);
+                        var tempColNameLSL = ("LSL").concat(i + 1);
+                        var tempColNameRESULT = ("RESULT").concat(i + 1);
+                        var tempPRODINSPSEQUENCE = ("PRODINSPSEQUENCE").concat(i + 1);
+
+                        //안보임
+                        if ((i + 1) > data.data.length) {
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempPRODINSPSEQUENCE, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameINSPECTIONCODE, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameDATATYPE, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameSPECCLASS, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameUSL, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameLSL, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameINSPECTIONRESULT, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameRESULT, 'visible', false);
+                        }
+                        //보임, 칼럼명 설정.
+                        else if ((i + 1) <= data.data.length) {
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempPRODINSPSEQUENCE, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameINSPECTIONCODE, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameDATATYPE, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameSPECCLASS, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameUSL, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameLSL, 'visible', false);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameINSPECTIONRESULT, 'visible', true);
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameRESULT, 'visible', false);
+
+                            $('#grdProductionInspectionReport').dxDataGrid('columnOption', tempColNameINSPECTIONRESULT, 'caption', data.data[i].INSPECTNAME);
+                        }
+                    }
+
+                    $('#grdProductionInspectionReport').dxDataGrid('instance').endUpdate();
+                }
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+
+    function grdProductionInspectionReport_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function EQUIPMENTCODE_SetCellValue(rowData, value) {
+        rowData.EQUIPMENTCODE = value;
+        rowData.PARTNUMBER = null;
+    }
+
+    function grdProductionInspectionReport_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                //데이터 조회시 이 날짜(생산일자)로 조회.
+                widget: "dxDateBox",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '@LabelText.PRODUCTIONDATE2' +"</div> ",
+                location: "before",
+                options: {
+                    elementAttr: { "id": "WorkResultDate" },
+                    onValueChanged: function (e) {
+                        if (e.previousValue != undefined) {
+                            var grid = $('#grdProductionInspectionReport').dxDataGrid('instance');
+
+                            $('#grdProductionInspectionReport').dxDataGrid('instance').getDataSource().reload();
+                            //grid.refresh();
+                        }
+                    }
+                },
+            },
+            {
+                //DB 등록할때 이 날짜(검사일자)로 등록.
+                widget: "dxDateBox",
+                //html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '@LabelText.INSPECTDATE' +"</div> ",
+                location: "after",
+                options: {
+                    visible:false,
+                    elementAttr: { "id": "InspectDate" },
+                    onValueChanged: function (e) {
+                        if (e.previousValue != undefined) {
+                            //var grid = $('#grdProductionInspectionReport').dxDataGrid('instance');
+
+                            //grid.refresh();
+                        }
+                    }
+                },
+            }
+        )
+    }
+
+    function grdProductionInspectionReport_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var dxDateBox = $('#WorkResultDate').dxDateBox('instance');
+            var WorkResultDate;
+
+            if (dxDateBox != undefined) {
+                WorkResultDate = dxDateBox.option('value');
+            }
+            else {
+                WorkResultDate = new Date();
+            }
+            ajaxOptions.data.WorkResultDate = Globalize.dateFormatter({ date: "short" })(WorkResultDate);
+        } else if (method == "update") {
+            var dxDateBox = $('#WorkResultDate').dxDateBox('instance');
+            var InspectDate;
+
+            if (dxDateBox != undefined) {
+                InspectDate = dxDateBox.option('value');
+            }
+            else {
+                InspectDate = new Date();
+            }
+            
+            ajaxOptions.data.InspectDate = Globalize.dateFormatter({ date: "short" })(InspectDate);
+            //ajaxOptions.data.InspectList = JSON.stringify(InspectionInfoArray);
+        }
+    }
+
+    function grdProductionInspectionReport_OnCellPrepared(e) {
+        if (e.rowType == 'data' && e.column.dataField === "INSPECTRESULT") {
+            e.cellElement.css("color", e.data.INSPECTRESULT == "OK" ? "" : "red");
+            e.cellElement.css("text-align", "center");
+        }
+    }
+
+
+    function CheckInspectResult(cellInfo) {
+
+        var grid = $('#grdProductionInspectionReport').dxDataGrid('instance');
+
+        var IsResult = false;
+
+        for (var i = 0; i < InspectionInfoArray.length; i++) {
+            var tempColNameRESULT = ("RESULT").concat(i + 1);
+
+            var tempRESULT = grid.cellValue(cellInfo.rowIndex, tempColNameRESULT);
+
+            if (tempRESULT == "") {
+                continue;
+            }
+
+            if (tempRESULT == "OK") {
+                IsResult = true;
+            }
+            else if (tempRESULT == "NG") {
+                IsResult = false;
+                break;
+            }
+        }
+
+        if (IsResult) {
+            grid.cellValue(cellInfo.rowIndex, "INSPECTRESULT", "OK");
+        } else {
+            grid.cellValue(cellInfo.rowIndex, "INSPECTRESULT", "NG");
+        }
+    }
+
+    function grdProductionInspectionReport_OnEditingStart(e) {
+        var rowIndex = $('#grdProductionInspectionReport').dxDataGrid('instance').getRowIndexByKey(e.key);
+
+
+    }
+
+    function grdProductionInspectionReport_OnRowUpdating(e) {
+        for (var property in e.oldData) {
+            if (!e.newData.hasOwnProperty(property)) {
+                e.newData[property] = e.oldData[property];
+            }
+        }
+    }
+
+
+
+
+
+
+
+    var priorities = [{
+        "CODE": "OK",
+        "NAME": "양품"
+    }, {
+        "CODE": "NG",
+        "NAME": "불량"
+    }];
+
+    function edittest1(cellElement, cellInfo) {
+        if (cellInfo.row.data.DATATYPE1 == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT1', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT1', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE1 == "N") {
+            $("<div />").dxNumberBox({
+                //format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL1;
+                    var usl = cellInfo.data.USL1;
+                    var specclass = cellInfo.data.SPECCLASS1;
+                    var result = false;;
+
+                    if (cellInfo.value == null) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT1', '');
+                        CheckInspectResult(cellInfo);
+                        return;
+                    }
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT1', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT1', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE1 == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+    function edittest2(cellElement, cellInfo) {
+        if (cellInfo.row.data.DATATYPE2 == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT2', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT2', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE2 == "N") {
+            $("<div />").dxNumberBox({
+                //format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL2;
+                    var usl = cellInfo.data.USL2;
+                    var specclass = cellInfo.data.SPECCLASS2;
+                    var result = false;;
+
+                    if (cellInfo.value == null) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT2', '');
+                        CheckInspectResult(cellInfo);
+                        return;
+                    }
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT2', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT2', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE2 == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+    function edittest3(cellElement, cellInfo) {
+        if (cellInfo.row.data.DATATYPE3 == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT3', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT3', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE3 == "N") {
+            $("<div />").dxNumberBox({
+                //format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL3;
+                    var usl = cellInfo.data.USL3;
+                    var specclass = cellInfo.data.SPECCLASS3;
+                    var result = false;;
+
+                    if (cellInfo.value == null) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT3', '');
+                        CheckInspectResult(cellInfo);
+                        return;
+                    }
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT3', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT3', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE3 == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+    function edittest4(cellElement, cellInfo) {
+        if (cellInfo.row.data.DATATYPE4 == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT4', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT4', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE4 == "N") {
+            $("<div />").dxNumberBox({
+                //format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL4;
+                    var usl = cellInfo.data.USL4;
+                    var specclass = cellInfo.data.SPECCLASS4;
+                    var result = false;;
+
+                    if (cellInfo.value == null) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT4', '');
+                        CheckInspectResult(cellInfo);
+                        return;
+                    }
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT4', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT4', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE4 == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+    function edittest5(cellElement, cellInfo) {
+        if (cellInfo.row.data.DATATYPE5 == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT5', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT5', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE5 == "N") {
+            $("<div />").dxNumberBox({
+                //format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL5;
+                    var usl = cellInfo.data.USL5;
+                    var specclass = cellInfo.data.SPECCLASS5;
+                    var result = false;;
+
+                    if (cellInfo.value == null) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT5', '');
+                        CheckInspectResult(cellInfo);
+                        return;
+                    }
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT5', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT5', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE5 == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+    function edittest6(cellElement, cellInfo) {
+        if (cellInfo.row.data.DATATYPE6 == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT6', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT6', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE6 == "N") {
+            $("<div />").dxNumberBox({
+                //format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL6;
+                    var usl = cellInfo.data.USL6;
+                    var specclass = cellInfo.data.SPECCLASS6;
+                    var result = false;;
+
+                    if (cellInfo.value == null) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT6', '');
+                        CheckInspectResult(cellInfo);
+                        return;
+                    }
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT6', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT6', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE6 == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+    function edittest7(cellElement, cellInfo) {
+        if (cellInfo.row.data.DATATYPE7 == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT7', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT7', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE7 == "N") {
+            $("<div />").dxNumberBox({
+                //format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL7;
+                    var usl = cellInfo.data.USL7;
+                    var specclass = cellInfo.data.SPECCLASS7;
+                    var result = false;;
+
+                    if (cellInfo.value == null) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT7', '');
+                        CheckInspectResult(cellInfo);
+                        return;
+                    }
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT7', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT7', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE7 == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+    function edittest8(cellElement, cellInfo) {
+        if (cellInfo.row.data.DATATYPE8 == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT8', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT8', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE8 == "N") {
+            $("<div />").dxNumberBox({
+                //format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL8;
+                    var usl = cellInfo.data.USL8;
+                    var specclass = cellInfo.data.SPECCLASS8;
+                    var result = false;;
+
+                    if (cellInfo.value == null) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT8', '');
+                        CheckInspectResult(cellInfo);
+                        return;
+                    }
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT8', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT8', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE8 == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+    function edittest9(cellElement, cellInfo) {
+        if (cellInfo.row.data.DATATYPE9 == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT9', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT9', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE9 == "N") {
+            $("<div />").dxNumberBox({
+                //format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL9;
+                    var usl = cellInfo.data.USL9;
+                    var specclass = cellInfo.data.SPECCLASS9;
+                    var result = false;;
+
+                    if (cellInfo.value == null) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT9', '');
+                        CheckInspectResult(cellInfo);
+                        return;
+                    }
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT9', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT9', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE9 == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+    function edittest10(cellElement, cellInfo) {
+        if (cellInfo.row.data.DATATYPE10 == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT10', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT10', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE10 == "N") {
+            $("<div />").dxNumberBox({
+                //format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL10;
+                    var usl = cellInfo.data.USL10;
+                    var specclass = cellInfo.data.SPECCLASS10;
+                    var result = false;;
+
+                    if (cellInfo.value == null) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT10', '');
+                        CheckInspectResult(cellInfo);
+                        return;
+                    }
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'OK');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT10', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTRESULT', 'NG');
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT10', 'NG');
+                    }
+
+                    CheckInspectResult(cellInfo);
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE10 == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+
+</script>
+
+
+@Html.Partial("_DropdownPartial")

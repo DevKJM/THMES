@@ -1,0 +1,227 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MAT.MATF;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="options">
+                <div class="option">
+                    <span>@LabelText.SELECT @LabelText.DATE</span>
+                    @(Html.DevExtreme().DateBox()
+                        .ID("searchFrom")
+                        .DisplayFormat(Format.MonthAndYear)
+                        .CalendarOptions(o=>o.MaxZoomLevel(CalendarZoomLevel.Year).MinZoomLevel(CalendarZoomLevel.Century))
+                        .Type(DateBoxType.Date)
+                        .Value(new JS("new Date()"))
+                        .OnValueChanged("function(e) { $('#grdMaterialReceive').dxDataGrid('instance').refresh(); $('#chtMaterialReceive').dxChart('instance').refresh(); } ")
+                        .DisplayFormat(Format.MonthAndYear)
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            @(Html.DevExtreme().Chart()
+                .ID("chtMaterialReceive")
+                .Palette(VizPalette.GreenMist)
+                .DataSource(d => d.WebApi().Controller("MATF052WebApi").LoadAction("getChart").Key("PARTNUMBER").OnBeforeSend("grdMaterialReceive_OnBeforeSend"))
+                .Size(s=>s.Height(200))
+                .Title("원재료 입고량")
+                
+                .Tooltip(t => t
+                    .Enabled(true)                    
+                    .Format(f=>f.Type(Format.FixedPoint).Precision(0))
+                )
+                .SeriesTemplate(s=>s.NameField("PARTNUMBER"))
+                .CommonSeriesSettings(s => s
+                    .ArgumentField("WORKDATE")
+                    .ValueField("QUANTITY")
+                    .Type(SeriesType.Bar)
+                    .Label(l => l
+                        .Visible(true)
+                        .Format(f => f
+                            .Type(Format.FixedPoint)
+                            .Precision(0)
+                        )
+                    )
+                )                
+                .Legend(l => l
+                    .VerticalAlignment(VerticalEdge.Top)
+                    .HorizontalAlignment(HorizontalAlignment.Left)
+                    .CustomizeText("function(seriesInfo){ return $('#chtMaterialReceive').dxChart('instance').getSeriesByName(seriesInfo.seriesName)._data[0].data.PRODUCTNAME; }")
+                ))
+        </div>
+    </div>
+     <div class="row mt-3">
+        <div class="col-lg-3">
+             @(Html.DevExtreme().DataGrid<MATF052A_LIST>()
+                .DataSource(d => d.WebApi().Controller("MATF052WebApi").LoadAction("getInvent").Key("PARTNUMBER"))
+                .ID("grdInvent")
+                .FilterRow(f=>f.Visible(true))
+                .ShowRowLines(true)
+                .Columns(columns =>
+                {
+                    columns.AddFor(m=>m.PARTNUMBER)
+                        .Lookup(lookup => lookup
+                                        .DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("MATERIALCODE")
+                                            .LoadAction("MATERIAL_LIST"))
+                                        .DisplayExpr("MATERIALNAME")
+                                        .ValueExpr("MATERIALCODE")
+                                    );
+                    columns.AddFor(m=>m.QUANTITY).Format(f=>f.Type(Format.FixedPoint)).Width(100);
+                })                
+                .ColumnHidingEnabled(true)
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{ 10, 25, 50, 100, 1000}))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+            )
+        </div>
+        <div class="col-lg-9">
+            @(Html.DevExtreme().DataGrid<MATF052_LIST>()
+                .ID("grdMaterialReceive")
+                .Width("100%")
+                .DataSource(d => d.WebApi().Controller("MATF052WebApi").Key("MATERIALHISSEQ").OnBeforeSend("grdMaterialReceive_OnBeforeSend"))
+                .FilterRow(f=>f.Visible(true))
+                .ShowRowLines(true)
+                .Columns(columns =>
+                {
+                    columns.AddFor(m=>m.WORKDATE).SortOrder(SortOrder.Desc);
+                    columns.AddFor(m=>m.PARTNUMBER).EditCellTemplate(new TemplateName("EmbeddedMATERIAL"))
+                        .Lookup(lookup => lookup
+                                        .DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("MATERIALCODE")
+                                            .LoadAction("MATERIAL_LIST"))
+                                        .DisplayExpr("MATERIALNAME")
+                                        .ValueExpr("MATERIALCODE")
+                                    ).SetCellValue("function(e, value) { e.VENDORCODE = this.lookup.items.find(function(e){ return e.MATERIALCODE == value; }).UDCF2; this.defaultSetCellValue(e, value); }");
+                    columns.AddFor(m=>m.VENDORCODE)
+                                .Lookup(lookup => lookup
+                                        .DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("VENDORCODE")
+                                            .LoadAction("VENDOR_LIST"))
+                                        .DisplayExpr("VENDORNAME")
+                                        .ValueExpr("VENDORCODE")
+                                    ).AllowEditing(false);
+                    columns.AddFor(m=>m.QUANTITY).Format(f=>f.Type(Format.FixedPoint));
+                    columns.AddFor(m=>m.MEMO).Width(100);
+                })                
+                .OnInitNewRow("OnInitNewRow")
+                .ColumnHidingEnabled(true)
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{ 10, 25, 50, 100, 1000}))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .Editing(e=>e.Mode(GridEditMode.Batch).AllowAdding(true))
+                .OnContentReady("OnContentReady")
+                .OnInitialized("OnInitialized")
+                .Option("MANUAL_UPDATING", true)
+            )
+        </div>
+     </div>
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedMATERIAL"))
+{
+    @(Html.DevExtreme().DropDownBox()
+        .ID("ddbPart")
+        .Value(new JS("data.PARTNUMBER"))
+        .ValueExpr("MATERIALCODE")
+        .DisplayExpr("MATERIALNAME")
+        .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("MATERIAL_LIST").Key("MATERIALCODE"))
+        .AcceptCustomValue(true)
+        .DropDownOptions(d=>d.Width(350))
+        .OnValueChanged(@<text>
+            function(e){                
+                setValue(e.value);
+                component.option("ElementAttr", {VENDORCODE:this.option("ElementAttr")});
+            }
+        </text>)
+          .DataSourceOptions(d=>d.Sort("MATERIALNAME",false))
+        .ContentTemplate(new TemplateName("EmbeddedMATERIALSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedMATERIALSingle"))
+{
+    @(Html.DevExtreme().DataGrid<MaterialMaster>()
+        .ID("grdMaterialSingle")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.MATERIALCODE);
+            columns.AddFor(m => m.MATERIALNAME);
+            columns.AddFor(m => m.UDCF2);
+        })
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"component.option(""value"")"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var haskey;
+                var keys = selectedItems.selectedRowKeys;
+
+                if(typeof keys !== undefined && keys.length > 0)
+                {
+                    haskey = true;
+                }
+
+                if(typeof keys !== 'undefined' && keys.length > 0){
+                    if(!(selectedItems.currentDeselectedRowKeys.length > 1)){
+                        component.close();
+                    }
+                }
+
+                component.option("ElementAttr", {VENDORCODE:selectedItems.selectedRowsData[0].UDCF2});
+
+                if (haskey != undefined){   
+                    component.option("value", selectedItems.selectedRowsData[0].MATERIALCODE);
+                }
+            }
+        </text>)
+    )
+}
+
+<script>
+        
+    function grdMaterialReceive_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            ajaxOptions.data.SEARCHFROM = Globalize.formatDate(($('#searchFrom').dxDateBox('instance').option('value')),{dateTime:'short'});            
+        }
+    }
+
+    function OnContentReady(e){
+        if (e.component.option("updating") && !e.component.hasEditData()) {  // updates finished successfully
+            e.component.option("updating", false);
+            $("#grdInvent").dxDataGrid("instance").refresh();
+            $("#chtMaterialReceive").dxChart("instance").refresh();
+        }
+    }
+    
+    function OnInitialized (e) {
+        userCustomGrid(e);
+    }
+
+    function OnInitNewRow(e) {
+        e.data.WORKDATE = new Date();
+    }
+</script>

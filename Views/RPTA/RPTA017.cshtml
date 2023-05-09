@@ -1,0 +1,140 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<RPTA017_LIST>
+                          ()
+                          .ID("grdShipment")
+                          .DataSource(d => d.WebApi().Controller("RPTA017WebApi").Key("ROWSINDEX"))
+                          .Columns(columns =>
+                          {
+                              columns.AddFor(m => m.ROWSINDEX).Visible(false);
+                              columns.AddFor(m => m.WORKDATE).Format(f => f.Type(Format.ShortDate))
+                                  .SelectedFilterOperation(FilterOperations.Between)
+                                  .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                                  .SortOrder(SortOrder.Desc).SortIndex(0);
+                              columns.AddFor(m => m.PARTNUMBER);
+                              columns.AddFor(m => m.PRODUCTNAME);
+                              columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+                              columns.AddFor(m => m.VENDORCODE).Visible(false);
+                              columns.AddFor(m => m.VENDORNAME);
+                              columns.AddFor(m => m.UNITCODE).Visible(false);
+                              columns.AddFor(m => m.UNITNAME).Alignment(HorizontalAlignment.Center);
+                              columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                              columns.AddFor(m => m.WORKER)
+                                  .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                      .Controller("COMA001WebApi")
+                                      .Key("EMPCODE")
+                                      .LoadAction("HR_LIST")
+                                      )
+                                      .DisplayExpr("EMPNAME")
+                                      .ValueExpr("EMPCODE")
+                                  );
+                          })
+                          //.Summary(s => s.GroupItems(items =>
+                          //{
+                          //    items.AddFor(m => m.INVENTQUANTITY)
+                          //        .SummaryType(SummaryType.Sum)
+                          //        .Column("INVENTQUANTITY")
+                          //        .ValueFormat(Format.FixedPoint)
+                          //        .DisplayFormat("{0}")
+                          //        .ShowInGroupFooter(false)
+                          //        .AlignByColumn(true);
+                          //}))
+                          .RemoteOperations(true)
+                          .FilterPanel(f => f.Visible(true))
+                          .ColumnAutoWidth(true)
+                          .Paging(p => p.PageSize(25).Enabled(true))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .SearchPanel(searchPanel => searchPanel
+                              .Visible(true)
+                              .Width(180)
+                              .Placeholder("Search...")
+                          )
+                          .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                          .FilterRow(filterRow => filterRow
+                              .Visible(true)
+                              .ApplyFilter(GridApplyFilterMode.Auto)
+                          )
+                          .ShowBorders(true)
+                          .AllowColumnResizing(true)
+                          .Editing(e =>
+                              e.Mode(GridEditMode.Batch)
+                                  .AllowAdding(false)
+                                  .AllowUpdating(false)
+                                  .AllowDeleting(false)
+                          )
+                          .RowAlternationEnabled(true)
+                          .Export(e => e.Enabled(true))
+                          .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                          .ShowRowLines(true)
+                          .OnInitialized("grdShipment_OnInitialized")
+                          .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                          .ShowRowLines(true)
+                  .MasterDetail(m => m
+                      .Enabled(true)
+                      .Template(new TemplateName("tempGrdShipment"))
+                  )
+            )
+        </div>
+    </div>
+</div>
+
+@*수입검사 하위 그리드*@
+@using (Html.DevExtreme().NamedTemplate("tempGrdShipment"))
+{
+    @(Html.DevExtreme().DataGrid<RPTA017A_LIST>()
+                                  .ID(new JS("'grdShipment-' + data.ROWSINDEX"))
+                                  .ElementAttr("class", "detail-grid")
+                                  .ShowBorders(true)
+                                  .AllowColumnResizing(false)
+                                  .ColumnAutoWidth(false)
+                                  .FilterPanel(f => f.Visible(false))
+                                  .RowAlternationEnabled(true)
+                                  .DataSource(d => d.WebApi()
+                                      .Controller("RPTA017WebApi")
+                                      .LoadAction("getShipmentDetail")
+                                      .LoadParams(new
+                                      {
+                                          WORKDATE = new JS("function() { return data.WORKDATE; }"),
+                                          PARTNUMBER = new JS("function() { return data.PARTNUMBER; }"),
+                                          VENDORCODE = new JS("function() { return data.VENDORCODE; }"),
+                                          WORKER = new JS("function() { return data.WORKER; }"),
+                                      })
+                                  )
+                                  .Paging(p => p.PageSize(10))
+                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                  .Columns(columns =>
+                                  {
+                                      columns.AddFor(m => m.SERIALNUMBER).SortOrder(SortOrder.Asc).SortIndex(1);
+                                      columns.AddFor(m => m.LOTNUMBER).SortOrder(SortOrder.Asc).SortIndex(0);
+                                      columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                  })
+                                  .Selection(s => s.Mode(SelectionMode.Single))
+                                    .OnInitialized("grdShipmentDetail_OnInitialized")
+    )
+}
+
+
+
+<script>
+    function grdShipment_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdShipmentDetail_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

@@ -1,0 +1,95 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct
+
+@using (Html.DevExtreme().NamedTemplate("ntDdlHPPartNumberList"))
+{
+    @(Html.DevExtreme().DropDownBox()
+        .Value(new JS("data.PARTNUMBER"))
+        .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("PART_HP_LIST").Key("PARTNUMBER"))
+        //.DataSource(new JS(@"component.option(""dataSource"")"))
+        .DisplayExpr("PRODUCTNAME")
+        .ValueExpr("PARTNUMBER")
+        .DropDownOptions(c => c.Width("400"))
+        .OnValueChanged(@<text>
+            function(e){
+                setValue(e.value);
+                }
+            </text>)
+        .ContentTemplate(new TemplateName("grdPartNumber"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("ntDdlHMPartNumberList"))
+{
+    @(Html.DevExtreme().DropDownBox()
+        .Value(new JS("data.PARTNUMBER"))
+        .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("PART_HM_LIST").Key("PARTNUMBER"))
+        .DisplayExpr("PRODUCTNAME")
+        .ValueExpr("PARTNUMBER")
+        .DropDownOptions(c => c.Width("400"))
+        .OnValueChanged(@<text>
+            function(e){
+                setValue(e.value);
+                }
+            </text>)
+        .ContentTemplate(new TemplateName("grdPartNumber"))
+    )
+}
+
+
+@using (Html.DevExtreme().NamedTemplate("ntDdlMaterialList"))
+{
+    @(Html.DevExtreme().DropDownBox()
+        .Value(new JS("data.PARTNUMBER"))
+        .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("PART_MATERIAL_LIST").Key("PARTNUMBER"))
+        .DisplayExpr("PRODUCTNAME")
+        .ValueExpr("PARTNUMBER")
+        .DropDownOptions(c => c.Width("400"))
+        .OnValueChanged(@<text>
+            function(e){
+                setValue(e.value);
+                }
+            </text>)
+        .ContentTemplate(new TemplateName("grdPartNumber"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("ntGrdPartNumber"))
+{
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+    .DataSource(new JS(@"component.option(""dataSource"")"))
+    .Columns(columns =>
+    {
+        columns.AddFor(m => m.PARTNUMBER);
+        columns.AddFor(m => m.PRODUCTNAME);
+    })
+    .HoverStateEnabled(true)
+    .Paging(p => p.PageSize(10))
+    .FilterRow(f => f.Visible(true))
+    .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+    .Height(345)
+    .Selection(s => s.Mode(SelectionMode.Single))
+    .SelectedRowKeys(new JS(@"component.option(""value"")"))
+    .OnSelectionChanged(@<text>
+        function(selectedItems) {
+        var haskey;
+        var keys = selectedItems.selectedRowKeys;
+
+        if(typeof keys !== undefined && keys.length > 0)
+        {
+            haskey = true;
+        }
+
+        //selectedItems.component.
+        if(typeof keys !== 'undefined' && keys.length > 0){
+            if(!(selectedItems.currentDeselectedRowKeys.length > 1)){
+                component.close();
+            }
+        }
+
+        if (haskey != undefined)
+            component.option("subValue", selectedItems.selectedRowsData[0]);
+            component.option("value", haskey ? keys : null);            
+        }
+    </text>)
+    )
+}

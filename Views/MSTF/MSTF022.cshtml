@@ -1,0 +1,110 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<EquipmentMaster>()
+                      .ID("grdEquipment")
+                      .DataSource(d => d.WebApi().Controller("MSTF002WebApi").Key("EQUIPMENTID"))
+                      .Columns(columns =>
+                      {
+                          columns.AddFor(m => m.EQUIPMENTCODE).SortOrder(SortOrder.Asc);
+                          columns.AddFor(m => m.EQUIPMENTNAME);
+                          columns.AddFor(m => m.WORKCENTERCODE).Lookup(lookup => lookup
+                                  .DataSource(d => d.WebApi()
+                                      .Controller("COMA001WebApi").Key("WORKCENTERCODE")
+                                      .LoadAction("WORKCENTER_LIST"))
+                                  .DisplayExpr("WORKCENTERNAME")
+                                  .ValueExpr("WORKCENTERCODE")
+                          );
+                          columns.AddFor(m => m.EQUIPMENTTYPE).SortOrder(SortOrder.Asc).SortIndex(0)
+                              .Lookup(lookup => lookup
+                                  .DataSource(d => d.WebApi()
+                                      .Controller("COMA003WebApi").Key("SYSCODE")
+                                      .LoadAction("EQUIPMENTTYPE_LIST"))
+                                  .DisplayExpr("SYSCODENAME")
+                                  .ValueExpr("SYSCODE")
+                              );
+                          columns.AddFor(m => m.MAKER)
+                              .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                  .Controller("COMA001WebApi").Key("VENDORCODE")
+                                  .LoadAction("VENDOR_PURCHASE_LIST"))
+                                  .DisplayExpr("VENDORNAME")
+                                  .ValueExpr("VENDORCODE")
+                              );
+                          columns.AddFor(m => m.MODEL);
+                          columns.AddFor(m => m.SPEC);
+                          columns.AddFor(m => m.RECEIVINGDATE);
+                          columns.AddFor(m => m.PURPOSE);
+                          columns.AddFor(m => m.PRICE).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                          columns.AddFor(m => m.PRODUCTIONDATE);
+                          //columns.AddFor(m => m.REFEQUIPMENTCODE);
+                          //columns.AddFor(m => m.TRIGGERGROUPCODE);
+                          //columns.AddFor(m => m.TARGETPATH);
+                          //columns.AddFor(m => m.TARGETPORT);
+                          columns.AddFor(m => m.MEMO);
+                          columns.AddFor(m => m.USEYN);
+                          columns.AddFor(m => m.CREATEUSER);
+                          columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                          columns.AddFor(m => m.RECENTUSER);
+                          columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                      })
+                      .RemoteOperations(true)
+                      .OnInitialized("grdEquipment_OnInitialized")
+                      .FilterPanel(f => f.Visible(true))
+                      .ColumnAutoWidth(true)
+                      .Paging(p => p.PageSize(25).Enabled(true))
+                      .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                      .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                      .ShowRowLines(true)
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                      .SearchPanel(searchPanel => searchPanel
+                          .Visible(true)
+                          .Width(180)
+                          .Placeholder("Search...")
+                      )
+                      .FilterRow(filterRow => filterRow
+                          .Visible(true)
+                          .ApplyFilter(GridApplyFilterMode.Auto)
+                      )
+                      .ShowBorders(true)
+                      .AllowColumnResizing(true)
+                      .Editing(e =>
+                          e.Mode(GridEditMode.Batch)
+                              .AllowUpdating(new JS("iudAuth()"))
+                              .AllowAdding(new JS("iudAuth()"))
+                              .AllowDeleting(new JS("iudAuth()"))
+                      )
+                      .RowAlternationEnabled(true)
+                      .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                  .OnInitialized("grdEquipment_OnInitialized")
+                      .Option("KEY_FIELD", new object[] { "PLANTCODE", "EQUIPMENTCODE" })
+                      .Option("INIT_FIELD", new object[] { "USEYN", "PLANTCODE" })
+                  )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdEquipment_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>
+
+
+@Html.Partial("_DropdownPartial")

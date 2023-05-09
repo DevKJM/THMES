@@ -1,0 +1,278 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using NuGet.Packaging.Signing
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().Form<RPTA025B_LIST>()
+                  .ID("form")
+                  .ColCount(10)
+                  .Items(items =>
+                  {
+                      
+                  items.AddSimpleFor(m => m.PRODUCTTYPE)
+                      .Editor(e => e
+                          .RadioGroup()
+                          .Layout(Orientation.Horizontal)
+                          .DisplayExpr("NAME")
+                          .ValueExpr("CODE")
+                          .DataSource(new JS("priorities"))
+                          .Value("P")
+                          .OnValueChanged("form_PRODUCTTYPE_OnValueChanged")
+                      ).ColSpan(2);
+
+                  items.AddSimpleFor(m => m.PARTNUMBER)
+                      .Editor(e => e
+                          .DropDownBox()
+                          .ValueExpr("PARTCODE")
+                          .DisplayExpr("PARTNAME")
+                          .DataSource(d => d.WebApi().Controller("RPTA025WebApi")
+                              .LoadAction("PART_LIST")
+                              .LoadParams(new
+                              {
+                                  Type = new JS("function() { return $('#form').dxForm('instance').option('formData.PRODUCTTYPE'); }")
+                              })
+                              .Key("PARTCODE")
+                          )
+                          .DropDownOptions(c => c.Width(400))
+                          .Placeholder("Select a value...")
+                          .ShowClearButton(true)
+                          .ContentTemplate(new TemplateName("EmbeddedPartDataGridSingle"))
+                          
+                      )
+                      .Name("PARTNUMBER")
+                      .ColSpan(2).Label(m => m.Text("품번"));
+
+
+                      items.AddSimpleFor(m => m.LOTNUMBER)
+                      .Name("LOTNUMBER")
+                          .Editor(e => e
+                              .TextBox()
+                      )
+                  .ColSpan(2).Label(m => m.Text("LOT NO."));
+                      
+                      items.AddEmpty().ColSpan(2);
+
+                      items.AddButton()
+                          .HorizontalAlignment(HorizontalAlignment.Left)
+                          .ButtonOptions(b => b.Text("조회")
+                              .OnClick("form_Search_onClick")
+                              .Type(ButtonType.Success)
+                              .Icon("check")
+                              .Width("100%")
+                              //.Disabled(false)
+                          ).ColSpan(2);
+
+                  items.AddSimple().ColSpan(10)
+                          .Template(@<text>
+                                @( Html.DevExtreme()
+                                               .TreeList<RPTA025_LIST>()
+                                               .ID("grdLotList")
+                                               .DataSource(ds => ds.WebApi()
+                                                   .Controller("RPTA025WebApi")
+                                                   .OnBeforeSend("grdLotList_OnBeforeSend")
+                                                   .OnLoaded("grdLotList_OnLoaded")
+                                                   .Key("ID")
+                                                   )
+                                               .KeyExpr("ID")
+                                               .RootValue("0")
+                                               .ParentIdExpr("ParentID")
+                                               .AutoExpandAll(true)
+                                               //.ExpandedRowKeys(new[] {"1"})
+                                               .Columns(columns =>
+                                               {
+                                                   columns.AddFor(m => m.NO).Visible(false);
+                                                   columns.AddFor(m => m.ID).Visible(false);
+                                                   columns.AddFor(m => m.ParentID).Visible(false);
+                                                   columns.AddFor(m => m.PARTNUMBER);
+                                                   columns.AddFor(m => m.LOTNUMBER);
+                                                   columns.AddFor(m => m.WORKDATE);
+                                                   columns.AddFor(m => m.PROCESSNAME);
+                                                   columns.AddFor(m => m.EQUIPMENT);
+                                                   columns.AddFor(m => m.TRANS)
+                                                       .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                           .Controller("COMA001WebApi")
+                                                           .Key("TRANSCODE")
+                                                           .LoadAction("TRANSACTION_LIST")
+                                                           )
+                                                           .DisplayExpr("TRANSNAME")
+                                                           .ValueExpr("TRANSCODE")
+                                                       );
+                                                   columns.AddFor(m => m.PRODQTY).Format("#,##0.###").Caption("수량");
+                                                   columns.AddFor(m => m.GOODQTY).Format("#,##0.###");
+                                                   columns.AddFor(m => m.BADQTY).Format("#,##0.###");
+                                                   columns.AddFor(m => m.UNITCODE)
+                                                       .Lookup(lookup => lookup
+                                                           .DataSource(d => d.WebApi()
+                                                               .Controller("COMA003WebApi").Key("SYSCODE")
+                                                               .LoadAction("UNITCODE_LIST"))
+                                                           .DisplayExpr("SYSCODENAME")
+                                                           .ValueExpr("SYSCODE")
+                                                       );
+                                                   columns.AddFor(m => m.VENDORNAME);
+                                                   columns.AddFor(m => m.WAREHOUSECODE)
+                                                       .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                           .Controller("COMA001WebApi")
+                                                           .Key("WAREHOUSECODE")
+                                                           .LoadAction("WAREHOUSE_LIST")
+                                                           )
+                                                           .DisplayExpr("WAREHOUSENAME")
+                                                           .ValueExpr("WAREHOUSECODE")
+                                                       );
+                                                   columns.AddFor(m => m.WORKSTARTTIME).Format(f => f.Type(Format.LongDateLongTime));
+                                                   columns.AddFor(m => m.WORKENDTIME).Format(f => f.Type(Format.LongDateLongTime));
+
+                                                   //columns.AddFor(m => m.WORKTIME).Format(f => f.Type(Format.LongDateLongTime)).Caption("작업시간").SortOrder(SortOrder.Asc);
+
+                                                   columns.AddFor(m => m.SHIFT)
+                                                       .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                           .Controller("COMA003WebApi")
+                                                           .Key("SYSCODE")
+                                                           .LoadAction("SHIFT_LIST")
+                                                           )
+                                                           .DisplayExpr("SYSCODENAME")
+                                                           .ValueExpr("SYSCODE")
+                                                       );
+                                                   columns.AddFor(m => m.WORKER);
+                                               })
+                                               .ColumnAutoWidth(true)
+                                               .ShowBorders(true)
+                                               .ShowRowLines(true)
+                                               .AllowColumnResizing(true)
+                                               .RowAlternationEnabled(true)
+                                               .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                                )
+                            </text>);
+
+                    })
+
+            )
+        </div>
+    </div>
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPartDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<COMA001A_LIST>()
+                  .ID("embedded-part-datagrid")
+                  .DataSource(new JS(@"component.option(""dataSource"")"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.PARTCODE);
+                      columns.AddFor(m => m.PARTNAME);
+                  })
+                  .ColumnAutoWidth(true)
+                  .HoverStateEnabled(true)
+                  .Paging(p => p.PageSize(10))
+                  .FilterRow(f => f.Visible(true))
+                  .Height(345)
+                  .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Infinite))
+                  .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                  .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                  .OnSelectionChanged(@<text>
+                    function(selectedItems) {
+                    var haskey;
+                    var keys = selectedItems.selectedRowKeys;
+                    console.log(selectedItems);
+
+                    if(typeof keys !== undefined && keys.length > 0)
+                    {
+                    haskey = true;
+                    }
+
+                    if (haskey != undefined)
+                    component.option("value", haskey ? keys[0] : null);
+
+                    if(typeof keys !== 'undefined' && keys.length > 0){
+                    //$('#form').dxForm('instance').updateData('VIEWPARTNUMBER', keys[0]);
+                    //$('#form').dxForm('instance').updateData('BOXPERQUANTITY', selectedItems.selectedRowsData[0].BOXPERQUANTITY);
+                    component.close();
+                    }
+                    }
+                </text>)
+    )
+}
+<script>
+
+    function grdLotList_OnLoaded(e) {
+        if (e.length > 0) {
+            window.setTimeout(function () {
+                var keys = getNodeKeys($('#grdLotList').dxTreeList('instance').getRootNode());
+                $('#grdLotList').dxTreeList('instance').beginUpdate();
+                keys.forEach(function (key) {
+                    $('#grdLotList').dxTreeList('instance').expandRow(key);
+                });
+                $('#grdLotList').dxTreeList('instance').endUpdate();
+            }, 10);
+        }
+    }
+
+    var getNodeKeys = function(node) {
+        var keys = [];
+        keys.push(node.key);
+        node.children.forEach(function(item) {              
+            keys = keys.concat(getNodeKeys(item));
+        });            
+        return keys;
+    }
+
+    function form_PRODUCTTYPE_OnValueChanged(e) {
+        var partNumberEditor = $('#form').dxForm('instance').getEditor('PARTNUMBER');
+        var lotNoEditor = $('#form').dxForm('instance').getEditor('LOTNUMBER');
+        partNumberEditor.reset();
+        lotNoEditor.reset();
+
+        if ($('#embedded-part-datagrid').dxDataGrid('instance') != undefined) {
+            $('#embedded-part-datagrid').dxDataGrid('instance').refresh();
+        }
+    }
+
+    function form_Search_onClick(e) {
+        if ($('#form').dxForm('instance').getEditor('PARTNUMBER').option('value') == null) {
+            DevExpress.ui.dialog.alert("품번을 선택해 주세요.", "warning");
+            $("#grdLotList").dxTreeList("instance").refresh();
+            return;
+        }
+
+        $("#grdLotList").dxTreeList("instance").refresh();
+    }
+
+    var priorities = [
+        {
+            "CODE": "P",
+            "NAME": "제품"
+        }, {
+            "CODE": "M",
+            "NAME": "자재"
+        }
+    ];
+
+    function grdLotList_OnBeforeSend (method, ajaxOptions) {
+        if (method == "load") {
+            var form = $('#form').dxForm('instance');
+            var type = form.option('formData.PRODUCTTYPE');
+            var part = form.option('formData.PARTNUMBER');
+            var lot = form.option('formData.LOTNUMBER');
+            if (type != undefined && part != undefined) {
+                ajaxOptions.data.Lotno = lot == null ? "" : lot;
+                ajaxOptions.data.Partnumber = part;
+                ajaxOptions.data.Type = type;
+            } else {
+                ajaxOptions.data.Lotno = "";
+                ajaxOptions.data.Partnumber = "";
+                ajaxOptions.data.Type = "";
+            }
+        }
+    }
+
+</script>
+
+
+@Html.Partial("_DropdownPartial")

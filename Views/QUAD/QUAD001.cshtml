@@ -1,0 +1,194 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAD;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="options">
+                <div class="option">
+                    <span>@LabelText.SELECT @LabelText.DATE</span>
+                    @(Html.DevExtreme().DateBox()
+                        .ID("searchFrom")
+                        .Type(DateBoxType.Date)
+                        .DisplayFormat(Format.ShortDate)
+                        .OnValueChanged("searchFrom_OnValueChanged")
+                        .Value(new JS("(new Date()).addDays(-7)"))
+                    )
+                    @(Html.DevExtreme().DateBox()
+                        .ID("searchTo")
+                        .Type(DateBoxType.Date)
+                        .DisplayFormat(Format.ShortDate)
+                        .OnValueChanged("searchTo_OnValueChanged")
+                        .Value(new JS("new Date()"))
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xl-4 col-lg-12">
+            @(Html.DevExtreme().PieChart()
+            .ID("pie")
+            .InnerRadius(0.2)
+            .AdaptiveLayout(l => l.KeepLabels(true))
+            .ResolveLabelOverlapping(PieChartResolveLabelOverlapping.Shift)
+            .Palette(VizPalette.Material)
+                  
+            .Series(s => s
+                .Add()
+                .ArgumentField("DEFECTNAME")
+                .ValueField("DEFECTRATIO")
+                .Label(l => l
+                    .Visible(true)
+                    .Format(f => f.Type(Format.Percent).Precision(0))
+                    .Connector(c => c
+                        .Visible(true)
+                        .Width(1)
+                    ).CustomizeText(@<text>
+                        function(arg) {
+                            console.log(arg);
+                            return arg.argumentText + '<br />'+ " (" + arg.percentText + ")";
+                        } </text>)
+                )
+            )
+            .Title(LabelText.DEFECT + " TOP 5")
+            .Legend(l=>l.Orientation(Orientation.Horizontal)
+                        .ItemTextPosition(Position.Top)
+                        .ItemsAlignment(HorizontalAlignment.Center)
+                        .VerticalAlignment(VerticalEdge.Top)
+                        .HorizontalAlignment(HorizontalAlignment.Center))
+
+            .DataSource(d => d.WebApi().Controller("QUAD001WebApi")
+                                        .LoadAction("getDefectTop5")
+                                        .Key("DEFECTCODE")
+                                        .LoadParams(new {
+                                            searchFrom = new JS("function() { return Globalize.dateFormatter({date:'short'})($('#searchFrom').dxDateBox('instance').option('value')); }"),
+                                            searchTo = new JS("function() { return Globalize.dateFormatter({date:'short'})($('#searchTo').dxDateBox('instance').option('value')); }")
+                                        }))
+        )
+        </div>
+        <div class="col-xl-8 col-lg-12">
+            @(Html.DevExtreme().Chart()
+                .ID("chtDefectSum")
+                .Palette(VizPalette.DarkViolet)
+                .Title(LabelText.EACHDEFECTACCUMULATION)
+                .ArgumentAxis(a => a
+                    .Label(l => l
+                        .OverlappingBehavior(OverlappingBehavior.Stagger)
+                    )
+                )
+                .Tooltip(t => t
+                    .Enabled(true)
+                    .Shared(true)
+                    .Format(f=>f.Type(Format.FixedPoint).Precision(0))
+                )
+                .ValueAxis(a => {
+                    a.Add()
+                        .Name("quantity")
+                        .Position(Position.Left)
+                        //.TickInterval(300)
+                        .Label(l=>l.Format(f=>f.Type(Format.FixedPoint)))
+                        .ValueType(ChartDataType.Numeric)
+                        ;
+                    a.Add()
+                        .Name("percentage")
+                        .Position(Position.Right)
+                        .ShowZero(true)
+                        .ValueType(ChartDataType.Numeric)
+                        .Label(l => l
+                        .CustomizeText(
+                            @<text> 
+                                function(info) {
+                                    return info.valueText + "%";
+                                }
+                            </text>)
+                        )
+                        //.TickInterval(20)
+                        .ValueMarginsEnabled(false);
+                })
+                .CommonSeriesSettings(s => s
+                    .ArgumentField("DEFECTNAME")
+                )
+                .Series(s => {
+                    s.Add()
+                        .Type(SeriesType.Bar)
+                        .ValueField("DEFECTQUANTITY")
+                        .Axis("quantity")
+                        .Name(LabelText.DEFECT + LabelText.TYPE);
+
+                    s.Add()
+                        .Type(SeriesType.Bar)
+                        .ValueField("TOTALDEFECTQUANTITY")
+                        .Axis("quantity")
+                        .ShowInLegend(false)
+                        .Name("TOTALDEFECTQUANTITY")
+                        .Visible(false);
+
+                    s.Add()
+                        .Type(SeriesType.Spline)
+                        .ValueField("CUMULATIVEDEFECTRATIO")
+                        .Axis("percentage")
+                        .Name(LabelText.ACCUMULATION + " " + LabelText.DEFECT + " " + LabelText.RATIO);
+                })
+                .OnDone("chtDefectSum_OnDone")
+                .Legend(l => l
+                    .VerticalAlignment(VerticalEdge.Top)
+                    .HorizontalAlignment(HorizontalAlignment.Center)
+                )
+                .DataSource(d => d.WebApi().Controller("QUAD001WebApi")
+                                            .Key("DEFECTCODE")
+                                            .LoadParams(new {
+                                                searchFrom = new JS("function() { return Globalize.dateFormatter({date:'short'})($('#searchFrom').dxDateBox('instance').option('value')); }"),
+                                                searchTo = new JS("function() { return Globalize.dateFormatter({date:'short'})($('#searchTo').dxDateBox('instance').option('value')); }")
+                                            }))
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function chtDefectSum_OnDone(e) {
+        var cumulativeSeries = e.component.getSeriesByPos(2);
+
+        var cumulativePos = cumulativeSeries.getAllPoints();
+        var cumulativeSum = 0;
+        var cumulativeSumList = [];
+
+        for (var index = 0; cumulativePos.length > index; index++) {
+            var value = cumulativePos[index].data.DEFECTQUANTITY;
+            var total = cumulativePos[index].data.TOTALDEFECTQUANTITY;
+
+            cumulativeSum = cumulativeSum + value;;
+
+            var updateItem = new Object();
+            updateItem.type = "update";
+            updateItem.key = cumulativePos[index].data.DEFECTCODE;
+            var cumulativeData = new Object();
+            cumulativeData.CUMULATIVEDEFECTRATIO = (cumulativeSum * 100) / total;
+            updateItem.data = cumulativeData;
+            cumulativeSumList.push(updateItem);
+        }
+
+        var ds = $('#chtDefectSum').dxChart("getDataSource");
+        ds.store().push(cumulativeSumList);
+    }
+
+    function searchFrom_OnValueChanged(e) {
+        $('#pie').dxPieChart('instance').refresh();
+        $('#chtDefectSum').dxChart('instance').refresh();
+    }
+
+    function searchTo_OnValueChanged(e) {
+        $('#chtDefectSum').dxChart('instance').refresh();
+    }
+</script>

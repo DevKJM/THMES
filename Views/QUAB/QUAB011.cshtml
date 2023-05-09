@@ -1,0 +1,1509 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAB;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        <div class="col-lg-4 col-sm-12">
+            <div id="form-container">
+                <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @LabelText.IMPORTINSPECTINPUTINFORMATION</i></span></h4>
+                @using (Html.BeginForm())
+                {
+                    @(Html.DevExtreme().Form<QUAB011C_LIST>()
+                                            .ID("form")
+                                            .ColCount(2)
+                                            .OnEditorEnterKey("form_OnEditorEnterKey")
+                                            .Items(items =>
+                                            {
+                                            items.AddSimpleFor(m => m.VENDORCODE)
+                                                            .Editor(e => e
+                                                                .DropDownBox().ValueExpr("VENDORCODE")
+                                                                .DisplayExpr("VENDORNAME")
+                                                                .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("VENDOR_PURCHASE_LIST").Key("VENDORCODE"))
+                                                                .Placeholder("Select a value...")
+                                                                .ShowClearButton(true)
+                                                                .ContentTemplate(new TemplateName("EmbeddedVendorDataGridSingle"))
+                                                                .DropDownOptions(d=>d.Width("500"))
+                                                            ).ColSpan(2);
+
+                                                items.AddSimpleFor(m => m.VIEWPARTNUMBER).Editor(e => e.TextBox().Disabled(true)).ColSpan(1);
+
+                                            items.AddSimpleFor(m => m.PARTNUMBER)
+                                                        .Editor(e => e
+                                                            .DropDownBox()
+                                                            .ValueExpr("PARTCODE")
+                                                            .DisplayExpr("PARTNAME")
+                                                            .DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                                                                        .LoadAction("PART_LIST")
+                                                                                        .LoadParams(new
+                                                                                        {
+                                                                                                //PARTTYPE = new JS("function() { return $('#form').dxForm('instance').option('formData.PRODUCTTYPE'); }")
+                                                                                                PARTTYPE = "M"
+                                                                                        })
+                                                                                        .Key("PARTCODE")
+                                                                                        )
+                                                            .Placeholder("Select a value...")
+                                                            .ShowClearButton(true)
+                                                            .ContentTemplate(new TemplateName("EmbeddedPartDataGridSingle"))
+                                                            .OnValueChanged("PARTNUMBER_OnValueChanged")
+                                                            .DropDownOptions(d=>d.Width("500"))
+                                                        ).ColSpan(1);
+
+                                            items.AddSimpleFor(m => m.BOXPERQUANTITY)
+                                                    .Editor(e => e
+                                                        .NumberBox()
+                                                        .ShowSpinButtons(true)
+                                                        .ShowClearButton(true)
+                                                        .Min(1)
+                                                        .Format(f => f.Type(Format.FixedPoint).Precision(0))
+                                                    ).ColSpan(1).Label(T => T.Text(LabelText.BOXPERWEIGHT)).Visible(false);
+
+
+
+                                            items.AddSimple().ColSpan(2)
+                                                        .Template(@<text>
+                                                                @(Html.DevExtreme()
+                                                                            .DataGrid<QUAB011B_LIST>()
+                                                                            .ID("grdGradeLotInfo")
+                                                                            //.DataSource(d => d.WebApi().Controller("QUAB011WebApi").Key("ROWKEY").LoadAction("getGradeLotInfo"))
+                                                                            .DataSource(new QUAB011B_LIST[] { new QUAB011B_LIST() { SortOrder = 0, VENDORGRADE = "", VENDORLOTNUMBER = "", PALLETWEIGHT = 0, PALLETCOUNT = 0 } })
+                                                                            .Columns(columns =>
+                                                                            {
+                                                                                columns.AddFor(m => m.SortOrder).Visible(false).SortOrder(SortOrder.Desc);
+                                                                                columns.AddFor(m => m.VENDORGRADE).Caption("GRADE");
+                                                                                columns.AddFor(m => m.VENDORLOTNUMBER).Caption("업체LOT");
+                                                                                columns.AddFor(m => m.PALLETWEIGHT).Caption("파렛트당 중량(KG)").Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                                                                columns.AddFor(m => m.PALLETCOUNT).Caption("파렛트 수").Format(f => f.Type(Format.FixedPoint).Precision(0));
+
+                                                                            })
+
+                                                                            //.Summary(s => s
+                                                                            //    .RecalculateWhileEditing(true)
+                                                                            //    .TotalItems(a =>
+                                                                            //    {
+                                                                            //        a.AddFor(m => m.PALLETWEIGHT)
+                                                                            //            .SummaryType(SummaryType.Sum);
+
+                                                                            //        a.AddFor(m => m.PALLETCOUNT)
+                                                                            //            .SummaryType(SummaryType.Sum);
+                                                                            //    })
+                                                                            //    .CalculateCustomSummary("grdGradeLotInfo_CalculateCustomSummary")
+                                                                            //)
+                                                                            .OnEditorPreparing("grdGradeLotInfo_OnEditorPreparing")
+                                                                            .RepaintChangesOnly(true)
+                                                                            .Paging(p => p.PageSize(25).Enabled(true))
+                                                                            .OnToolbarPreparing("grdGradeLotInfo_OnToolbarPreparing")
+                                                                            .OnEditingStart("grdGradeLotInfo_OnEditingStart")
+                                                                            .OnInitNewRow("grdGradeLotInfo_OnInitNewRow")
+                                                                            .OnEditorPreparing("grdGradeLotInfo_OnEditorPreparing")
+                                                                            .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                                            .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                            .AllowColumnResizing(true)
+                                                                            .RowAlternationEnabled(true)
+                                                                            .NoDataText("")
+                                                                              .ShowRowLines(true)
+                                                                            .Editing(e =>
+                                                                            {
+                                                                                e.Mode(GridEditMode.Batch)
+                                                                                    .AllowUpdating(new JS("iudAuth()"))
+                                                                                    .AllowAdding(new JS("iudAuth()"));
+
+                                                                                e.UseIcons(true);
+                                                                            })
+                                                                            .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                                                                )
+                                                            </text>).Label(d => d.Text("파렛트 정보"));
+
+
+                                        items.AddSimpleFor(m => m.RECEIVINGQUANTITY)
+                                                .Editor(e => e
+                                                    .NumberBox()
+                                                    .ShowSpinButtons(true)
+                                                    .Min(1)
+                                                    .ReadOnly(true)
+                                                    .Format(f => f.Type(Format.FixedPoint).Precision(0))
+                                                ).ColSpan(1).Label(T => T.Text("총입고중량 (KG)")).Visible(true);
+
+                                        items.AddSimpleFor(m => m.TOTALPALLETQTY)
+                                                .Editor(e => e
+                                                    .NumberBox()
+                                                    .ShowSpinButtons(true)
+                                                    .Min(1)
+                                                    .Format(f => f.Type(Format.FixedPoint).Precision(0))
+                                                    .ReadOnly(true)
+                                                ).ColSpan(1).Label(T => T.Text("총파렛트수")).Visible(true);
+
+                                            
+                                            items.AddSimple().ColSpan(2)
+                                                    .Template(@<text>
+                                                            @(Html.DevExtreme()
+                                                                .DataGrid<QUAB011A_LIST>()
+                                                                .ID("grdINBOUNDINSPECTION")
+                                                                  .DataSource(d => d.WebApi().Controller("QUAB011WebApi").Key("INSPECTCODE").LoadAction("getInspectItem").OnBeforeSend("grdINBOUNDINSPECTION_OnBeforeSend"))
+                                                                .Columns(columns =>
+                                                                {
+                                                                    columns.AddFor(m => m.INSPECTCODE).AllowEditing(false).Visible(false);
+                                                                    columns.AddFor(m => m.DISPLAYSEQUENCE).AllowEditing(false).Visible(false).SortOrder(SortOrder.Asc);
+                                                                    columns.AddFor(m => m.USL).AllowEditing(false).Visible(false);
+                                                                    columns.AddFor(m => m.LSL).AllowEditing(false).Visible(false);
+                                                                    columns.AddFor(m => m.UCL).AllowEditing(false).Visible(false);
+                                                                    columns.AddFor(m => m.LCL).AllowEditing(false).Visible(false);
+                                                                    columns.AddFor(m => m.CSL).AllowEditing(false).Visible(false);
+                                                                    columns.AddFor(m => m.SPECCLASS).AllowEditing(false).Visible(false);
+                                                                    columns.AddFor(m => m.INSPECTUNIT).AllowEditing(false).Visible(false);
+                                                                    columns.AddFor(m => m.DATATYPE).AllowEditing(false).Visible(false);
+                                                                    columns.AddFor(m => m.INSPECTTYPE).AllowEditing(false).Visible(false);
+
+
+                                                                    columns.AddFor(m => m.INSPECTNAME).AllowEditing(false).Width("50%");
+                                                                    columns.AddFor(m => m.INSPECTIONRESULT).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).Width("30%");//.AllowSorting(false);
+                                                                columns.AddFor(m => m.INSPECTIONJUDGMENT).AllowEditing(false).Width("20%");
+
+                                                                })
+                                                                .RemoteOperations(true)
+                                                                .Paging(p => p.PageSize(25).Enabled(true))
+                                                                  //.OnCellClick("grdINBOUNDINSPECTION_OnCellClick")
+                                                                  .OnCellPrepared("grdINBOUNDINSPECTION_OnCellPrepared")
+                                                                .OnToolbarPreparing("grdINBOUNDINSPECTION_OnToolbarPreparing")
+                                                                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                .AllowColumnResizing(true)
+                                                                .RowAlternationEnabled(true)
+                                                                .NoDataText("")
+                                                                  .ShowRowLines(true)
+                                                                .Editing(e =>
+                                                                {
+                                                                    e.Mode(GridEditMode.Batch)
+                                                                    .AllowUpdating(new JS("iudAuth()"))
+                                                                    .AllowAdding(new JS("iudAuth()"));
+
+                                                                    e.UseIcons(true);
+                                                                })
+                                                                .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true)).ElementAttr("class", "dx-dxdatagrid-no-highlight-outline")
+                                                            )
+                                                        </text>).Label(d => d.Text(LabelText.INSPECTLIST));
+
+                                                items.AddSimpleFor(m => m.INSPECTIONRESULT)
+                                                        .Editor(e => e
+                                                            .RadioGroup()
+                                                            .Layout(Orientation.Horizontal)
+                                                            .DisplayExpr("SYSCODENAME")
+                                                            .ValueExpr("SYSCODE")
+                                                            .DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                .LoadAction("INSPECTIONRESULT_INPUT_LIST")
+                                                                .Key("SYSCODE"))
+                                                            .Value("OK")
+                                                        ).ColSpan(2);
+
+                                                items.AddSimpleFor(m => m.MEMO)
+                                                        .Editor(e => e
+                                                            .TextArea()
+                                                                .StylingMode(EditorStylingMode.Filled)
+                                                                .Height(60)
+                                                        ).ColSpan(2);
+
+                                                items.AddEmpty().ColSpan(1);
+
+
+                                                items.AddSimple().ColSpan(1)
+                                                        .Template(@<text>
+                                                            @(Html.DevExtreme()
+                                                                  .DropDownButton()
+                                                                  .ID("dropFileUpload")
+                                                                  .DataSource(d => d.WebApi().Controller("COMA004WebApi")
+                                                                      .LoadAction("getFileList")
+                                                                      .Key("FILEID")
+                                                                      .OnBeforeSend("dropFileUpload_OnBeforeSend")
+                                                                )
+                                                                  .Width("100%")
+                                                                  .UseSelectMode(false)
+                                                                  .SplitButton(true)
+                                                                  .Text("첨부파일 (0)")
+                                                                  .ShowArrowIcon(false)
+                                                                  .Icon("fa fa-paperclip")
+                                                                  .Disabled(new JS("!iudAuth()"))
+                                                                  .OnButtonClick("dropFileUpload_OnButtonClick")
+                                                            )
+
+                                                        </text>);
+
+                                                items.AddButton()
+                                                    .HorizontalAlignment(HorizontalAlignment.Left)
+                                                    .ButtonOptions(b => b.Text(LabelText.INSERTION)
+                                                        .OnClick("form_save_onClick")
+                                                        .Type(ButtonType.Success)
+                                                        .Icon("check")
+                                                        .Width("100%")
+                                                        .Disabled(new JS("!iudAuth()"))
+                                                );
+
+                                                items.AddButton()
+                                                    .HorizontalAlignment(HorizontalAlignment.Left)
+                                                    .ButtonOptions(b => b.Text(LabelText.REMOVE)
+                                                        .Icon("refresh")
+                                                        .OnClick("form_cancel_onClick")
+                                                        .Type(ButtonType.Normal)
+                                                        .Width("100%")
+                                                        .Disabled(new JS("!iudAuth()"))
+                                                );
+                                            })
+                                                //.FormData(Model)
+                    )
+                }
+            </div>
+        </div>
+        <div class="col-lg-8 col-sm-12">
+            <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @LabelText.TODAYIMPORTINSPECTLIST</i></span></h4>
+            @(Html.DevExtreme().DataGrid<QUAB011E_LIST>()
+                                       .ID("grdTodayInbondList")
+                                       .DataSource(d => d.WebApi().Controller("QUAB011WebApi").Key("INSPECTIONSEQUENCE"))
+                                       .FilterRow(f => f.Visible(true))
+                                       .ShowRowLines(true)
+                                       .Columns(columns =>
+                                       {
+                                           columns.AddFor(m => m.INSPECTIONSEQUENCE).SortOrder(SortOrder.Desc).Visible(false);
+                                           columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.LongDate));
+                                           columns.AddFor(m => m.CANCELYN)
+                                               .Lookup(l => l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                              .LoadAction("CANCEL_LIST")
+                                                              .Key("SYSCODE"))
+                                                               .DisplayExpr("SYSCODENAME")
+                                                               .ValueExpr("SYSCODE")
+                                                                               );
+                                           columns.AddFor(m => m.INSPECTIONRESULT).Lookup(l => l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                                                                          .LoadAction("INSPECTIONRESULT_LIST")
+                                                                                                                          .Key("SYSCODE"))
+                                                                                       .DisplayExpr("SYSCODENAME")
+                                                                                       .ValueExpr("SYSCODE")
+                                                                               );
+
+                                           columns.AddFor(m => m.VENDORCODE).Lookup(l => l.DataSource(d => d.WebApi().Controller("MSTI001WebApi").Key("VENDORCODE"))
+                                                                                       .DisplayExpr("VENDORNAME")
+                                                                                       .ValueExpr("VENDORCODE")
+                                                                               );
+                                           columns.AddFor(m => m.PRODUCTTYPE).Lookup(l => l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                      .LoadAction("INSPECTION_PRODUCTTYPE_LIST")
+                                                      .Key("SYSCODE"))
+                                                   .DisplayExpr("SYSCODENAME")
+                                                   .ValueExpr("SYSCODE"));
+                                           columns.AddFor(m => m.PARTNUMBER);
+                                           columns.AddFor(m => m.PRODUCTNAME).Lookup(l => l.DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                                      .LoadAction("PART_LIST")
+                                                      .LoadParams(new
+                                                      {
+                                                          PARTTYPE = new JS("function() { return '' }")
+                                                      })
+                                                      .Key("PARTCODE"))
+                                                   .DisplayExpr("PARTNAME")
+                                                   .ValueExpr("PARTCODE")
+                                                                               );
+                                           columns.AddFor(m => m.PALLETWEIGHT).Format(f => f.Type(Format.FixedPoint).Precision(0)).Caption("총입고중량 (KG)");
+                                           columns.AddFor(m => m.PALLETCOUNT).Format(f => f.Type(Format.FixedPoint).Precision(0)).Caption("총파렛트 수");
+
+                                           columns.AddFor(m => m.MEMO);
+                                           columns.AddFor(m => m.CREATEUSER);
+                                       })
+                                       .ColumnHidingEnabled(false)
+                                       .ColumnAutoWidth(true)
+                                       .SearchPanel(c => c.Visible(true))
+                                       .RemoteOperations(true)
+                                       .Paging(p => p.PageSize(25).Enabled(true))
+                                       .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                       .AllowColumnResizing(true)
+                                       .RowAlternationEnabled(true)
+                                       .OnToolbarPreparing("grdTodayInbondList_OnToolbarPreparing")
+                                       .OnInitialized("grdTodayInbondList_OnInitialized")
+                                       .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                                      //.Selection(s => s.SelectAllMode(SelectAllMode.AllPages)
+                                      //                .ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick)
+                                      //                .Mode(SelectionMode.Multiple))
+
+                                      .Selection(s => s.SelectAllMode(SelectAllMode.AllPages)
+                                                      .ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick)
+                                                      .Mode(SelectionMode.Single))
+                                       .Option("CANCEL_FIELD", new string[] { "CANCELYN" })
+                                      .MasterDetail(m => m
+                                          .Enabled(true)
+                                          .Template(new TemplateName("tempGrdInbondDetail"))
+                                      )
+            )
+        </div>
+    </div>
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPartDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<COMA001A_LIST>()
+                        .ID("embedded-part-datagrid")
+                        .DataSource(new JS(@"component.option(""dataSource"")"))
+                        .Columns(columns =>
+                        {
+                            columns.AddFor(m => m.PARTCODE);
+                            columns.AddFor(m => m.PARTNAME);
+                            columns.AddFor(m => m.BOXPERQUANTITY).Caption(LabelText.WEIGHT);
+                        })
+                        .ColumnAutoWidth(true)
+                        .HoverStateEnabled(true)
+                        .Paging(p => p.PageSize(10))
+                        .FilterRow(f => f.Visible(true))
+                        .Height(345)
+                        .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Infinite))
+                        .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                        .OnSelectionChanged(@<text>
+                            function(selectedItems) {
+                            var haskey;
+                            var keys = selectedItems.selectedRowKeys;
+                            console.log(selectedItems);
+
+                            if(typeof keys !== undefined && keys.length > 0)
+                            {
+                            haskey = true;
+                            }
+
+                            if (haskey != undefined)
+                            component.option("value", haskey ? keys[0] : null);
+
+                            if(typeof keys !== 'undefined' && keys.length > 0){
+                            $('#form').dxForm('instance').updateData('VIEWPARTNUMBER', keys[0]);
+                            $('#form').dxForm('instance').updateData('BOXPERQUANTITY', selectedItems.selectedRowsData[0].BOXPERQUANTITY);
+                            component.close();
+                            }
+                            }
+                        </text>)
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedVendorDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<VendorMaster>()
+                        .ID("embedded-vendor-datagrid")
+                        .DataSource(new JS(@"component.option(""dataSource"")"))
+                        .Columns(columns =>
+                        {
+                            columns.AddFor(m => m.VENDORNAME);
+                            columns.AddFor(m => m.TELEPHONE);
+                            columns.AddFor(m => m.ADDRESS);
+                        })
+                        .ColumnAutoWidth(true)
+                        .HoverStateEnabled(true)
+                        .Paging(p => p.PageSize(10))
+                        .FilterRow(f => f.Visible(true))
+                        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                        .Height(345)
+                        .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                        .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                        .OnSelectionChanged(@<text>
+                            function(selectedItems) {
+                            var keys = selectedItems.selectedRowKeys;
+                            var haskey;
+                            if(typeof keys != 'undefined' && keys.length > 0)
+                            {
+                            haskey = true;
+                            }
+
+                            if (haskey != undefined)
+                            component.option("value", haskey ? keys[0] : null);
+                            if(typeof keys != 'undefined' && keys.length > 0){
+                            component.close();
+                            }
+                            }
+                        </text>)
+    )
+}
+
+@*첨부 팝업 _ FORM*@
+@(Html.DevExtreme().Popup()
+                              .ID("ATTACHMENTS_POPUP")
+                              .ElementAttr("class", "popup")
+                              .ShowTitle(true)
+                              .DragEnabled(true)
+                              .ContentTemplate(new TemplateName("EmbeddedUploader"))
+                              .FullScreen(false)
+                              .Animation(a => a.Show(s => s.Direction(Direction.Top).Type(AnimationType.SlideIn)))
+                              .ShowCloseButton(true)
+                              .Width(1000)
+                              .Height(600)
+                              .Title("첨부파일 업로드")
+                  .OnHidden("ATTACHMENTS_POPUP_OnHidden")
+              .OnShowing("ATTACHMENTS_POPUP_OnShowing")
+)
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedUploader"))
+{
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-primary" role="alert"> <i class="fa fa-exclamation-triangle"></i> 최대 업로드 허용 크기는 5Mb 입니다. 파일 확장자에 따라 업로드가 불가능 할 수 있습니다.</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div id="fileuploadWarningMessage" class="alert alert-danger" role="alert"> <i class="fa fa-exclamation-triangle"></i> 업로드 파일에 문제가 있습니다. 목록에서 확인하세요.</div>
+                @(Html.DevExtreme().ScrollView()
+                                                                      .ID("uploaderScrollView")
+                                                                      .ScrollByContent(true)
+                                                                      .ScrollByThumb(true)
+                                                                      .Height(400)
+                                                                      .Content(@<text>
+                                                                        @(Html.DevExtreme().FileUploader().ID("fileUploader")
+                                                                                                                              .Name("attachmentFile")
+                                                                                                                              .ID("attachmentFileUploader")
+                                                                                                                              .Multiple(true)
+                                                                                                                              .Accept("*")
+                                                                                                                              .UploadButtonText("업로드")
+                                                                                                                              .UploadMode(FileUploadMode.Instantly)
+                                                                                        .UploadUrl(Url.Action("UploadFiles", "Attachment"))
+                                                                                        .OnValueChanged("attachmentFileUploader_OnValueChanged")
+                                                                                        .OnUploadError("attachmentFileUploader_OnUploadError")
+                                                                                        .OnUploaded("attachmentFileUploader_OnUploaded")
+                                                                        )
+                                                                    </text>))
+
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            @(Html.DevExtreme().Button()
+                                                                                  .ID("uploadFileListClear")
+                                                                                  .Width("100%")
+                                                                                  .Text("목록 지우기")
+                                                                                  .OnClick("function(e) { $('#attachmentFileUploader').dxFileUploader('instance').reset(); $('#uploadFileListAccept').dxButton('instance').option('disabled', true); }").Visible(false))
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-8">
+                @(Html.DevExtreme().DataGrid<AttachmentFiles>()
+                                                                      .ID("grdFileList")
+                                                                      .ShowBorders(true)
+                                                                      .Height(480)
+                                                                      .ColumnAutoWidth(true)
+                                                                      .ShowRowLines(true)
+                                                                      .RowAlternationEnabled(true)
+                                                                      .AllowColumnResizing(true)
+                                                                      .Selection(s => s.Mode(SelectionMode.Multiple))
+                                                                      .OnToolbarPreparing("grdFileList_OnToolbarPreparing")
+                                                                      .DataSource(d => d.WebApi()
+                                                                          .Controller("COMA004WebApi")
+                                                                          .LoadAction("getFileList")
+                                                                          .OnBeforeSend("grdFileList_OnBeforeSend")
+                                                                          .Key("FILEID")
+                                                                      )
+                                                                      .Columns(columns =>
+                                                                      {
+                                                                          columns.AddFor(m => m.FILENAME).CellTemplate(new JS("grdFileList_FILENAME_CellTemplate")).SortOrder(SortOrder.Asc).AllowEditing(false);
+                                                                          columns.AddFor(m => m.FILEEXTENSION).CellTemplate(new JS("grdFileList_FILEEXTENSION_CellTemplate")).Width(30).AllowEditing(false).Visible(false);
+                                                                          columns.AddFor(m => m.FILESIZE).Format(f => f.Type(Format.FixedPoint).Precision(0)).AllowEditing(false).Visible(false);
+                                                                          columns.AddFor(m => m.MEMO);
+                                                                          columns.AddFor(m => m.CREATEDATE).AllowEditing(false).Visible(false);
+                                                                          columns.AddFor(m => m.CREATEUSER).AllowEditing(false).Visible(false);
+                                                                      })
+                                                                      //.OnCellPrepared("grdFileList_OnCellPrepared")
+                                                                      //.OnInitialized("function(e){userCustomGrid(e);}")
+                                                                      .MasterDetail(md =>
+                                                                      {
+                                                                          md.Enabled(true);
+                                                                          md.Template(@<text>
+                                                                            @(Html.DevExtreme().DataGrid<AttachmentFiles>()
+                                                                                                                                  .ColumnAutoWidth(true)
+                                                                                                                                  .ShowBorders(true)
+                                                                                                                                  .Columns(columns =>
+                                                                                                                                  {
+                                                                                                                                    columns.AddFor(m => m.FILENAME).CellTemplate(new JS("grdFileList_OnCellPrepared_FILENAME_CellTemplate")).AllowEditing(false);
+                                                                                                                                    columns.AddFor(m => m.REVISIONNO).SortOrder(SortOrder.Desc).AllowEditing(false);
+                                                                                                                                    columns.AddFor(m => m.FILEEXTENSION).CellTemplate(new JS("grdFileList_detail_FILEEXTENSION_CellTemplate")).AllowEditing(false);
+                                                                                                                                    columns.AddFor(m => m.FILESIZE).CalculateCellValue("function(rowData) { return rowData.FILESIZE; }").Format(f => f.Type(Format.FixedPoint).Precision(0)).AllowEditing(false);
+                                                                                                                                    columns.AddFor(m => m.MEMO);
+                                                                                                                                    columns.AddFor(m => m.CREATEDATE).AllowEditing(false).Format(f => f.Type(Format.ShortDateShortTime));
+                                                                                                                                    columns.AddFor(m => m.CREATEUSER).AllowEditing(false);
+                                                                                                                                })
+                                                                                                                                  .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
+                                                                                                                                  .DataSource(d => d.WebApi()
+                                                                                                                                      .Controller("COMA004WebApi")
+                                                                                                                                      .LoadAction("getFileRevisionList")
+                                                                                                                                      .Key("FILEID")
+                                                                                                                                      .LoadParams(new { fileId = new JS("data.FILEID") })
+                                                                                                                                  )
+                                                                                                                                  .OnInitialized("function(e){userCustomGrid(e);}")
+                                                                            )
+                                                                        </text>);
+                                                                    })
+                                                          .Editing(e => e.AllowDeleting(true).AllowUpdating(true).Mode(GridEditMode.Batch))
+                )
+            </div>
+        </div>
+    </div>
+}
+
+@*수입검사 목록 하위 그리드*@
+@using (Html.DevExtreme().NamedTemplate("tempGrdInbondDetail"))
+{
+    @(Html.DevExtreme().DataGrid<QUAB001G_LIST>()
+                                  .ID(new JS("'grdInbondDetail-' + data.INSPECTIONSEQUENCE"))
+                                  .ElementAttr("class", "detail-grid")
+                                  .ShowBorders(true)
+                                  .AllowColumnResizing(false)
+                                  .ColumnAutoWidth(false)
+                                  .FilterPanel(f => f.Visible(false))
+                                  .RowAlternationEnabled(true)
+                                  .DataSource(d => d.WebApi()
+                                      .Controller("QUAB011WebApi")
+                                      .LoadAction("getInspectDetail")
+                                      .LoadParams(new
+                                      {
+                                          INSPECTIONSEQUENCE = new JS("function() { return data.INSPECTIONSEQUENCE; }")
+                                      })
+                                  )
+                                  .Paging(p => p.PageSize(10))
+                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                  .Columns(columns =>
+                                  {
+                                      columns.AddFor(m => m.INSPECTIONSEQUENCE).Visible(false);
+                                      columns.AddFor(m => m.VENDORGRADE).Caption("GRADE");
+                                      columns.AddFor(m => m.VENDORLOTNUMBER).Caption("업체LOT");
+                                      columns.AddFor(m => m.PALLETWEIGHT).Caption("파렛트당 중량(KG)").Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                      columns.AddFor(m => m.PALLETCOUNT).Caption("파렛트 수").Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                  })
+                                  .Selection(s => s.Mode(SelectionMode.Single))
+                                    .OnInitialized("grdInbondDetail_OnInitialized")
+    )
+}
+
+@(Html.DevExtreme().LoadPanel()
+      .ID("loadPanel")
+      .ShadingColor("rgba(0,0,0,0.4)")
+      .Message("잠시만 기다려 주세요.")
+      .Visible(false)
+      .ShowIndicator(true)
+      .ShowPane(true)
+      .Shading(true)
+      .CloseOnOutsideClick(false)
+      )
+
+<script>
+
+    var FileGUID = new DevExpress.data.Guid();
+
+    function grdTodayInbondList_OnInitialized(e) {
+        userCustomGrid(e);
+
+    }
+
+    function grdInbondDetail_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function form_OnEditorEnterKey (e) {
+        var inputFrom = e.component;
+
+        var currentFied = e.dataField;
+        var formItemList = inputFrom.option('items');
+        var findItem = false;
+
+        for (itemIndex = 0; formItemList.length > itemIndex; itemIndex++) {
+            if (findItem) {
+                inputFrom.getEditor(formItemList[itemIndex].dataField).focus();
+                inputFrom.getEditor(formItemList[itemIndex].dataField).element().find('input').select();
+                break;
+            }
+
+            if (formItemList[itemIndex].dataField == currentFied) {
+                findItem = true;
+            }
+        }
+    }
+
+    function form_PRODUCTTYPE_OnValueChanged(e) {
+        var partNumberEditor = $('#form').dxForm('instance').getEditor('PARTNUMBER');
+        partNumberEditor.reset();
+        if ($('#embedded-part-datagrid').dxDataGrid('instance') != undefined) {
+            $('#embedded-part-datagrid').dxDataGrid('instance').refresh();
+        }
+
+
+    }
+
+    function grdTodayInbondList_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    icon: "fa fa-reply",
+                    stylingMode: "outlined",
+                    text: "@LabelText.INBONDINSPECTCANCEL",
+                    disabled: !iudAuth(),
+                    type: "danger",
+                    onClick: function() {
+                        var grid = $("#grdTodayInbondList").dxDataGrid('instance');
+
+                        if (grid.getSelectedRowKeys().length > 0) {
+                            var rowData = grid.getSelectedRowsData();
+                            if (rowData.length > 0) {
+                                var result = DevExpress.ui.dialog.confirm("@LabelText.QUESTIONINBONDINSPECTCANCEL",
+                                    "@LabelText.PROCESS_ACCEPT");
+
+                                result.done(function(dialogResult) {
+                                    if (!dialogResult) {
+                                        grid.refresh();
+                                        return;
+                                    } else {
+                                        var aJsonArray = new Array();
+
+                                        grid.getSelectedRowsData().forEach(function(e) {
+                                            var aJson = new Object();
+                                            aJson.INSPECTIONSEQUENCE = e.INSPECTIONSEQUENCE;
+                                            aJson.CANCELYN = e.CANCELYN;
+                                            aJson.INSPECTDATE = e.INSPECTDATE;
+                                            aJson.VENDORCODE = e.VENDORCODE;
+                                            aJson.PRODUCTTYPE = e.PRODUCTTYPE;
+                                            //aJson.PRODUCTTYPE = "M";
+                                            aJson.PARTNUMBER = e.PARTNUMBER;
+                                            aJson.RECEIVINGDATE = e.RECEIVINGDATE;
+                                            aJson.INSPECTIONRESULT = e.INSPECTIONRESULT;
+                                            aJson.BOXPERQUANTITY = e.BOXPERQUANTITY;
+                                            aJson.MEM = e.MEM;
+                                            aJson.RECEIVINGQUANTITY = e.RECEIVINGQUANTITY;
+                                            aJsonArray.push(aJson);
+                                        });
+
+                                        var data = new Object();
+                                        data.values = JSON.stringify(aJsonArray);
+
+                                        $.ajax({
+                                            url:
+                                                '@Url.Action("InspectionCancel", "QUAB011WebApi", new { httproute = "DefaultApi", })',
+                                            type: 'POST',
+                                            data: data,
+                                            success: function() {
+                                                grid.refresh();
+                                                DevExpress.ui.notify('@LabelText.ANSWERCANCEL',
+                                                    'success',
+                                                    globalNotificationSuccessTime);
+                                            },
+
+                                            error: function(e) {
+                                                grid.refresh();
+                                                showError(this, e);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        } else {
+                            DevExpress.ui.notify('@LabelText.ANSWERNOTSELECTEDINBONDINSP',
+                                'error',
+                                globalNotificationErrorTime);
+                        }
+                    }
+                }
+            });
+    }
+
+    function form_save_onClick(e) {
+        var form = $('#form').dxForm('instance');
+        //var result = form.validate();
+
+
+        if ($('#form').dxForm('instance').getEditor("VENDORCODE").option('value') == null || $('#form').dxForm('instance').getEditor("VENDORCODE").option('value') == "") {
+            DevExpress.ui.dialog.alert("업체를 선택해 주세요.", "warning");
+            return;
+        }
+
+        if ($('#form').dxForm('instance').getEditor("PARTNUMBER").option('value') == null || $('#form').dxForm('instance').getEditor("PARTNUMBER").option('value') == "") {
+            DevExpress.ui.dialog.alert("품번를 선택해 주세요.", "warning");
+            return;
+        }
+
+        for (var i = 0; i < $('#grdINBOUNDINSPECTION').dxDataGrid('instance').totalCount(); i++) {
+            if ($('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTIONJUDGMENT') == null || $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTIONJUDGMENT') == "") {
+                DevExpress.ui.dialog.alert("수입검사를 모두 처리하세요.", "warning");
+                return;
+            }
+        }
+
+        $("#grdGradeLotInfo").dxDataGrid('instance').saveEditData();
+
+        var grdGradeLotInfoRowCount = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array.length;
+        if (grdGradeLotInfoRowCount <= 0) {
+            DevExpress.ui.dialog.alert("입고정보를 입력해 주세요.", "warning");
+            return;
+        }
+
+        for (var i = 0; i < grdGradeLotInfoRowCount; i++) {
+
+            var PALLETWEIGHT = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array[i].PALLETWEIGHT;
+            var PALLETCOUNT = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array[i].PALLETCOUNT;
+            var VENDORGRADE = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array[i].VENDORGRADE;
+            var VENDORLOTNUMBER = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array[i].VENDORLOTNUMBER;
+
+            if (PALLETWEIGHT == null || PALLETWEIGHT == 0) {
+                DevExpress.ui.dialog.alert("파렛트당 중량은 0일 수 없습니다.", "warning");
+                return
+            }
+
+            if (PALLETCOUNT == null || PALLETCOUNT == 0) {
+                DevExpress.ui.dialog.alert("파렛트 수는 0일 수 없습니다.", "warning");
+                return
+            }
+
+            if (VENDORGRADE == null || VENDORGRADE == "") {
+                DevExpress.ui.dialog.alert("GRADE는 반드시 입력해야 됩니다.", "warning");
+                return
+            }
+
+            if (VENDORLOTNUMBER == null || VENDORLOTNUMBER == "") {
+                DevExpress.ui.dialog.alert("업체LOT는 반드시 입력해야 됩니다.", "warning");
+                return
+            }
+        }
+
+        $("#loadPanel").dxLoadPanel("instance").show();
+
+        var aJsonInspectionArray = new Array();
+        for (var i = 0; i < $('#grdINBOUNDINSPECTION').dxDataGrid('instance').totalCount(); i++) {
+            var aJson = new Object();
+            aJson.INSPECTCODE = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTCODE');
+            aJson.INSPECTNAME = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTNAME');
+            aJson.INSPECTIONRESULT = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTIONRESULT');
+            aJson.INSPECTIONJUDGMENT = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTIONJUDGMENT');
+
+            aJson.USL = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'USL');
+            aJson.LSL = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'LSL');
+            aJson.UCL = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'UCL');
+            aJson.LCL = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'LCL');
+            aJson.CSL = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'CSL');
+            aJson.SPECCLASS = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'SPECCLASS');
+            aJson.INSPECTUNIT = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTUNIT');
+            aJson.DATATYPE = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'DATATYPE');
+            aJson.INSPECTTYPE = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTTYPE');
+
+            aJsonInspectionArray.push(aJson);
+        }
+
+
+
+        var aJsonVendorLotGradeInfoArray = new Array();
+        for (var i = 0; i < $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array.length; i++) {
+            var aJson = new Object();
+            aJson.VENDORGRADE = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array[i].VENDORGRADE;
+            aJson.VENDORLOTNUMBER = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array[i].VENDORLOTNUMBER;
+            aJson.PALLETWEIGHT = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array[i].PALLETWEIGHT;
+            aJson.PALLETCOUNT = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array[i].PALLETCOUNT;
+
+            aJsonVendorLotGradeInfoArray.push(aJson);
+        }
+
+
+        var data = new Object();
+        var MaterialReceivingInfo = new Object();
+
+        MaterialReceivingInfo.VENDORCODE = $('#form').dxForm('instance').getEditor("VENDORCODE").option('value');
+        MaterialReceivingInfo.PRODUCTTYPE = "M";
+        MaterialReceivingInfo.PARTNUMBER = $('#form').dxForm('instance').getEditor("PARTNUMBER").option('value');
+        MaterialReceivingInfo.RECEIVINGDATE = new Date();
+        //MaterialReceivingInfo.BOXPERQUANTITY = $('#form').dxForm('instance').getEditor("BOXPERQUANTITY").option('value');
+        MaterialReceivingInfo.MEMO = $('#form').dxForm('instance').getEditor("MEMO").option('value');
+        //MaterialReceivingInfo.RECEIVINGQUANTITY = $('#form').dxForm('instance').getEditor("RECEIVINGQUANTITY").option('value');
+        MaterialReceivingInfo.CANCELYN = 'N';
+        //MaterialReceivingInfo.VENDORGRADE = $('#form').dxForm('instance').getEditor("VENDORGRADE").option('value');
+        //MaterialReceivingInfo.VENDORLOTNUMBER = $('#form').dxForm('instance').getEditor("VENDORLOTNUMBER").option('value');
+        MaterialReceivingInfo.INSPECTIONRESULT = $('#form').dxForm('instance').getEditor("INSPECTIONRESULT").option('value');
+        MaterialReceivingInfo.INBOUNDINSPECTIONREPORT = FileGUID._value;
+        MaterialReceivingInfo.InboundInspectionList = aJsonInspectionArray;
+        MaterialReceivingInfo.VendorLotGradeInfoList = aJsonVendorLotGradeInfoArray;
+        data.values = JSON.stringify(MaterialReceivingInfo);
+
+        $.ajax({
+            url: '@Url.Action("post", "QUAB011WebApi", new { httproute = "DefaultApi", })',
+            type: 'POST',
+            data: data,
+            success: function () {
+                $('#grdTodayInbondList').dxDataGrid('instance').refresh();
+                clearform();
+                DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+                $("#loadPanel").dxLoadPanel("instance").hide();
+            },
+            error: function (e) {
+                $("#loadPanel").dxLoadPanel("instance").hide();
+                showError(this, e);
+            }
+        });
+
+        $("#loadPanel").dxLoadPanel("instance").hide();
+
+
+        @*if (result.isValid == true) {
+            var data = {};
+            data.values = JSON.stringify(form.option('formData'));
+
+            //var data = {};
+            //var data2 = JSON.stringify(form.option('formData'));
+            //data2.INSPLIST = '';
+
+            //var aJsonInspectionArray = new Array();
+            //for (var i = 0; i < $('#grdINBOUNDINSPECTION').dxDataGrid('instance').totalCount(); i++) {
+            //    var aJson = new Object();
+            //    aJson.INSPECTCODE = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTCODE');
+            //    aJson.INSPECTNAME = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTNAME');
+            //    aJson.INSPECTIONRESULT = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTIONRESULT');
+            //    aJson.INSPECTIONJUDGMENT = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTIONJUDGMENT');
+            //    aJsonInspectionArray.push(aJson);
+            //}
+            //data2.InboundInspectionList = aJsonInspectionArray;
+            //data2.values = JSON.stringify(MaterialReceivingInfo);
+
+            //var params = $.param({
+            //    form = JSON.stringify(form.option('formData'))
+            //});
+
+            data.
+
+            $.ajax({
+                url: '@Url.Action("post", "QUAB011WebApi", new { httproute = "DefaultApi", })',
+                type: 'POST',
+                data: data,
+                success: function () {
+                    $('#grdTodayInbondList').dxDataGrid('instance').refresh();
+                    clearform();
+                    DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+                },
+                error: function (e) {
+                    showError(this, e);
+                }
+            });
+        }*@
+    }
+
+    function form_cancel_onClick(e) {
+        clearform();
+    }
+
+    function clearform() {
+        var form = $('#form').dxForm('instance');
+
+        form.beginUpdate();
+
+        form.updateData('VENDORCODE', null);
+        //form.updateData('PRODUCTTYPE', 'M');
+        form.updateData('VIEWPARTNUMBER', '');
+        form.updateData('PARTNUMBER', null);
+        form.updateData('RECEIVINGQUANTITY', 0);
+        form.updateData('BOXPERQUANTITY', 0);
+        form.updateData('INSPECTIONRESULT', 'OK');
+        form.updateData('MEMO', null);
+
+        form.updateData('TOTALPALLETQTY', 0);
+
+        form.updateData('VENDORLOTNUMBER', '');
+        form.updateData('VENDORGRADE', '');
+
+        FileGUID = new DevExpress.data.Guid();
+        $('#dropFileUpload').dxDropDownButton('instance').option('text', '첨부파일 (0)');
+
+        $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cancelEditData();
+
+        var RowCount = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array.length;
+
+        for (var i = 0; i < RowCount; i++) {
+            $('#grdGradeLotInfo').dxDataGrid('instance').deleteRow(i);
+        }
+        $('#grdGradeLotInfo').dxDataGrid('instance').saveEditData();
+
+        //$('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource', []);
+
+        //$("#gridContainer").dxDataGrid({
+        //    dataSource: customers,
+        //    columns: [
+        //        { dataField: "SortOrder", dataType: "number" },
+        //        { dataField: "VENDORGRADE", dataType: "string" },
+        //        { dataField: "VENDORLOTNUMBER", dataType: "string" },
+        //        { dataField: "PALLETWEIGHT", dataType: "number" },
+        //        { dataField: "PALLETCOUNT", dataType: "number" }
+        //    ]
+        //});
+
+        //$('#grdGradeLotInfo').dxDataGrid('instance').saveEditData();
+
+
+        //$('#grdGradeLotInfo').dxDataGrid('instance').addRow();
+        //$('#grdGradeLotInfo').dxDataGrid('instance').cellValue(0, 'VENDORGRADE','');
+        //$('#grdGradeLotInfo').dxDataGrid('instance').cellValue(0, 'VENDORLOTNUMBER','');
+        //$('#grdGradeLotInfo').dxDataGrid('instance').cellValue(0, 'PALLETWEIGHT',0);
+        //$('#grdGradeLotInfo').dxDataGrid('instance').cellValue(0, 'PALLETCOUNT',0);
+        //$('#grdGradeLotInfo').dxDataGrid('instance').saveEditData();
+
+        if ($('#embedded-vendor-datagrid').dxDataGrid('instance') != undefined) {
+            $('#embedded-vendor-datagrid').dxDataGrid('instance').clearSelection();
+        }
+
+        if ($('#embedded-part-datagrid').dxDataGrid('instance') != undefined) {
+            $('#embedded-part-datagrid').dxDataGrid('instance').clearSelection();
+        }
+
+        var validate = form.validate();
+
+        if (validate.brokenRules.length > 0) {
+            validate.brokenRules.forEach(function (e) {
+                e.validator.reset();
+            });
+        }
+
+        form.endUpdate();
+    }
+
+
+
+
+
+
+    function grdEquipment_INBOUNDINSPECTIONREPORT_EditCellTemplate(container, options) {
+        $('<div />').dxDropDownButton({
+            icon: 'fa fa-paperclip',
+            stylingMode: "text",
+            width: '100%',
+            text: '첨부파일',
+            dataSource: DevExpress.data.AspNet.createStore({
+                key: "FILEID",
+                loadUrl: rootURL + "api/COMA004WebApi/getFileList",
+                loadParams: { folderId: options.data.EQUIPMENTPHOTO },
+                onBeforeSend: function (method, ajaxOptions) {
+                    ajaxOptions.xhrFields = { withCredentials: true };
+                }
+            }),
+            remoteOperations: true,
+            EQUIPMENTPHOTO: options.data.EQUIPMENTPHOTO,
+            splitButton: true,
+            dropDownOptions: {
+                width: 250
+            },
+            useSelectMode: false,
+            onButtonClick: function (e) {
+                var fileUploadGuid = this.option('EQUIPMENTPHOTO');
+
+                if (fileUploadGuid == null || fileUploadGuid == undefined) {
+                    DevExpress.ui.notify('업로드 정보가 없습니다. 관리자에게 문의하세요.', 'error', globalNotificationErrorTime);
+                } else {
+                    //$('#ATTACHMENTS_POPUP').dxPopup('instance').option('fileUploadGuid', new DevExpress.data.Guid());
+                    $('#ATTACHMENTS_POPUP').dxPopup('instance').show();
+                }
+            },
+            onItemClick: function (e) {
+                console.log(e);
+            },
+            displayExpr: "FILENAME",
+            keyExpr: "FILEID"
+        })
+            .appendTo(container);
+    }
+
+    function ATTACHMENTS_POPUP_OnHidden(e) {
+        if($('#folderGuid').dxTextBox('instance') != undefined)
+            $('#folderGuid').dxTextBox('instance').option('value', '');
+
+        var FileCount = getUploadFileInfo(FileGUID._value);
+
+        $('#dropFileUpload').dxDropDownButton('instance').option('text', '첨부파일 ' + '(' + FileCount + ')');
+    }
+
+    function ATTACHMENTS_POPUP_OnShowing(e) {
+
+        var data = new Object();
+        var fileUploadGuid = FileGUID._value;
+        $('#attachmentFileUploader').dxFileUploader('instance').option('fileUploadGuid', fileUploadGuid);
+        $('#grdFileList').dxDataGrid('instance').option('fileUploadGuid', fileUploadGuid);
+        data.ATTACHMENTFOLDERID = fileUploadGuid;
+        $('#uploaderScrollView').dxScrollView('instance').option('height', 455);
+
+        $.ajax({
+            url: '@Url.Action("setFolder", "COMA004WebApi", new { httproute = "DefaultApi" })',
+            type: 'POST',
+            data: data,
+            error: function(e) {
+                showError(this, e);
+            }
+        });
+
+        $('#attachmentFileUploader').dxFileUploader('instance').element().find(".dx-fileuploader-button.dx-button.dx-button-normal.dx-button-mode-contained.dx-widget.dx-button-has-text")
+            .on('click', function(e) {
+                $('#attachmentFileUploader').dxFileUploader('instance').reset();
+                $('#uploaderScrollView').dxScrollView('instance').option('height', 455);
+                $('#fileuploadWarningMessage').hide();
+            });
+
+        $('#fileuploadWarningMessage').hide();
+        $('#grdFileList').dxDataGrid('instance').refresh();
+        $('#attachmentFileUploader').dxFileUploader('instance').reset();
+
+
+    }
+
+    function attachmentFileUploader_OnValueChanged(e) {
+        var url = e.component.option("uploadUrl");
+        var fileUploadGuid = e.component.option("fileUploadGuid");
+        url = updateQueryStringParameter(url, "FolderGuid", fileUploadGuid);
+        e.component.option("uploadUrl", url);
+    }
+
+    function updateQueryStringParameter (uri, key, value) {
+        var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+        var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+        if (uri.match(re)) {
+            return uri.replace(re, '$1' + key + "=" + value + '$2');
+        }
+        else {
+            return uri + separator + key + "=" + value;
+        }
+    }
+
+    function attachmentFileUploader_OnUploadError(e) {
+        $('#uploaderScrollView').dxScrollView('instance').option('height', 380);
+        $('#fileuploadWarningMessage').show();
+    }
+
+    function attachmentFileUploader_OnUploaded(e) {
+        $("#grdFileList").dxDataGrid("instance").refresh();
+        $('#uploaderScrollView').dxScrollView('instance').option('height', 455);
+        $('#fileuploadWarningMessage').hide();
+    }
+
+        function grdFileList_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    hint: "",
+                    icon: "fa fa-download",
+                    onClick: function () {
+                        var grid = $('#grdFileList').dxDataGrid('instance');
+                        var aJsonArray = new Array();
+                        grid.getSelectedRowsData().forEach(function (e) {
+
+                            var aJson = new Object();
+                            aJson.ATTACHMENTFOLDERID = e.ATTACHMENTFOLDERID;
+                            aJson.FILEID = e.FILEID;
+                            aJson.REVISIONID = e.REVISIONID;
+                            aJson.FILENAME = e.FILENAME;
+                            aJson.FILESIZE = e.FILESIZE;
+                            aJson.FILEEXTENSION = e.FILEEXTENSION;
+                            aJson.ISREVISION = e.ISREVISION;
+                            aJson.REVISIONNO = e.REVISIONNO;
+                            aJson.MEMO = e.MEMO;
+                            aJsonArray.push(aJson);
+                        });
+
+                        if (aJsonArray.length > 0) {
+                            var data = {};
+                            data.values = JSON.stringify(aJsonArray);
+
+                            $.ajax({
+                                url: '@Url.Action("getZipFileList", "COMA004WebApi", new { httproute = "DefaultApi", })',
+                                type: 'POST',
+                                data: data,
+                                success: function (param) {
+                                    window.location = rootURL + 'Attachment/DownloadFile?TempZipGuid=' + param.TempZipGuid
+                                        + '&ZipFileName=' + param.ZipFileName;
+                                },
+                                error: function (e) {
+                                    showError(this, e);
+                                }
+                            });
+                        } else {
+                            DevExpress.ui.notify('zip으로 다운로드할 파일을 선택해주세요.', 'error', globalNotificationErrorTime);
+                        }
+                    }
+                }
+            });
+    }
+
+    function grdFileList_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            ajaxOptions.data.folderId = $('#grdFileList').dxDataGrid('instance').option('fileUploadGuid');
+
+            //$('#dropFileUpload').dxDropDownButton('instance').repaint();
+        }
+    }
+
+    function grdFileList_FILENAME_CellTemplate(container, options) {
+        var className = '';
+
+        if (options.data.FILEEXTENSION == "image") {
+            className = "fa-file-image-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "audio") {
+            className = "fa-file-audio-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "video") {
+            className = "fa-file-movie-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/pdf") {
+            className = "fa-file-pdf-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/msword" ||
+            options.data.FILEEXTENSION == "application/vnd.ms-word" ||
+            options.data.FILEEXTENSION == "application/vnd.oasis.opendocument.text" ||
+            options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml") {
+            className = "fa-file-pdf-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/vnd.ms-excel" ||
+            options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml" ||
+            options.data.FILEEXTENSION == "application/vnd.oasis.opendocument.spreadsheet") {
+            className = "fa-file-excel-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/vnd.ms-powerpoint" ||
+            options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml" ||
+            options.data.FILEEXTENSION == "application/vnd.oasis.opendocument.presentation") {
+            className = "fa-file-powerpoint-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "text/plain") {
+            className = "fa-file-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "text/html" || options.value == "application/json") {
+            className = "fa-file-text-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+            className = "fa-file-word-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+            className = "fa-file-excel-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml.presentation") {
+            className = "fa-file-powerpoint-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/gzip" ||
+            options.data.FILEEXTENSION == "application/zip" ||
+            options.data.FILEEXTENSION == "application/x-zip-compressed" ||
+            options.data.FILEEXTENSION == "application/octet-stream" ||
+            options.data.FILEEXTENSION == "application/x-msdownload") {
+            className = "fa-file-archive-o fa-lg";
+        }
+
+        var formatterNumber = Globalize.numberFormatter({
+            minimumSignificantDigits: 1,
+            maximumSignificantDigits: 3
+        });
+
+        var path = rootURL + 'Content/Files/Attachments/' + options.data.ATTACHMENTFOLDERID + '/' + options.data.REVISIONID + '/' + options.data.REVISIONNO + '/' + options.data.FILENAME;
+
+        var markup = "<table>" +
+            "<thead>" +
+            "<tr>" +
+            "<th style='padding-right:5px;width:15%'></th><th style='padding-right:5px;width:60%'></th><th style='padding-right:5px;width:10%'></th><th style='padding-left:5px;width:10%'></th>" +
+            "</tr>" +
+            "</thread>" +
+            "<tbody>" +
+            "<tr>" +
+            "<td style='padding:5px;'> 파일 명</td><td style='padding:5px;'><span class='fa " + className + "' /> <a href='" + path + "'>" + options.data.FILENAME + "</a></td>" +
+            "<td style='padding:5px;'> 리비전 </td><td style='padding:5px;'>" + options.data.REVISIONNO + "</td>" +
+            "</tr>" +
+            "<tr>" +
+            "<td style='padding:5px;'> 파일 용량</td><td colspan=3>" + (formatterNumber((options.data.FILESIZE / 1024.0) / 1024)) + " Mb</td>" +
+            "</tr>" +
+            "<tr>" +
+            "<td style='padding:5px;'> 등록일</td><td colspan=3>" + Globalize.dateFormatter({ datetime: "medium" })(new Date(options.data.CREATEDATE)) + "</td>" +
+            "</tr>" +
+            "<tr>" +
+            "<td style='padding:5px;'> 등록자</td><td colspan=3>" + options.data.CREATEUSER + "</td>" +
+            "</tr>" +
+            "</tbody>" +
+            "</table>"
+            ;
+
+        container.append(markup);
+    }
+
+    function grdFileList_FILEEXTENSION_CellTemplate(container, options) {
+        setExtensionIcon(container, options);
+    }
+
+    function grdFileList_OnCellPrepared(e) {
+        if (e.rowType === "data" && e.column.command === "expand") {
+            if (e.data.REVISIONNO == 0) {
+                e.cellElement.removeClass("dx-datagrid-expand");
+                e.cellElement.empty();
+            }
+        }
+    }
+
+    function grdFileList_OnCellPrepared_FILENAME_CellTemplate(container, options) {
+        setFiledownloadPath(container, options);
+    }
+
+    function grdINBOUNDINSPECTION_OnCellClick(e) {
+        var a = "";
+
+        if (e.column.dataField == "INSPECTIONRESULT") {
+
+            var CellValue = e.value;
+
+            if (CellValue == "") {
+                $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(e.rowIndex, 'INSPECTIONRESULT', "OK");
+                $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(e.rowIndex, 'INSPECTIONJUDGMENT', "OK");
+                //$('#grdINBOUNDINSPECTION').dxDataGrid('instance').saveEditData();
+                return;
+            }
+
+            if (CellValue == "OK") {
+                $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(e.rowIndex, 'INSPECTIONRESULT', "NG");
+                $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(e.rowIndex, 'INSPECTIONJUDGMENT', "NG");
+                //$('#grdINBOUNDINSPECTION').dxDataGrid('instance').saveEditData();
+                return;
+            }
+
+            if (CellValue == "NG") {
+                $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(e.rowIndex, 'INSPECTIONRESULT', "OK");
+                $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(e.rowIndex, 'INSPECTIONJUDGMENT', "OK");
+                //$('#grdINBOUNDINSPECTION').dxDataGrid('instance').saveEditData();
+                return;
+            }
+
+        }
+    }
+
+    function grdINBOUNDINSPECTION_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+
+            var PARTNUMBER = $('#form').dxForm('instance').getEditor("PARTNUMBER").option('value');
+            if (PARTNUMBER == null) {
+                ajaxOptions.data.PARTNUMBER = "";
+            } else {
+                ajaxOptions.data.PARTNUMBER = PARTNUMBER;
+            }
+        }
+    }
+
+    function PARTNUMBER_OnValueChanged(e) {
+        var value = e.value;
+
+        $('#grdINBOUNDINSPECTION').dxDataGrid('instance').refresh();
+        $('#grdGradeLotInfo').dxDataGrid('instance').cancelEditData();
+
+
+        $('#form').dxForm('instance').updateData('RECEIVINGQUANTITY', 0);
+
+        var validate = $('#form').dxForm('instance').validate();
+
+        if (validate.brokenRules.length > 0) {
+            validate.brokenRules.forEach(function (e) {
+                e.validator.reset();
+            });
+        }
+    }
+
+    var priorities = [{
+        "CODE": "OK",
+        "NAME": "양품"
+    }, {
+        "CODE": "NG",
+        "NAME": "불량"
+    }];
+
+    function edittest(cellElement, cellInfo) {
+
+        var INSPECTIONJUDGMENT = true;
+
+        for (var i = 0; i < $('#grdINBOUNDINSPECTION').dxDataGrid('instance').totalCount();i++) {
+            var Result = $('#grdINBOUNDINSPECTION').dxDataGrid('instance').cellValue(i, 'INSPECTIONJUDGMENT');
+
+            if (Result == "NG") {
+                INSPECTIONJUDGMENT = false;
+            }
+        }
+
+        if (INSPECTIONJUDGMENT == false) {
+            $('#form').dxForm('instance').updateData('INSPECTIONRESULT', 'NG');
+        } else {
+            $('#form').dxForm('instance').updateData('INSPECTIONRESULT', 'OK');
+        }
+
+        if (cellInfo.row.data.DATATYPE == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK") {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTIONJUDGMENT', 'OK');
+                        //$('#form').dxForm('instance').updateData('INSPECTIONRESULT', 'OK');
+                    }
+                    else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTIONJUDGMENT', 'NG');
+                        //$('#form').dxForm('instance').updateData('INSPECTIONRESULT', 'NG');
+                    }
+
+
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE == "N") {
+            $("<div />").dxNumberBox({
+                format: "#,##0.00",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL;
+                    var usl = cellInfo.data.USL;
+                    var specclass = cellInfo.data.SPECCLASS;
+                    var result = false;;
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (cellInfo.value <= lsl) {
+                            result = true
+                        }
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result) {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTIONJUDGMENT', 'OK');
+                        //$('#form').dxForm('instance').updateData('INSPECTIONRESULT', 'OK');
+                    } else {
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'INSPECTIONJUDGMENT', 'NG');
+                        //$('#form').dxForm('instance').updateData('INSPECTIONRESULT', 'NG');
+                    }
+
+                }
+            }).appendTo(cellElement);
+        } if (cellInfo.row.data.DATATYPE == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+
+    function grdINBOUNDINSPECTION_OnCellPrepared(e) {
+        if (e.rowType == 'data' && e.column.dataField === "INSPECTIONJUDGMENT") {
+            e.cellElement.css("color", e.data.INSPECTIONJUDGMENT == "OK" ? "" : "red");
+            //e.cellElement.css("font-size", 10);
+            e.cellElement.css("text-align", "center");
+
+        }
+    }
+
+    //function form_File_OnClick(e) {
+    //    $("#ATTACHMENTS_POPUP").dxPopup("instance").show();
+    //}
+
+    function dropFileUpload_OnBeforeSend(method, ajaxOptions) {
+        ajaxOptions.data.folderId = FileGUID._value;
+    }
+
+    function dropFileUpload_OnButtonClick(e) {
+        $('#ATTACHMENTS_POPUP').dxPopup('instance').show();
+    }
+
+    function grdINBOUNDINSPECTION_OnToolbarPreparing(e) {
+        var toolbarItems = e.toolbarOptions.items;
+        $.each(toolbarItems, function (_, item) {
+            if (item.name === "saveButton" || item.name == "revetButton" || item.name == "addRowButton") {
+                // Change the item options here
+                item.visible = false;
+            }
+        });
+    }
+
+    function grdGradeLotInfo_OnToolbarPreparing(e) {
+        var toolbarItems = e.toolbarOptions.items;
+        $.each(toolbarItems, function (_, item) {
+            if (item.name === "saveButton" || item.name == "revetButton") {
+                item.visible = false;
+            }
+        });
+    }
+
+
+    var grdGradeLotInfoSortIndex = 0;
+    function grdGradeLotInfo_OnInitNewRow(e) {
+
+        grdGradeLotInfoSortIndex = grdGradeLotInfoSortIndex + 1;
+
+        //e.data.ROWKEY = new DevExpress.data.Guid();
+        e.data.PALLETWEIGHT = 0;
+        e.data.PALLETCOUNT = 0;
+        e.data.SortOrder = grdGradeLotInfoSortIndex;
+        //$("#grdGradeLotInfo").dxDataGrid('instance').saveEditData();
+    }
+
+
+    function grdGradeLotInfo_OnEditorPreparing(e) {
+
+        if (e.parentType == "dataRow" && (e.dataField == 'PALLETWEIGHT' || e.dataField == 'PALLETCOUNT')){
+
+            e.editorOptions.onFocusIn = function(args){
+                args.element.find("input").select();
+            }
+        }
+
+        if (e.parentType == 'dataRow' && (e.dataField == 'VENDORGRADE' || e.dataField == 'VENDORLOTNUMBER' || e.dataField == 'PALLETWEIGHT' || e.dataField == 'PALLETCOUNT')) {
+            var onValueChanged = e.editorOptions.onValueChanged;
+            e.editorOptions.onValueChanged = function(args) {
+                onValueChanged.apply(this, arguments);
+
+                $("#grdGradeLotInfo").dxDataGrid('instance').saveEditData();
+
+                var TotalPALLETWEIGHT = 0;
+                var TotalPALLETCOUNT = 0;
+                var TotalWeight = 0;
+
+                for (var i = 0; i < $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array.length; i++) {
+
+                    var tempPALLETWEIGHT = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array[i].PALLETWEIGHT;
+                    var tempPALLETCOUNT = $('#grdGradeLotInfo').dxDataGrid('instance').option('dataSource').store._array[i].PALLETCOUNT;
+
+                    TotalPALLETCOUNT = TotalPALLETCOUNT + tempPALLETCOUNT;
+                    TotalWeight = TotalWeight + (tempPALLETWEIGHT * tempPALLETCOUNT);
+                }
+
+                $('#form').dxForm('instance').updateData('RECEIVINGQUANTITY', TotalWeight);
+                $('#form').dxForm('instance').updateData('TOTALPALLETQTY', TotalPALLETCOUNT);
+            }
+        }
+    }
+
+    function grdGradeLotInfo_OnEditingStart(e) {
+
+        $("#grdGradeLotInfo").dxDataGrid('instance').saveEditData();
+    }
+
+    function getUploadFileInfo(folderId) {
+        var result = "";
+
+        var CheckProcessCode = $.param({
+
+            folderId: folderId
+
+        });
+
+        $.ajax({
+            url: '@Url.Action("getFileList", "COMA004WebApi", new { httproute = "DefaultApi" })',
+            async: false,
+            data: CheckProcessCode,
+            type: 'GET',
+            success: function (data) {
+                if (data != null) {
+                    result = data.data.length;
+
+                    return result;
+                }
+
+                return result;
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+        return result;
+    }
+
+
+</script>

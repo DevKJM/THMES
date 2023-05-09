@@ -1,0 +1,410 @@
+﻿@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAK;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+@* X-R 관리도  *@
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @using (Html.BeginForm())
+            {
+                @(Html.DevExtreme().Form()
+                    .ID("formInfo")
+                    .ColCount(8)
+                    .ScrollingEnabled(false)
+                    .Items(items =>
+                    {
+                        items.AddSimple()
+                        .Editor(e => e
+                            .DateBox()
+                            .ReadOnly(false)
+                            .Type(DateBoxType.Date)
+                            .DisplayFormat(Format.MonthAndYear)
+                            .Value(new JS("new Date()"))
+                            .Width("100%")
+                            .CalendarOptions(c => c.MaxZoomLevel(CalendarZoomLevel.Year))
+                            .OnValueChanged("function(e) { var w = $('#SPEC').dxSelectBox('getDataSource'); w.reload(); $('#SPEC').dxSelectBox('instance').option('value', null); } ")
+                        )
+                        .Name("SEARCHDATE")
+                        .Label(T => T.Text("년월"))
+                        .ColSpan(2);
+
+                        
+                        items.AddSimple()
+                        .Editor(e => e
+                            .SelectBox()
+                            .ElementAttr("id", "SPEC")
+                            .ValueExpr("SPECCODE")
+                            .DisplayExpr("SPECNAME")
+                            .DataSource(d => d.WebApi().Controller("QUAP027WebApi")
+                                .Key("SPECCODE")
+                                .LoadAction("SPEC_LIST")
+                                .OnBeforeSend("SPEC_OnBeforeSend")
+                            )
+                            .Placeholder("Select a value...")
+                        )
+                        .Name("SPEC")
+                        .Label(T => T.Text(LabelText.SPEC))
+                        .ColSpan(2);
+
+
+                        items.AddSimple().Visible(false)
+                        .Editor(e => e.TextBox().ReadOnly(true))
+                        .Name("PARTNUMBER")
+                        .Label(T => T.Text(LabelText.PARTNUMBER))
+                        .ColSpan(2);
+
+                        items.AddButton().ColSpan(1)
+                        .HorizontalAlignment(HorizontalAlignment.Left)
+                        .ButtonOptions(b => b.Text("조회")
+                            .Icon("check")
+                            .ID("btnSearch")
+                            .Width("100%")
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .Type(ButtonType.Default)
+                            .OnClick("btnSearch_OnClick")
+                        );
+
+                    })
+                )
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @string.Format("{0}", "X 관리도") </i></span></h4>
+            @(Html.DevExtreme().Chart()
+                .ID("chtQUAP027B")
+                .Palette(VizPalette.GreenMist)
+                .DataSource(new JS("chartDataXbar"))                
+                .CommonSeriesSettings(s => s.Type(SeriesType.Line).ArgumentField("WORKDATE"))                
+                .Series(s =>
+                {
+                    s.Add().ValueField("VALUE").Name("X-Bar").Point(p => p.Visible(true).Size(7));
+                    s.Add().ValueField("UCL").Name("UCL").Point(p => p.Visible(false)).Color("Red").DashStyle(DashStyle.Dash);
+                    s.Add().ValueField("LCL").Name("LCL").Point(p => p.Visible(false)).Color("Red").DashStyle(DashStyle.Dash);
+                    s.Add().ValueField("CL").Name("CL").Point(p => p.Visible(false)).Color("Blue").DashStyle(DashStyle.Dash);
+                })
+                .ValueAxis(v => v.Add()
+                      .ValueType(ChartDataType.Numeric)
+                      .Label(l=>l.Format(f=>f.Type(Format.FixedPoint).Precision(2)))
+                      .ValueMarginsEnabled(true)
+                      .Type(AxisScaleType.Discrete)
+                      )
+                .Tooltip(t => t.Enabled(true).CustomizeTooltip("chtQUAP027_CustomizeTooltip"))
+                .OnDone("chtQUAP027_onDone")
+                .Size(s => s.Height(200))
+                .Legend(l => l.Visible(true))
+                .AdaptiveLayout(l => l.Width(450))
+            )
+            <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @string.Format("{0}", "R 관리도") </i></span></h4>
+            @(Html.DevExtreme().Chart()
+                .ID("chtQUAP027C")
+                .Palette(VizPalette.GreenMist)
+                .DataSource(new JS("chartDataR"))                
+                .CommonSeriesSettings(s => s.Type(SeriesType.Line).ArgumentField("WORKDATE"))
+                .Series(s =>
+                {
+                    s.Add().ValueField("VALUE").Name("R").Point(p => p.Visible(true).Size(7));
+                    s.Add().ValueField("UCL").Name("UCL").Point(p => p.Visible(false)).Color("Red");
+                    s.Add().ValueField("LCL").Name("LCL").Point(p => p.Visible(false)).Color("Red");
+                    s.Add().ValueField("CL").Name("CL").Point(p => p.Visible(false)).Color("Blue").DashStyle(DashStyle.Dash);
+                })
+                .ValueAxis(v => v.Add()
+                      .ValueType(ChartDataType.Numeric)
+                      .Label(l=>l.Format(f=>f.Type(Format.FixedPoint).Precision(2)))
+                      .ValueMarginsEnabled(true)
+                      .Type(AxisScaleType.Discrete))
+
+                .Tooltip(t => t.Enabled(true).CustomizeTooltip("chtQUAP027_CustomizeTooltip"))
+                .OnDone("chtQUAP027_onDone")
+                .Size(s => s.Height(200))
+                .Legend(l => l.Visible(true))
+                .AdaptiveLayout(l => l.Width(450))
+            )
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<QUAP027A_LIST>()
+                .ID("grdQUAP027A")
+                .DataSource(d => d.WebApi().Controller("QUAP027WebApi")
+                    .OnBeforeSend("QUAP027_OnBeforeSend")
+                    .LoadAction("getData")
+                    .OnLoaded("QUAP027WebApi_getData_OnLoaded")
+                    )
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.INSPECTCODE).Visible(false);
+                    columns.AddFor(m => m.INSPECTTIME).CustomizeText("grdQUAP027A_INSPECTTIME_CustomizeText").SortIndex(0).SortOrder(SortOrder.Asc).Fixed(true).Caption("구분");
+                                        
+                    columns.AddFor(m => m.PARTNUMBER).Width(250).Fixed(true).SortIndex(0).SortOrder(SortOrder.Asc).Caption("품명")
+                        .Lookup(l => l.DataSource(d => d.WebApi()
+                                .Controller("QUAP027WebApi")
+                                .LoadAction("PARTNUMBER_LIST")
+                                .Key("PARTNUMBER")                                
+                            )
+                            .ValueExpr("PARTNUMBER")
+                            .DisplayExpr("PRODUCTNAME").AllowClearing(true)
+                            .DataSourceOptions(d=>d.Sort("PARTNUMBER",false))).Visible(false);                        
+
+                    columns.AddFor(m => m.INSPECTORDER).Fixed(true).Visible(false);                    
+
+                    columns.AddFor(m => m.DAY1).Caption("1일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY2).Caption("2일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY3).Caption("3일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY4).Caption("4일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY5).Caption("5일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY6).Caption("6일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY7).Caption("7일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY8).Caption("8일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY9).Caption("9일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY10).Caption("10일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY11).Caption("11일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY12).Caption("12일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY13).Caption("13일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY14).Caption("14일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY15).Caption("15일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY16).Caption("16일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY17).Caption("17일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY18).Caption("18일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY19).Caption("19일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY20).Caption("20일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY21).Caption("21일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY22).Caption("22일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY23).Caption("23일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY24).Caption("24일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY25).Caption("25일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY26).Caption("26일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY27).Caption("27일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY28).Caption("28일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY29).Caption("29일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY30).Caption("30일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                    columns.AddFor(m => m.DAY31).Caption("31일").Format(f=>f.Type(Format.FixedPoint).Precision(2)).DataType(GridColumnDataType.Number);
+                })
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(false))
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(100).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .Export(e => e.Enabled(true))
+                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                .OnRowPrepared("grdQUAP027A_OnRowPrepared")
+                .ShowRowLines(true)
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    var chartDataXbar = [];
+    var chartDataR = [];
+    
+    function grdQUAP027A_OnRowPrepared(e) {
+        if (e.rowType == 'data') { 
+            if (e.data.INSPECTCODE == "R") {
+                e.rowElement.css('background', 'rgba(60,186,178,0.5)'); 
+            } else if (e.data.INSPECTCODE == "XBAR") {
+                e.rowElement.css('background', 'rgba(60,186,178,0.2)'); 
+            }          
+        }
+    }
+    
+    function QUAP027WebApi_getData_OnLoaded(e) {
+        chartDataXbar = [];
+        chartDataR = [];
+
+        var form = $('#formInfo').dxForm('instance');
+        var searchdate = form.getEditor('SEARCHDATE').option('value');            
+        searchdate = new Date(searchdate);
+        var maxDate = (new Date(searchdate.getFullYear(), searchdate.getMonth() + 1, 0)).getDate();
+
+        var xbarData = e.find(function(e){ 
+                                if(e.INSPECTCODE == "XBAR") { 
+                                        return e; 
+                                    }   
+                                });
+
+        var xbarSum = 0.0;
+        var xbarCount = 0;
+
+        if (xbarData != undefined) {
+             var dataIndex = 1;
+
+            do {
+                if (xbarData['DAY' + dataIndex] === undefined) {
+                    break;
+                }
+
+                if(maxDate < dataIndex ){
+                    break;
+                }
+
+                if (xbarData['DAY' + dataIndex] != null) {
+                    xbarCount = xbarCount + 1;
+                    xbarSum = xbarSum + xbarData['DAY' + dataIndex];
+                    chartDataXbar.push({WORKDATE: Globalize.unitFormatter("day")(dataIndex) , VALUE: xbarData['DAY' + dataIndex] , UCL: 0, LCL: 0, CL: 0});            
+                }
+                
+                dataIndex++;
+            }
+            while(true);
+
+        }
+
+        var RData = e.find(function(e){ 
+                                if(e.INSPECTCODE == "R") { 
+                                        return e; 
+                                    }   
+                                });
+        
+        var RSum = 0.0;
+        var RCount = 0;
+
+        if (RData != undefined) {
+             var dataIndex = 1;
+
+            do {
+                if (RData['DAY' + dataIndex] === undefined) {
+                    break;
+                }
+
+                if(maxDate < dataIndex ){
+                    break;
+                }
+                
+                if (RData['DAY' + dataIndex] != null) {
+                    RCount = RCount + 1;
+                    RSum = RSum + RData['DAY' + dataIndex];
+                    chartDataR.push({WORKDATE: Globalize.unitFormatter("day")(dataIndex) , VALUE: RData['DAY' + dataIndex] , UCL: 0, LCL: 0, CL: 0});            
+                }
+                                
+                dataIndex++;
+            }
+            while(true);
+        }
+
+        var XBarBar = (xbarSum/xbarCount);
+        var RBar = (RSum/RCount);
+
+        var form = $('#formInfo').dxForm('instance');
+        var spec = form.getEditor('SPEC').option('value');
+        var LSL = null;
+        var USL = null;
+
+        if (spec != null) {
+            LSL = parseFloat(spec.split(',')[0]);
+            USL = parseFloat(spec.split(',')[1]);
+        }        
+
+        for (var dataIndex = 0; chartDataXbar.length > dataIndex; dataIndex++) {
+            
+            chartDataXbar[dataIndex].USL = USL;
+            chartDataXbar[dataIndex].UCL = (XBarBar + (RBar * 0.577)).toFixed(2);
+            chartDataXbar[dataIndex].CL = XBarBar.toFixed(2) ;
+            chartDataXbar[dataIndex].LCL =  (XBarBar - (RBar * 0.577)).toFixed(2);
+            chartDataXbar[dataIndex].LSL = LSL;
+
+            chartDataR[dataIndex].UCL = (RBar * 2.114).toFixed(2);
+            chartDataR[dataIndex].CL = RBar.toFixed(2);
+            chartDataR[dataIndex].LCL = null;
+            
+        }
+
+        $("#chtQUAP027B").dxChart("instance").option("dataSource", chartDataXbar);
+        $("#chtQUAP027C").dxChart("instance").option("dataSource", chartDataR);
+    }
+
+    function grdQUAP027A_INSPECTTIME_CustomizeText(e) {
+         if(e.value == -1) { 
+             return "평균(XBar)";
+         } else if(e.value == -2) { 
+             return "범위(R)";
+         } else {
+             return e.valueText + "시";
+        }
+    }
+
+    function SPEC_OnBeforeSend(method, ajaxOptions)
+    {
+        if (method == 'load') {
+            var form = $('#formInfo').dxForm('instance');
+            var searchdate = form.getEditor('SEARCHDATE').option('value');            
+            
+            ajaxOptions.data.searchdate = searchdate.toUTCString();
+        }
+    }
+    
+    function QUAP027_OnBeforeSend(method, ajaxOptions)
+    {
+        if (method == 'load') {
+            var form = $('#formInfo').dxForm('instance');
+            var searchdate = form.getEditor('SEARCHDATE').option('value');            
+            var spec = form.getEditor('SPEC').option('value');
+
+            ajaxOptions.data.searchdate = searchdate.toUTCString();
+            ajaxOptions.data.spec = spec;            
+        }
+    }
+
+    function btnSearch_OnClick(e) {
+        var form = $('#formInfo').dxForm('instance');
+        var spec = form.getEditor('SPEC').option('value');
+
+        if (spec == null) {
+            DevExpress.ui.notify('규격을 선택해주세요.', 'error', globalNotificationErrorTime);
+            return;
+        } 
+
+        $("#chtQUAP027B").dxChart("instance").refresh();
+        $("#chtQUAP027C").dxChart("instance").refresh();
+
+        $("#grdQUAP027A").dxDataGrid("instance").refresh();
+    }
+
+    function grdDefectDetail_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function chtQUAP027_CustomizeTooltip(e) {
+        return {
+            html: e.seriesName + "<div>"
+                + Globalize.numberFormatter()(e.originalValue) + "</div>"
+        };
+    }
+
+    function chtQUAP027_onDone(e) {
+        var beforeUSLValue;
+        var beforeLSLValue;
+
+        for (pointIndex = 0; e.component.series[1]._points.length > pointIndex; pointIndex++) {
+            if (beforeUSLValue != e.component.series[1]._points[pointIndex].value) {
+                var pointLabel = e.component.series[1]._points[pointIndex].getLabel();
+                pointLabel.show();
+            }
+
+            if (beforeLSLValue != e.component.series[2]._points[pointIndex].value) {
+                var pointLabel = e.component.series[2]._points[pointIndex].getLabel();
+                pointLabel.show();
+            }
+
+            beforeUSLValue = e.component.series[1]._points[pointIndex].value;
+            beforeLSLValue = e.component.series[2]._points[pointIndex].value;
+        }
+
+        if (e.component.series != undefined && e.component.series.length > 5) {
+            e.component.series[3]._points[e.component.series[3]._points.length - 1].getLabel().show();
+            e.component.series[4]._points[e.component.series[4]._points.length - 1].getLabel().show();
+        }         
+    }
+
+</script>

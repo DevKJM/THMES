@@ -1,0 +1,262 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+                    @(Html.DevExtreme().Form<RPTA055B_LIST>()
+                                                .ID("formProduct")
+                                                .ColCount(5)
+                                                .Items(items =>
+                                                {
+                                                items.AddEmpty().ColSpan(5);
+
+                                                items.AddSimpleFor(m => m.PRODUCTNAME)
+                                                        .Editor(e => e
+                                                            .DropDownBox()
+                                                            .DataSource(d => d.WebApi()
+                                                                .Controller("COMA001WebApi")
+                                                                .Key("PARTNUMBER")
+                                                                .LoadAction("PARTNUM_LIST")
+                                                            )
+                                                            .DropDownOptions(c => c.Width(500))
+                                                            .ValueExpr("PARTNUMBER")
+                                                            .DisplayExpr("PRODUCTNAME")
+                                                            .Value("P000366")
+                                                            .Placeholder("Select a value...")
+                                                            .ContentTemplate(new TemplateName("EmbeddedPartNumberDataGridSingle"))
+                                                            .ID("PART")
+                                                        )
+                                                        .ColSpan(1);
+
+                                                    items.AddSimpleFor(m => m.PRODUCTLOTNUMBER)
+                                                        .Editor(e => e
+                                                            .TextBox()
+                                                            .ReadOnly(false)
+                                                        )
+                                                        .ColSpan(1);
+
+                                                items.AddButton()
+                                                        .ButtonOptions(b => b.ID("btnSearchProductLot")
+                                                            .Text(LabelText.SELECT)
+                                                            .Type(ButtonType.Success)
+                                                            .StylingMode(ButtonStylingMode.Contained)
+                                                            .OnClick("btnSearchProductLot_onClick")
+                                                            .Width("100%")
+                                                            .FocusStateEnabled(false)
+                                                            .HoverStateEnabled(true)
+                                                            .Disabled(new JS("!iudAuth()"))
+                                                        ).ColSpan(1);
+
+                                                items.AddEmpty().ColSpan(2);
+
+                                                items.AddSimple().ColSpan(5)
+                                                            .Template(@<text>
+                                                                        @(Html.DevExtreme().DataGrid<RPTA055_LIST>()
+                                                                                .ID("grdLotTacking")
+                                                                                .ShowBorders(true)
+                                                                                .Height(480)
+                                                                                .ColumnAutoWidth(true)
+                                                                                .ShowRowLines(true)
+                                                                                .RowAlternationEnabled(true)
+                                                                                .AllowColumnResizing(true)
+                                                                                .DataSource(d => d.WebApi()
+                                                                                    .Controller("RPTA055WebApi")
+                                                                                    .LoadAction("getMasterLot")
+                                                                                    .OnBeforeSend("grdLotTacking_OnBeforeSend")
+                                                                                    .Key("SERIALNUMBER")
+                                                                                )
+                                                                                .Columns(columns =>
+                                                                                {
+                                                                                    columns.AddFor(m=>m.LOTNUMBER);
+                                                                                    columns.AddFor(m=>m.SERIALNUMBER);
+                                                                                    columns.AddFor(m=>m.WORKDATE);
+                                                                                    columns.AddFor(m=>m.TRANSNAME);
+                                                                                    columns.AddFor(m=>m.QUANTITY);
+                                                                                    columns.AddFor(m=>m.VENDORNAME);
+                                                                                })
+                                                                                .MasterDetail(md =>
+                                                                                {
+                                                                                    md.Enabled(true);
+                                                                                    md.Template(new TemplateName("EmbeddedLotTrackingDetailDataGridSingle"));
+                                                                                }));                                                                 
+                                                                </text>);
+
+                                    })
+
+                    )
+        </div>
+    </div>
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPartNumberDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+        .ID("grdPartList")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns =>
+        {
+
+            columns.AddFor(m => m.BOXPERQUANTITY).Visible(false);
+            columns.AddFor(m => m.PARTNUMBER).Width(100);
+            columns.AddFor(m => m.PRODUCTNAME);
+            columns.AddFor(m => m.BOXPERQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+        })
+        .ColumnAutoWidth(true)
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+        .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+        .OnSelectionChanged(@<text>
+        function(selectedItems) {
+        var haskey;
+        var keys = selectedItems.selectedRowKeys;
+        if(typeof keys !== 'undefined' && keys.length > 0)
+        {
+        haskey = true;
+        }
+
+        console.log(selectedItems);
+        console.log(keys);
+
+        component.option("value", haskey ? keys[0] : null);
+        component.option("subvalue", selectedItems.selectedRowsData);
+        if(typeof keys !== 'undefined' && keys.length > 0){
+        component.close();
+        }
+        }
+    </text>)
+    )
+}
+
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedLotTrackingDetailDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<RPTA055A_LIST>()
+			.ColumnAutoWidth(true)
+			.ShowBorders(true)
+            .DataSource(d => d.WebApi()
+				.Controller("RPTA055WebApi")
+				.LoadAction("getDetailLot")
+				.Key("SORTINDEX")
+				.LoadParams(new { serialnumber = new JS("data.SERIALNUMBER") })
+			)
+			.Columns(columns =>
+			{
+                columns.AddFor(m=>m.SORTINDEX).SortOrder(SortOrder.Asc).Visible(false);
+                columns.AddFor(m=>m.SERIALNUMBER);
+                columns.AddFor(m=>m.LOTNUMBER);
+                columns.AddFor(m=>m.WORKDATE);
+                columns.AddFor(m=>m.TRANSNAME);
+                columns.AddFor(m=>m.WAREHOUSENAME);
+                columns.AddFor(m=>m.QUANTITY);
+                columns.AddFor(m=>m.DEFECTSUMQUANTITY);
+			})
+			.OnInitialized("function(e){userCustomGrid(e);}")
+	)
+}
+
+
+<script>
+
+    function grdLotTacking_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+
+            var ProductLot = $('#formProduct').dxForm('instance').getEditor("PRODUCTLOTNUMBER").option('value');
+            var PartNumber = $('#formProduct').dxForm('instance').option('formData.PRODUCTNAME');
+
+            if (PartNumber == null) {
+                PartNumber = "";
+            }
+
+            ajaxOptions.data.Lot = ProductLot;
+            ajaxOptions.data.PartNumber = PartNumber;
+        }
+    }
+    
+    var getNodeKeys = function(node) {
+        var keys = [];
+        keys.push(node.key);
+        node.children.forEach(function(item) {              
+            keys = keys.concat(getNodeKeys(item));
+        });            
+        return keys;
+    }
+
+    function btnSearchProductLot_onClick(e) {
+        $('#grdLotTacking').dxDataGrid('instance').refresh();
+
+        //window.setTimeout(function () {
+        //    var keys = getNodeKeys($('#trProductLot').dxTreeList('instance').getRootNode());
+        //    $('#trProductLot').dxTreeList('instance').beginUpdate();
+        //    keys.forEach(function (key) {
+        //        $('#trProductLot').dxTreeList('instance').expandRow(key);
+        //    });
+        //    $('#trProductLot').dxTreeList('instance').endUpdate();
+        //}, 1000);
+    }
+
+    function btnSearchMaterialLot_onClick1(e) {
+        exportToExcel();
+    }
+
+    function trMaterialLot_OnLoaded(e) {
+        if (e.length > 0) {
+            window.setTimeout(function () {
+                var keys = getNodeKeys($('#trMaterialLot').dxTreeList('instance').getRootNode());
+                $('#trMaterialLot').dxTreeList('instance').beginUpdate();
+                keys.forEach(function (key) {
+                    $('#trMaterialLot').dxTreeList('instance').expandRow(key);
+                });
+                $('#trMaterialLot').dxTreeList('instance').endUpdate();
+            }, 10);
+        }
+    }
+
+    function trProductLot_OnLoaded(e) {
+        if (e.length > 0) {
+            window.setTimeout(function () {
+                var keys = getNodeKeys($('#trProductLot').dxTreeList('instance').getRootNode());
+                $('#trProductLot').dxTreeList('instance').beginUpdate();
+                keys.forEach(function (key) {
+                    $('#trProductLot').dxTreeList('instance').expandRow(key);
+                });
+                $('#trProductLot').dxTreeList('instance').endUpdate();
+            }, 10);
+        }
+    }
+
+    function trMaterialLot_OnCellPrepared(e) {
+        if (e.rowType == 'data' && e.column.dataField === "SERIALNUMBER") {
+
+            var tempPARENTMENUID = $('#trMaterialLot').dxTreeList('instance').cellValue(e.rowIndex, "PARENTMENUID")
+            if (tempPARENTMENUID == '-') {
+                e.cellElement.css("background-color", 'rgba(142,194,194,0.7)');
+            }
+        }
+    }
+
+    function trProductLot_OnCellPrepared(e) {
+        if (e.rowType == 'data' && e.column.dataField === "SERIALNUMBER") {
+
+            var tempPARENTMENUID = $('#trProductLot').dxTreeList('instance').cellValue(e.rowIndex, "PARENTMENUID")
+            if (tempPARENTMENUID == '-') {
+                e.cellElement.css("background-color", 'rgba(142,194,194,0.7)');
+            }
+        }
+    }
+
+</script>
+
+
+@Html.Partial("_DropdownPartial")

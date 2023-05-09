@@ -1,0 +1,584 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.ViewModels.MON;
+@{
+    List<SYSA001A_LIST> MASTER_LIST = ViewData["MASTER_LIST"] as List<SYSA001A_LIST>;
+    var TEXTAREA_HEIGHT = 350;
+}
+
+<style>
+    .dx-field-label{
+        font-size: medium;
+    }
+
+    .dx-field-label {
+        float: left;
+        width: 70%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .dx-field-value:not(.dx-switch):not(.dx-checkbox):not(.dx-button), .dx-field-value-static {
+        width: 30%;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="tabs-container" id="systemTab">
+                <ul class="nav nav-tabs">
+                    @foreach (SYSA001A_LIST item in MASTER_LIST)
+                    {
+                        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-@item.SYSGRPCD"> <i class="@item.SYSGRPICON"></i>@item.SYSNAME</a></li>
+                    }
+                </ul>
+                <div class="tab-content">
+                    @foreach (SYSA001A_LIST item in MASTER_LIST)
+                    {
+                        <div id="tab-@item.SYSGRPCD" class="tab-pane">
+                            <div class="panel-body">
+                                <div class="demo-container">
+                                    <div class="form">
+                                        <div class="dx-fieldset">
+                                            @if (!String.IsNullOrEmpty(@item.TITLE1))
+                                            {
+                                                <div class="dx-field">
+                                                    <div class="dx-field-label"><b>@item.TITLE1</b><p><small>@item.DESCRIPTION1</small></p></div>
+                                                    <div class="dx-field-value">
+                                                        @switch (item.CONTROL1)
+                                                        {
+                                                            case "TEXTBOX":
+                                                                @(Html.DevExtreme().TextBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE1")
+                                                                .Value(item.ATTRIBUTE1)
+                                                                )
+                                                                break;
+                                                            case "NUMBER":
+                                                                @(Html.DevExtreme().NumberBox()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE1")
+                                                                    .Value(Convert.ToDouble(item.ATTRIBUTE1))
+                                                                )
+                                                                break;
+                                                            case "SWITCH":
+                                                                @(Html.DevExtreme().Switch()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE1")
+                                                                    .Value(Boolean.Parse(item.ATTRIBUTE1))
+                                                                    .Width(50)
+                                                                )
+                                                                break;
+                                                            case "TEXTAREA":
+                                                                @(Html.DevExtreme().TextArea()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE1")
+                                                                    .Height(@TEXTAREA_HEIGHT)
+                                                                    .Value(item.ATTRIBUTE1)
+                                                                )
+                                                                break;
+                                                            case "LABEL":
+                                                                @item.ATTRIBUTE1;
+                                                                break;
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (!String.IsNullOrEmpty(@item.TITLE2))
+                                            {
+                                                <div class="dx-field">
+                                                    <div class="dx-field-label"><b>@item.TITLE2</b><p><small>@item.DESCRIPTION2</small></p></div>
+                                                    <div class="dx-field-value">
+                                                        @switch (item.CONTROL2)
+                                                        {
+                                                            case "TEXTBOX":
+                                                                @(Html.DevExtreme().TextBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE2")
+                                                                .Value(item.ATTRIBUTE2)
+                                                                )
+                                                                break;
+                                                            case "NUMBER":
+                                                                @(Html.DevExtreme().NumberBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE2")
+                                                                .Value(Convert.ToDouble(item.ATTRIBUTE2))
+                                                                )
+                                                                break;
+                                                            case "SWITCH":
+                                                                @(Html.DevExtreme().Switch()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE2")
+                                                                    .Value(Boolean.Parse(item.ATTRIBUTE2))
+                                                                    .Width(50)
+                                                                )
+                                                                break;
+                                                            case "TEXTAREA":
+                                                                @(Html.DevExtreme().TextArea()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE2")
+                                                                    .Height(@TEXTAREA_HEIGHT)
+                                                                    .Value(item.ATTRIBUTE2)
+                                                                )
+                                                                break;
+                                                            case "LABEL":
+                                                                @item.ATTRIBUTE2;
+                                                                break;
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (!String.IsNullOrEmpty(@item.TITLE3))
+                                            {
+                                                <div class="dx-field">
+                                                    <div class="dx-field-label"><b>@item.TITLE3</b><p><small>@item.DESCRIPTION3</small></p></div>
+                                                    <div class="dx-field-value">
+                                                        @switch (item.CONTROL3)
+                                                        {
+                                                            case "TEXTBOX":
+                                                                @(Html.DevExtreme().TextBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE3")
+                                                                .Value(item.ATTRIBUTE3)
+                                                                )
+                                                                break;
+                                                            case "NUMBER":
+                                                                @(Html.DevExtreme().NumberBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE3")
+                                                                .Value(Convert.ToDouble(item.ATTRIBUTE3))
+                                                                )
+                                                                break;
+                                                            case "SWITCH":
+                                                                @(Html.DevExtreme().Switch()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE3")
+                                                                    .Value(Boolean.Parse(item.ATTRIBUTE3))
+                                                                    .Width(50)
+                                                                )
+                                                                break;
+                                                            case "TEXTAREA":
+                                                                @(Html.DevExtreme().TextArea()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE3")
+                                                                    .Height(@TEXTAREA_HEIGHT)
+                                                                    .Value(item.ATTRIBUTE3)
+                                                                )
+                                                                break;
+                                                            case "LABEL":
+                                                                @item.ATTRIBUTE3;
+                                                                break;
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (!String.IsNullOrEmpty(@item.TITLE4))
+                                            {
+                                                <div class="dx-field">
+                                                    <div class="dx-field-label"><b>@item.TITLE4</b><p><small>@item.DESCRIPTION4</small></p></div>
+                                                    <div class="dx-field-value">
+                                                        @switch (item.CONTROL4)
+                                                        {
+                                                            case "TEXTBOX":
+                                                                @(Html.DevExtreme().TextBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE4")
+                                                                .Value(item.ATTRIBUTE4)
+                                                                )
+                                                                break;
+                                                            case "NUMBER":
+                                                                @(Html.DevExtreme().NumberBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE4")
+                                                                .Value(Convert.ToDouble(item.ATTRIBUTE4))
+                                                                )
+                                                                break;
+                                                            case "SWITCH":
+                                                                @(Html.DevExtreme().Switch()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE4")
+                                                                    .Value(Boolean.Parse(item.ATTRIBUTE4))
+                                                                    .Width(50)
+                                                                )
+                                                                break;
+                                                            case "TEXTAREA":
+                                                                @(Html.DevExtreme().TextArea()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE4")
+                                                                    .Height(@TEXTAREA_HEIGHT)
+                                                                    .Value(item.ATTRIBUTE4)
+                                                                )
+                                                                break;
+                                                            case "LABEL":
+                                                                @item.ATTRIBUTE4;
+                                                                break;
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (!String.IsNullOrEmpty(@item.TITLE5))
+                                            {
+                                                <div class="dx-field">
+                                                    <div class="dx-field-label"><b>@item.TITLE5</b><p><small>@item.DESCRIPTION5</small></p></div>
+                                                    <div class="dx-field-value">
+                                                        @switch (item.CONTROL5)
+                                                        {
+                                                            case "TEXTBOX":
+                                                                @(Html.DevExtreme().TextBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE5")
+                                                                .Value(item.ATTRIBUTE5)
+                                                                )
+                                                                break;
+                                                            case "NUMBER":
+                                                                @(Html.DevExtreme().NumberBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE5")
+                                                                .Value(Convert.ToDouble(item.ATTRIBUTE5))
+                                                                )
+                                                                break;
+                                                            case "SWITCH":
+                                                                @(Html.DevExtreme().Switch()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE5")
+                                                                    .Value(Boolean.Parse(item.ATTRIBUTE5))
+                                                                    .Width(50)
+                                                                )
+                                                                break;
+                                                            case "TEXTAREA":
+                                                                @(Html.DevExtreme().TextArea()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE5")
+                                                                    .Height(@TEXTAREA_HEIGHT)
+                                                                    .Value(item.ATTRIBUTE5)
+                                                                )
+                                                                break;
+                                                            case "LABEL":
+                                                                @item.ATTRIBUTE5;
+                                                                break;
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (!String.IsNullOrEmpty(@item.TITLE6))
+                                            {
+                                                <div class="dx-field">
+                                                    <div class="dx-field-label"><b>@item.TITLE6</b><p><small>@item.DESCRIPTION6</small></p></div>
+                                                    <div class="dx-field-value">
+                                                        @switch (item.CONTROL6)
+                                                        {
+                                                            case "TEXTBOX":
+                                                                @(Html.DevExtreme().TextBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE6")
+                                                                .Value(item.ATTRIBUTE6)
+                                                                )
+                                                                break;
+                                                            case "NUMBER":
+                                                                @(Html.DevExtreme().NumberBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE6")
+                                                                .Value(Convert.ToDouble(item.ATTRIBUTE6))
+                                                                )
+                                                                break;
+                                                            case "SWITCH":
+                                                                @(Html.DevExtreme().Switch()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE6")
+                                                                    .Value(Boolean.Parse(item.ATTRIBUTE6))
+                                                                    .Width(50)
+                                                                )
+                                                                break;
+                                                            case "TEXTAREA":
+                                                                @(Html.DevExtreme().TextArea()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE6")
+                                                                    .Height(@TEXTAREA_HEIGHT)
+                                                                    .Value(item.ATTRIBUTE6)
+                                                                )
+                                                                break;
+                                                            case "LABEL":
+                                                                @item.ATTRIBUTE6;
+                                                                break;
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (!String.IsNullOrEmpty(@item.TITLE7))
+                                            {
+                                                <div class="dx-field">
+                                                    <div class="dx-field-label"><b>@item.TITLE7</b><p><small>@item.DESCRIPTION7</small></p></div>
+                                                    <div class="dx-field-value">
+                                                        @switch (item.CONTROL7)
+                                                        {
+                                                            case "TEXTBOX":
+                                                                @(Html.DevExtreme().TextBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE7")
+                                                                .Value(item.ATTRIBUTE7)
+                                                                )
+                                                                break;
+                                                            case "NUMBER":
+                                                                @(Html.DevExtreme().NumberBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE7")
+                                                                .Value(Convert.ToDouble(item.ATTRIBUTE7))
+                                                                )
+                                                                break;
+                                                            case "SWITCH":
+                                                                @(Html.DevExtreme().Switch()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE7")
+                                                                    .Value(Boolean.Parse(item.ATTRIBUTE7))
+                                                                    .Width(50)
+                                                                )
+                                                                break;
+                                                            case "TEXTAREA":
+                                                                @(Html.DevExtreme().TextArea()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE7")
+                                                                    .Height(@TEXTAREA_HEIGHT)
+                                                                    .Value(item.ATTRIBUTE7)
+                                                                )
+                                                                break;
+                                                            case "LABEL":
+                                                                @item.ATTRIBUTE7;
+                                                                break;
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (!String.IsNullOrEmpty(@item.TITLE8))
+                                            {
+                                                <div class="dx-field">
+                                                    <div class="dx-field-label"><b>@item.TITLE8</b><p><small>@item.DESCRIPTION8</small></p></div>
+                                                    <div class="dx-field-value">
+                                                        @switch (item.CONTROL8)
+                                                        {
+                                                            case "TEXTBOX":
+                                                                @(Html.DevExtreme().TextBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE8")
+                                                                .Value(item.ATTRIBUTE8)
+                                                                )
+                                                                break;
+                                                            case "NUMBER":
+                                                                @(Html.DevExtreme().NumberBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE8")
+                                                                .Value(Convert.ToDouble(item.ATTRIBUTE8))
+                                                                )
+                                                                break;
+                                                            case "SWITCH":
+                                                                @(Html.DevExtreme().Switch()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE8")
+                                                                    .Value(Boolean.Parse(item.ATTRIBUTE8))
+                                                                    .Width(50)
+                                                                )
+                                                                break;
+                                                            case "TEXTAREA":
+                                                                @(Html.DevExtreme().TextArea()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE8")
+                                                                    .Height(@TEXTAREA_HEIGHT)
+                                                                    .Value(item.ATTRIBUTE8)
+                                                                )
+                                                                break;
+                                                            case "LABEL":
+                                                                @item.ATTRIBUTE8;
+                                                                break;
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (!String.IsNullOrEmpty(@item.TITLE9))
+                                            {
+                                                <div class="dx-field">
+                                                    <div class="dx-field-label"><b>@item.TITLE9</b><p><small>@item.DESCRIPTION9</small></p></div>
+                                                    <div class="dx-field-value">
+                                                        @switch (item.CONTROL9)
+                                                        {
+                                                            case "TEXTBOX":
+                                                                @(Html.DevExtreme().TextBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE9")
+                                                                .Value(item.ATTRIBUTE9)
+                                                                )
+                                                                break;
+                                                            case "NUMBER":
+                                                                @(Html.DevExtreme().NumberBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE9")
+                                                                .Value(Convert.ToDouble(item.ATTRIBUTE9))
+                                                                )
+                                                                break;
+                                                            case "SWITCH":
+                                                                @(Html.DevExtreme().Switch()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE9")
+                                                                    .Value(Boolean.Parse(item.ATTRIBUTE9))
+                                                                    .Width(50)
+                                                                )
+                                                                break;
+                                                            case "TEXTAREA":
+                                                                @(Html.DevExtreme().TextArea()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE9")
+                                                                    .Height(@TEXTAREA_HEIGHT)
+                                                                    .Value(item.ATTRIBUTE9)
+                                                                )
+                                                                break;
+                                                            case "LABEL":
+                                                                @item.ATTRIBUTE9;
+                                                                break;
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            @if (!String.IsNullOrEmpty(@item.TITLE10))
+                                            {
+                                                <div class="dx-field">
+                                                    <div class="dx-field-label"><b>@item.TITLE10</b><p><small>@item.DESCRIPTION10</small></p></div>
+                                                    <div class="dx-field-value">
+                                                        @switch (item.CONTROL10)
+                                                        {
+                                                            case "TEXTBOX":
+                                                                @(Html.DevExtreme().TextBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE10")
+                                                                .Value(item.ATTRIBUTE10)
+                                                                )
+                                                                break;
+                                                            case "NUMBER":
+                                                                @(Html.DevExtreme().NumberBox()
+                                                                .ID(item.SYSGRPCD + "_ATTRIBUTE10")
+                                                                .Value(Convert.ToDouble(item.ATTRIBUTE10))
+                                                                )
+                                                                break;
+                                                            case "SWITCH":
+                                                                @(Html.DevExtreme().Switch()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE10")
+                                                                    .Value(Boolean.Parse(item.ATTRIBUTE10))
+                                                                    .Width(50)
+                                                                )
+                                                                break;
+                                                            case "TEXTAREA":
+                                                                @(Html.DevExtreme().TextArea()
+                                                                    .ID(item.SYSGRPCD + "_ATTRIBUTE10")
+                                                                    .Height(@TEXTAREA_HEIGHT)
+                                                                    .Value(item.ATTRIBUTE10)
+                                                                )
+                                                                break;
+                                                            case "LABEL":
+                                                                @item.ATTRIBUTE10;
+                                                                break;
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            <div class="dx-field">
+                                                <div class="dx-field-value-static">
+                                                    @if (item.SYSCODE != "0")
+                                                    {
+                                                        @(Html.DevExtreme().Button()
+                                                        .Text("Update")
+                                                        .Type(ButtonType.Success)
+                                                        .Width(150)
+                                                        //.Disabled(new JS("!iudAuth()"))
+                                                        .OnClick("function(){saveData('" + @item.SYSTEMID + "','" + @item.SYSGRPCD + "');}")
+                                                        )
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+
+        $(document).ready(function () { 
+            $('#systemTab a:first').tab('show');
+        });
+
+        function saveData(SYSTEMID, SYSGRPCD) {
+            var data = {};
+            data.key = SYSTEMID;
+            data.values = LoadUpdateParams(SYSGRPCD);
+
+            $.ajax({
+                type: "PUT",
+                url: '@Url.Action("put", "SYSA001WebApi", new { httproute = "DefaultApi" })',
+                data: data,
+                success: function (data) {
+                    DevExpress.ui.notify("정상적으로 처리되었습니다", 'success', globalNotificationSuccessTime);
+                },
+                error: function (request, status, error) {
+                    DevExpress.ui.notify(error, 'error', globalNotificationErrorTime);
+                }
+            });
+        }
+
+        function LoadUpdateParams(SYSGRPCD) {
+
+            var jsonStringTemp = JSON.stringify({
+                PLANT_CODE: 'P010',
+                SYSGRPCD: SYSGRPCD,
+                ATTRIBUTE1: getItemValue(SYSGRPCD, '1'),
+                ATTRIBUTE2: getItemValue(SYSGRPCD, '2'),
+                ATTRIBUTE3: getItemValue(SYSGRPCD, '3'),
+                ATTRIBUTE4: getItemValue(SYSGRPCD, '4'),
+                ATTRIBUTE5: getItemValue(SYSGRPCD, '5'),
+                ATTRIBUTE6: getItemValue(SYSGRPCD, '6'),
+                ATTRIBUTE7: getItemValue(SYSGRPCD, '7'),
+                ATTRIBUTE8: getItemValue(SYSGRPCD, '8'),
+                ATTRIBUTE9: getItemValue(SYSGRPCD, '9'),
+                ATTRIBUTE10: getItemValue(SYSGRPCD, '10')
+            });
+
+            return jsonStringTemp;
+        }
+
+        function getItemValue(SYSGRPCD, ATTRIBUTE_NUM) {
+            var item = '';
+            var v = '';
+
+            try {
+                item = $('#' + SYSGRPCD + '_ATTRIBUTE' + ATTRIBUTE_NUM).dxTextBox('instance');
+            }
+            catch (e) {
+                item = undefined;
+            }
+
+            if (item == undefined) {
+                try {
+                    item = $('#' + SYSGRPCD + '_ATTRIBUTE' + ATTRIBUTE_NUM).dxNumberBox('instance');
+                }
+                catch (e) {
+                    item = undefined;
+                }
+
+                if (item == undefined) {
+                    try {
+                        item = $('#' + SYSGRPCD + '_ATTRIBUTE' + ATTRIBUTE_NUM).dxSwitch('instance');
+                    }
+                    catch (e) {
+                        item = undefined;
+                    }
+
+                    if (item == undefined) {
+                        try {
+                            item = $('#' + SYSGRPCD + '_ATTRIBUTE' + ATTRIBUTE_NUM).dxTextArea('instance');
+                        }
+                        catch (e) {
+                            item = undefined;
+                        }
+
+                        if (item == undefined) {
+                            v = null;
+                        }
+                        else {
+                            v = item.option('value');
+                        }
+                    }
+                    else {
+                        v = item.option('value');
+                    }
+                }
+                else {
+                    v = item.option('value');
+                }
+            }
+            else {
+                v = item.option('value');
+            }
+
+            return v;
+        }
+
+    </script>
+
+}

@@ -1,0 +1,92 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<VOCHistory>()
+                    .ID("grdVOC")
+                    .DataSource(d => d.WebApi().Controller("MSTZ003WebApi").Key("VOCID"))
+                    .ShowBorders(true)
+                    .Paging(p => p.PageSize(25).Enabled(true))
+                    .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                    .Editing(e =>
+                        e.Mode(GridEditMode.Batch)
+                            .AllowAdding(true)
+                            .AllowUpdating(true)
+                            .AllowDeleting(true)
+                            .SelectTextOnEditStart(true)
+                    )
+                    .ShowRowLines(true)
+                    .Columns(columns =>
+                    {
+                        columns.AddFor(m => m.MENUCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("MENUCODE")
+                              .LoadAction("MENU_LIST"))
+                              .DisplayExpr("MENUNAME")
+                              .ValueExpr("MENUCODE")
+                              .AllowClearing(true)
+                          );
+                        columns.AddFor(m => m.CONTENT);
+                        columns.AddFor(m => m.DETAILCONTENT).EditCellTemplate(@<text>@(Html.DevExtreme().TextArea().Height(100).Value(new JS("data.DETAILCONTENT")).OnValueChanged("function(e){setValue(e.value);}"))</text>);
+                        columns.AddFor(m => m.VOCTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("VOCTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                        columns.AddFor(m => m.REQUESTDATE).DataType(GridColumnDataType.Date).Format(f => f.Type(Format.ShortDate));
+                        columns.AddFor(m => m.STARTDATE).DataType(GridColumnDataType.Date).Format(f => f.Type(Format.ShortDate));
+                        columns.AddFor(m => m.ENDDATE).DataType(GridColumnDataType.Date).Format(f => f.Type(Format.ShortDate));
+                        columns.AddFor(m => m.RESULT)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("VOCRESULT_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                        columns.AddFor(m => m.NOTE).EditCellTemplate(@<text>@(Html.DevExtreme().TextArea().Value(new JS("data.NOTE")).OnValueChanged("function(e){setValue(e.value);}"))</text>);
+                        columns.AddFor(m => m.CREATEUSER);
+                        columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime)).SortOrder(SortOrder.Desc);
+                        columns.AddFor(m => m.RECENTUSER);
+                        columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                    })
+                    .RemoteOperations(true)
+                    .FilterPanel(f => f.Visible(true))
+                    .ColumnAutoWidth(true)
+                    .Export(e=>e.Enabled(true))
+                    .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                    .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                    .SearchPanel(searchPanel => searchPanel
+                        .Visible(true)
+                        .Width(180)
+                        .Placeholder("Search...")
+                    )
+                    .FilterRow(filterRow => filterRow
+                        .Visible(true)
+                        .ApplyFilter(GridApplyFilterMode.Auto)
+                    )
+                    .AllowColumnResizing(true)
+                    .RowAlternationEnabled(true)
+                    .OnInitialized("grdVOC_OnInitialized")
+                    .Option("COMPLETE_FIELD", new object[] { "RESULT", "R02" })
+                    .Option("FAIL_FIELD", new object[] { "RESULT", "R01" })
+            )
+        </div> 
+    </div>
+</div>
+
+@Html.Partial("_DropdownPartial")
+
+
+<script>
+    function grdVOC_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

@@ -1,0 +1,101 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.EQP.EQPD;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<EQPD003_LIST>()
+                                              .ID("grdEquipmentMaintenanceHistory")
+                                              .DataSource(d => d.WebApi().Controller("EQPD003WebApi").Key("MAINTENANCEHISSEQ"))
+                                              .Columns(columns =>
+                                              {
+       
+                                                  columns.AddFor(m => m.MAINTENANCEDATE).Width(170)
+                                                      .Format(f => f.Type(Format.ShortDate))
+                                                      .SelectedFilterOperation(FilterOperations.Between)
+                                                      .FilterValue(new object[] { DateTime.Now.Date, DateTime.Now.AddDays(+7).Date })
+                                                      .SortOrder(SortOrder.Desc).SortIndex(1).AllowEditing(false);
+
+                                                  columns.AddFor(m => m.MAINTENANCECODE).AllowEditing(false);
+                                                  columns.AddFor(m => m.MAINTENANCETYPE)
+                                                      .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                          .Controller("COMA003WebApi")
+                                                          .Key("SYSCODE")
+                                                          .LoadAction("MAINTENANCETYPE_LIST")
+                                                          )
+                                                          .DisplayExpr("SYSCODENAME")
+                                                          .ValueExpr("SYSCODE")
+                                                      );
+                                                  columns.AddFor(m => m.EQUIPMENTCODE)
+                                                      .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                          .Controller("COMA001WebApi")
+                                                          .Key("EQUIPMENTCODE")
+                                                          .LoadAction("EQUIPMENT_LIST")
+                                                          )
+                                                          .DisplayExpr("EQUIPMENTNAME")
+                                                          .ValueExpr("EQUIPMENTCODE")
+                                                      );
+                                                  columns.AddFor(m => m.MAINTENANCECONTENT)
+                                                      .EditCellTemplate(@<text>@(Html.DevExtreme().TextArea().Height(100).Value(new JS("data.MAINTENANCECONTENT")).OnValueChanged("function(e){setValue(e.value);}"))</text>);
+                                                  columns.AddFor(m => m.ACTIVITIECONTENT)
+                                                      .EditCellTemplate(@<text>@(Html.DevExtreme().TextArea().Height(100).Value(new JS("data.ACTIVITIECONTENT")).OnValueChanged("function(e){setValue(e.value);}"))</text>);
+                                                  columns.AddFor(m => m.MAINTENANCECYCLE);
+                                                  columns.AddFor(m => m.BASEDATE).Visible(true).AllowEditing(false);
+                                                  columns.AddFor(m => m.FIRSTMAINTENANCEDATE).Visible(true).AllowEditing(false);
+                                                  columns.AddFor(m => m.NEXTMAINTENANCEDATE).Visible(true).AllowEditing(false);
+
+                                                  columns.AddFor(m => m.MAINTENANCEWORKER).AllowEditing(false)
+                                                      .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                          .Controller("COMA001WebApi").Key("EMPCODE")
+                                                          .LoadAction("HR_LIST")
+                                                          .LoadParams(new { Culture = new JS("function() { return locale; }") }))
+                                                          .DisplayExpr("EMPNAME")
+                                                          .ValueExpr("EMPCODE")
+                                                      );
+
+                                              })
+                                          .RemoteOperations(true)
+                                          .OnInitialized("grdEquipmentMaintenanceHistory_OnInitialized")
+                                          .FilterPanel(f => f.Visible(true))
+                                          .ColumnAutoWidth(true)
+                                          .Paging(p => p.PageSize(25).Enabled(true))
+                                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                          .ShowRowLines(true)
+                                          .SearchPanel(searchPanel => searchPanel
+                                              .Visible(true)
+                                              .Width(180)
+                                              .Placeholder("Search...")
+                                          )
+                                          .FilterRow(filterRow => filterRow
+                                              .Visible(true)
+                                              .ApplyFilter(GridApplyFilterMode.Auto)
+                                          )
+                                          .ShowBorders(true)
+                                          .AllowColumnResizing(true)
+                                          .Editing(e =>
+                                              e.Mode(GridEditMode.Batch)
+                                          )
+                                          .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+            //.Option("KEY_FIELD", new object[] { "PLANTCODE", "CHECKITEMCODE" })
+            //.Option("INIT_FIELD", new object[] { "USEYN", "PLANTCODE" })
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdEquipmentMaintenanceHistory_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>
+
+
+@Html.Partial("_DropdownPartial")

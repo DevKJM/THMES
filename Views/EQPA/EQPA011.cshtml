@@ -1,0 +1,271 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.EQP.EQPA;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 mt-2">
+
+            @(Html.DevExtreme().Form<EQPA011_LIST>()
+                                .ID("form")
+                                .ColCount(5)
+                                .Items(items =>
+                                {
+                                    items.AddSimple()
+                                        .Editor(e => e
+                                            .DateBox().ID("dtWorkDate")
+                                            .ReadOnly(false)
+                                            .Type(DateBoxType.Date)
+                                            //.DisplayFormat(Format.ShortDate)
+                                            .DisplayFormat(Format.MonthAndYear)
+                                            .Value(new JS("new Date()"))
+                                            .Option("maxZoomLevel", "year")
+                                            .Option("minZoomLevel", "century")
+                                            .Width("100%")
+                                            .OnValueChanged("WorkDate_OnValueChanged")
+                                        ).Name("dtWorkDate")
+                                        .Label(T => T.Text(LabelText.WORKDATE)).ColSpan(1);
+
+                                    items.AddSimpleFor(m => m.EQUIPMENTCODE)
+                                        .Editor(e => e.Lookup()
+                                            .DataSource(d => d.WebApi().Controller("EQPB011WebApi")
+                                                .Key("EQUIPMENTCODE")
+                                                .LoadAction("EQUIPMENT_LIST")
+                                            )
+                                            .DisplayExpr("EQUIPMENTNAME")
+                                            .ValueExpr("EQUIPMENTCODE")
+                                            .CloseOnOutsideClick(true)
+                                            .OnValueChanged("EQUIPMENTCODE_OnValueChanged")
+                                            .DataSourceOptions(d=>d.Sort(s=>s.AddSorting("EQUIPMENTTYPE",false).AddSorting("EQUIPMENTCODE",false)))
+                                        )
+                                        .ColSpan(1);
+
+                                    items.AddEmpty().ColSpan(3);
+
+                                    items.AddSimple().ColSpan(5)
+                                            .Template(@<text>
+                                                @(Html.DevExtreme()
+                                                        .DataGrid<EQPA011_LIST>()
+                                                        .ID("grdConditionItem")
+                                                        .DataSource(d => d.WebApi().Controller("EQPA011WebApi").LoadAction("get").Key("ROWKEY").OnBeforeSend("grdConditionItem_OnBeforeSend").OnLoaded("grdConditionItem_OnLoaded"))
+                                                        .Columns(columns =>
+                                                        {
+                                                            columns.AddFor(m => m.ROWKEY).Visible(false).AllowEditing(false);
+                                                            columns.AddFor(m => m.EQUIPMENTCODE).Visible(false).AllowEditing(false);
+                                                            columns.AddFor(m => m.CONDITIONITEMGROUP).Visible(false).AllowEditing(false);
+                                                            columns.AddFor(m => m.CONDITIONITEMGROUPNAME).Visible(true).AllowEditing(false);
+                                                            columns.AddFor(m => m.CONDITIONITEMCODE).Visible(false).AllowEditing(false).SortOrder(SortOrder.Asc);
+                                                            columns.AddFor(m => m.CONDITIONITEMNAME).Visible(true).AllowEditing(false);
+                                                            columns.AddFor(m => m.DEFAULTSPEC).Visible(false).AllowEditing(false);
+                                                            columns.AddFor(m => m.SPEC).Visible(true).AllowEditing(false);
+                                                            columns.AddFor(m => m.INSPECTIONCLASSIFY).Visible(false).AllowEditing(false);
+                                                            columns.AddFor(m => m.INSPECTIONCLASSIFYNAME).Visible(true).AllowEditing(false);
+
+                                                            columns.AddFor(m => m.DAY1).Caption("1").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY2).Caption("2").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY3).Caption("3").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY4).Caption("4").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY5).Caption("5").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY6).Caption("6").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY7).Caption("7").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY8).Caption("8").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY9).Caption("9").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY10).Caption("10").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY11).Caption("11").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY12).Caption("12").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY13).Caption("13").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY14).Caption("14").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY15).Caption("15").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY16).Caption("16").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY17).Caption("17").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY18).Caption("18").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY19).Caption("19").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY20).Caption("20").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY21).Caption("21").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY22).Caption("22").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY23).Caption("23").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY24).Caption("24").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY25).Caption("25").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY26).Caption("26").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY27).Caption("27").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY28).Caption("28").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY29).Caption("29").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY30).Caption("30").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+                                                            columns.AddFor(m => m.DAY31).Caption("31").AllowEditing(true).Alignment(HorizontalAlignment.Center).DataType(GridColumnDataType.Number);
+
+                                                            columns.AddFor(m => m.WORKER).Visible(false);
+                                                        })
+                                                        .RemoteOperations(true)
+                                                        .ColumnAutoWidth(true)
+                                                        .Paging(p => p.PageSize(25).Enabled(true))
+                                                        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                        .AllowColumnResizing(true)
+                                                        .RowAlternationEnabled(true)
+                                                        .NoDataText("")
+
+                                                              .Editing(e =>
+                                                              {
+                                                                  e.Mode(GridEditMode.Batch)
+                                                                      .AllowUpdating(new JS("iudAuth()"));
+
+                                                                  e.UseIcons(true);
+                                                              })
+                                                        .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                                                      .OnCellPrepared("grdConditionItem_OnCellPrepared")
+                                                      .OnCellClick("grdConditionItem_OnCellClick")
+                                                      .OnEditorPreparing("grdConditionItem_OnEditorPreparing")
+                                                      .OnInitialized("grdConditionItem_OnInitialized")
+                                                      .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                                                      .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                                                )
+                                            </text>);
+
+            })
+
+            )
+
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function grdConditionItem_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdConditionItem_OnCellPrepared(info) {
+        var dd = info;
+
+    }
+
+    function grdConditionItem_OnCellClick(e) {
+
+        //var clickedDataField = e.column.dataField;
+
+        //if (e.column.dataField.substr(0, 3) == "DAY") {
+
+        //    //칼럼명을 가져온다.
+        //    var selectedColname = e.column.dataField.substr(0, 3).concat(e.columnIndex - 3);
+
+        //    //클릭한 셀의 앞 데이터를 체크한다.
+        //    if (((e.columnIndex - 3) - 1) >= 1) {
+
+        //        var prevseColname = e.column.dataField.substr(0, 3).concat(((e.columnIndex - 3) - 1));
+
+        //        var prevseCellData = $('#grdDailyCheck').dxDataGrid('instance').cellValue(e.rowIndex, prevseColname);
+
+        //        if (prevseCellData == null || prevseCellData == "") {
+
+        //            DevExpress.ui.dialog.alert("전일 점검내용이 누락되었습니다.", "warning");
+        //            return;
+        //        }
+        //    }
+
+        //    var selectedCellData = $('#grdDailyCheck').dxDataGrid('instance').cellValue(e.rowIndex, selectedColname);
+
+        //    if (selectedCellData == null || selectedCellData == "") {
+
+        //        selectedCellData = "O";
+        //    } else {
+        //        selectedCellData = "";
+        //    }
+
+        //    $('#grdDailyCheck').dxDataGrid('instance').cellValue(e.rowIndex, selectedColname, selectedCellData);
+        //}
+    }
+
+    function grdConditionItem_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var dxDateBox = $('#dtWorkDate').dxDateBox('instance');
+            var selectDate;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.Date = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.EQUIPMENTCODE = $('#form').dxForm('instance').getEditor("EQUIPMENTCODE").option('value');
+        } else if (method == "update") {
+            var dxDateBox = $('#dtWorkDate').dxDateBox('instance');
+            var selectDate;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.selectDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.selectedEquipmentCode = $('#form').dxForm('instance').getEditor("EQUIPMENTCODE").option('value');
+
+        }
+    }
+
+    function grdConditionItem_OnEditorPreparing(e) {
+
+        //if (e.parentType == 'dataRow' && (e.dataField == 'DAY1' || e.dataField == 'DAY2' || e.dataField == 'DAY3' || e.dataField == 'DAY4' || e.dataField == 'DAY5'
+        //    || e.dataField == 'DAY6' || e.dataField == 'DAY7' || e.dataField == 'DAY8' || e.dataField == 'DAY9' || e.dataField == 'DAY10'
+        //    || e.dataField == 'DAY11' || e.dataField == 'DAY12' || e.dataField == 'DAY13' || e.dataField == 'DAY14' || e.dataField == 'DAY15'
+        //    || e.dataField == 'DAY16' || e.dataField == 'DAY17' || e.dataField == 'DAY18' || e.dataField == 'DAY19' || e.dataField == 'DAY20'
+        //    || e.dataField == 'DAY21' || e.dataField == 'DAY22' || e.dataField == 'DAY23' || e.dataField == 'DAY24' || e.dataField == 'DAY25'
+        //    || e.dataField == 'DAY26' || e.dataField == 'DAY27' || e.dataField == 'DAY28' || e.dataField == 'DAY29' || e.dataField == 'DAY30' || e.dataField == 'DAY31')) {  
+        //    e.editorOptions.maxLength = 2;  
+        //}  
+    }
+
+    function EQUIPMENTCODE_OnValueChanged(e) {
+        GetMonthLastDay();
+
+        $('#grdConditionItem').dxDataGrid('instance').refresh();
+    }
+
+    function WorkDate_OnValueChanged(e) {
+        GetMonthLastDay();
+
+        $('#grdConditionItem').dxDataGrid('instance').refresh();
+    }
+
+    function GetMonthLastDay() {
+        var dxDateBox = $('#dtWorkDate').dxDateBox('instance');
+        var selectDate;
+
+        if (dxDateBox != undefined) {
+            selectDate = dxDateBox.option('value');
+        }
+
+        var lastDay = (new Date(selectDate.getFullYear(), selectDate.getMonth() + 1, 0)).getDate();
+
+        for (var i = 0; i < 31; i++) {
+            var colName = ("DAY").concat(i+1);
+
+            $('#grdConditionItem').dxDataGrid('instance').beginUpdate();
+
+            //안보임
+            if ((i + 1) > lastDay) {
+                $('#grdConditionItem').dxDataGrid('columnOption', colName, 'visible', false);
+            }
+            else if ((i + 1) <= lastDay) {
+                $('#grdConditionItem').dxDataGrid('columnOption', colName, 'visible', true);
+            }
+
+            $('#grdConditionItem').dxDataGrid('instance').endUpdate();
+        }
+
+    }
+
+    function grdConditionItem_OnLoaded(e) {
+
+        var d = e;
+
+        GetMonthLastDay()
+    }
+
+</script>

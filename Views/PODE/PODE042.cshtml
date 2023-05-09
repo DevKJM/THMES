@@ -1,0 +1,80 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.POD.PODE;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<PODE042_LIST>()
+                .ID("grdProductStock")
+                .DataSource(d => d.WebApi().Controller("PODE042WebApi").Key("SERIALNUMBER"))
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.CARTYPE).GroupIndex(0).AutoExpandGroup(true);
+                    columns.AddFor(m => m.COLOR).GroupIndex(1).AutoExpandGroup(true);
+                    columns.AddFor(m => m.PARTNUMBER).GroupIndex(2).AutoExpandGroup(true);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.LOTNUMBER);
+                    columns.AddFor(m => m.SERIALNUMBER);
+                    columns.AddFor(m => m.PRODUCTTYPE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA003WebApi").Key("SYSCODE")
+                            .LoadAction("PRODUCTTYPE_LIST"))
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                        ).Visible(false);
+                    columns.AddFor(m => m.INVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                })
+                .Summary(s => s.GroupItems(items =>
+                {
+                    items.AddFor(m => m.INVENTQUANTITY)
+                        .SummaryType(SummaryType.Sum)
+                        .Column("INVENTQUANTITY")
+                        .ValueFormat(Format.FixedPoint)
+                        .DisplayFormat("{0}")
+                        .ShowInGroupFooter(false)
+                        .AlignByColumn(true);
+                }))
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .Editing(e =>
+                    e.Mode(GridEditMode.Batch)
+                        .AllowAdding(false)
+                        .AllowUpdating(false)
+                        .AllowDeleting(false)
+                )
+                .RowAlternationEnabled(true)
+                .Export(e=>e.Enabled(true))
+                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                .ShowRowLines(true)
+                .OnInitialized("grdProductStock_OnInitialized")
+            )
+        </div>
+    </div>
+</div>
+<script>
+    function grdProductStock_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

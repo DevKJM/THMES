@@ -1,0 +1,23 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.MAT.MATA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.Infrastructure.DBA;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+@{
+    var dba = new XDBContext();
+    var system = dba.systemMaster.SingleOrDefault(w => w.SYSGRPCD == "PROCESSOPTION");
+    
+    if(system.ATTRIBUTE1.ToLower() == "true")
+    {
+        @Html.Partial("_MATA001PartialInspect");
+    }
+    else
+    {
+        @Html.Partial("_MATA001PartialNotInspect");
+    }
+}

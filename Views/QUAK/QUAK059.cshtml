@@ -1,0 +1,142 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="options">
+                <div class="option">
+                    <span>@LabelText.SELECT @LabelText.DATE</span>
+                    @(Html.DevExtreme().DateBox()
+                        .ID("searchFrom")
+                        .Type(DateBoxType.Date)
+                        .Value(DateTime.Now)
+                        .DisplayFormat(Format.MonthAndYear)
+                        .CalendarOptions(c=>c.MaxZoomLevel(CalendarZoomLevel.Year))
+                        .OnValueChanged("searchFrom_OnValueChanged")
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6 col-sm-6">
+            @(Html.DevExtreme().PieChart()
+            .ID("chtDefMonth")
+            .InnerRadius(0.2)
+            .AdaptiveLayout(l => l.KeepLabels(true))
+            .ResolveLabelOverlapping(PieChartResolveLabelOverlapping.Shift)
+            .Palette(VizPalette.Material)
+            .DataSource(d => d.WebApi()
+                .Controller("QUAK059WebApi")
+                .Key("DEFECTCODE")
+                .LoadAction("getChartMonth")
+                .OnBeforeSend("chtDefMonth_OnBeforeSend")
+            )
+            .Series(s => s
+                .Add()
+                .ArgumentField("DEFECTNAME")
+                .ValueField("RATIO")
+                .Label(l => l
+                    .Visible(true)
+                    .Format(f => f.Type(Format.Percent).Precision(0))
+                    .Connector(c => c
+                        .Visible(true)
+                        .Width(1)
+                    ).CustomizeText(@<text>
+                        function(arg) {
+                            console.log(arg);
+                            return arg.argumentText + '<br />'+ " (" + arg.percentText + ")";
+                        } </text>)
+                )
+            )
+            .Title("10월 불량 발생 현황")
+            .Legend(l=>l.Orientation(Orientation.Horizontal)
+                        .ItemTextPosition(Position.Top)
+                        .ItemsAlignment(HorizontalAlignment.Center)
+                        .VerticalAlignment(VerticalEdge.Top)
+                        .HorizontalAlignment(HorizontalAlignment.Center))
+                        
+
+        )
+        </div>
+
+        <div class="col-lg-6 col-sm-6">
+            @(Html.DevExtreme().PieChart()
+            .ID("chtDefYear")
+            .InnerRadius(0.2)
+            .AdaptiveLayout(l => l.KeepLabels(true))
+            .ResolveLabelOverlapping(PieChartResolveLabelOverlapping.Shift)
+            .Palette(VizPalette.Material)
+            .DataSource(d => d.WebApi()
+                .Controller("QUAK059WebApi")
+                .Key("DEFECTCODE")
+                .LoadAction("getChartYear")
+                .OnBeforeSend("chtDefYear_OnBeforeSend")
+            )
+            .Series(s => s
+                .Add()
+                .ArgumentField("DEFECTNAME")
+                .ValueField("RATIO")
+                .Label(l => l
+                    .Visible(true)
+                    .Format(f => f.Type(Format.Percent).Precision(0))
+                    .Connector(c => c
+                        .Visible(true)
+                        .Width(1)
+                    ).CustomizeText(@<text>
+                        function(arg) {
+                            console.log(arg);
+                            return arg.argumentText + '<br />'+ " (" + arg.percentText + ")";
+                        } </text>)
+                )
+            )
+            .Title("1~12월 불량 발생 현황")
+            .Legend(l=>l.Orientation(Orientation.Horizontal)
+                        .ItemTextPosition(Position.Top)
+                        .ItemsAlignment(HorizontalAlignment.Center)
+                        .VerticalAlignment(VerticalEdge.Top)
+                        .HorizontalAlignment(HorizontalAlignment.Center))
+        )
+        </div>
+    </div>
+</div>
+<script>
+
+    $(function(){
+        setChartTitle();
+    })
+
+    function searchFrom_OnValueChanged(e) {
+        setChartTitle();
+    }
+
+    function setChartTitle() {
+        var year = ($('#searchFrom').dxDateBox('instance').option("value")).getFullYear();
+        var month = ($('#searchFrom').dxDateBox('instance').option("value")).getMonth();
+
+        $("#chtDefMonth").dxPieChart("instance").option("title", (month + 1).toString() + "월 불량 발생 현황");
+        $("#chtDefYear").dxPieChart("instance").option("title", year.toString() + "년 불량 발생 현황");
+    }
+    
+    function chtDefMonth_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var searchFrom = $('#searchFrom').dxDateBox('instance').option("value");
+            ajaxOptions.data.searchDate = Globalize.formatDate((searchFrom),{dateTime:'short'});
+        }
+    }
+
+    
+    function chtDefYear_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var searchFrom = $('#searchFrom').dxDateBox('instance').option("value");
+            ajaxOptions.data.searchDate = Globalize.formatDate((searchFrom),{dateTime:'short'});
+        }
+    }
+</script>

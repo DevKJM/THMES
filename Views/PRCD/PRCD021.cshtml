@@ -1,0 +1,1423 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCD;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-4">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.PRODUCTLIST</i></span></h4>
+            @(Html.DevExtreme().DataGrid<PRCD021A_LIST>()
+                                          .ID("grdProductList")
+                                          .DataSource(d => d.WebApi()
+                                              .Controller("PRCD021WebApi")
+                                              .OnBeforeSend("grdProductList_OnBeforeSend")
+                                              .Key("PARTNUMBERID")
+                                          )
+                                          .Columns(columns =>
+                                          {
+                                              columns.AddFor(m => m.PARTNUMBERID).Visible(false);
+                                              columns.AddFor(m => m.PARTNUMBER);
+                                              columns.AddFor(m => m.PRODUCTNAME);
+                                              columns.AddFor(m => m.PRODUCTTYPE)
+                                                  .Lookup(lookup => lookup
+                                                      .DataSource(d => d.WebApi()
+                                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                                          .LoadAction("PRODUCTTYPE_LIST"))
+                                                      .DisplayExpr("SYSCODENAME")
+                                                      .ValueExpr("SYSCODE")
+                                                  );
+                                              columns.AddFor(m => m.LOTNUMBER).Visible(false);
+                                          //columns.AddFor(m => m.SPEC);
+                                          //columns.AddFor(m => m.MEMO);
+                                      })
+                                          .FilterPanel(f => f.Visible(true)) //하단 필터 만들기 표시 여부
+                                          .ColumnAutoWidth(true)
+                                          .ShowRowLines(true)
+                                          .Paging(p => p.PageSize(25).Enabled(true))
+                                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                          //.SearchPanel(searchPanel => searchPanel
+                                          //    .Visible(true)
+                                          //    .Width(180)
+                                          //    .Placeholder("Search...")
+                                          //)
+                                          .FilterRow(filterRow => filterRow
+                                              .Visible(true)
+                                              .ApplyFilter(GridApplyFilterMode.Auto)
+                                          )
+                                          .ShowBorders(true)
+                                          .AllowColumnResizing(true)
+                                          .RowAlternationEnabled(true)
+                                          //.Export(e => e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                                          .Selection(s => s.Mode(SelectionMode.Single)) // Row 선택 모드 (단일선택)
+                                          .Option("KEY_FIELD", new object[] { "PARTNUMBER", "PRODUCTNAME" })
+                                          .OnRowClick("grdProductList_OnRowClick")
+                                          .OnToolbarPreparing("grdProductList_OnToolbarPreparing")
+            )
+        </div>
+        <div class="col-lg-8">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> CO2 용접 성적서 목록</i></span></h4>
+            @(Html.DevExtreme().DataGrid<PRCD021B_LIST>()
+                                          .ID("grdReportHis")
+                                          .DataSource(d => d.WebApi()
+                                              .Controller("PRCD021WebApi")
+                                              .LoadAction("getReportHis")
+                                              .OnBeforeSend("grdReportHis_OnBeforeSend")
+                                              .Key("REPORTSEQUENCE")
+                                          )
+                                          .Columns(columns =>
+                                          {
+                                              columns.AddFor(m => m.REPORTSEQUENCE).Visible(false);
+                                              columns.AddFor(m => m.PARTNUMBER);
+                                              columns.AddFor(m => m.LOTNUMBER).Visible(false);
+                                              columns.AddFor(m => m.REPORTFLAG).Caption("성적서분류").Visible(false);
+                                              columns.AddFor(m => m.REVISION_NO).Caption("성적서번호").SortOrder(SortOrder.Desc).Alignment(HorizontalAlignment.Center);
+
+                                              //columns.AddFor(m => m.FOLDERID).Visible(true).Width(200);
+                                              //columns.AddFor(m => m.FILEID).Visible(true).Width(200);
+
+                                              columns.AddFor(m => m.FOLDERID).Visible(false).Width(200)
+                                                  .ShowEditorAlways(true)
+                                                  .EditCellTemplate(new JS("grd_EditCellTemplate"));
+
+                                              columns.AddFor(m => m.FILEID).Visible(true).Width(200)
+                                                  .ShowEditorAlways(true)
+                                                  .EditCellTemplate(new JS("grd_EditCellTemplate")).Caption("파일받기").Alignment(HorizontalAlignment.Center);
+
+                                              columns.AddFor(m => m.FOLDERID).Type(GridCommandColumnType.Buttons).Caption("").Alignment(HorizontalAlignment.Center)
+                                                  .Buttons(b => b.Add().Text("성적서확인").OnClick("AA")).Visible(true);
+
+                                              columns.AddFor(m => m.WORKDATE).Caption("등록일자");
+                                              //columns.AddFor(m => m.CREATEDATE);
+                                              columns.AddFor(m => m.CREATEUSER);
+
+                                              //columns.AddFor(m => m.PRODUCTTYPE)
+                                              //    .Lookup(lookup => lookup
+                                              //        .DataSource(d => d.WebApi()
+                                              //            .Controller("COMA003WebApi").Key("SYSCODE")
+                                              //            .LoadAction("PRODUCTTYPE_LIST"))
+                                              //        .DisplayExpr("SYSCODENAME")
+                                              //        .ValueExpr("SYSCODE")
+                                              //    );
+                                              //columns.AddFor(m => m.SPEC);
+                                              //columns.AddFor(m => m.MEMO);
+                                          })
+                                          .RemoteOperations(true)
+                                          //.FilterPanel(f => f.Visible(true))
+                                          .ColumnAutoWidth(false)
+                                          .Height(150)
+                                          .Paging(p => p.PageSize(10).Enabled(true))
+                                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                          .SearchPanel(searchPanel => searchPanel
+                                              .Visible(true)
+                                              .Width(180)
+                                              .Placeholder("Search...")
+                                          )
+                                          //.FilterRow(filterRow => filterRow
+                                          //    .Visible(true)
+                                          //    .ApplyFilter(GridApplyFilterMode.Auto)
+                                          //)
+                                          .ShowBorders(true)
+                                          .AllowColumnResizing(true)
+                                          .Editing(e =>
+                                              e.Mode(GridEditMode.Batch)
+                                                  .AllowUpdating(false)
+                                                  .AllowAdding(false)
+                                                  .AllowDeleting(false)
+                                          )
+                                          .RowAlternationEnabled(true)
+                                          //.Export(e => e.Enabled(true))
+                                          .ShowRowLines(true)
+            )
+
+            <div style="padding-bottom: 15px"></div>
+            @using (Html.BeginForm())
+            {
+                @(Html.DevExtreme().Form()
+                                              .ID("formInfo")
+                                              .ColCount(8)
+                                              //.OnContentReady("formInfo_OnContentReady")
+                                              .ScrollingEnabled(false)
+                                              .Items(items =>
+                                              {
+                                                  items.AddEmpty().ColSpan(4);
+
+                                                  items.AddButton().ColSpan(4)
+                                                      .HorizontalAlignment(HorizontalAlignment.Left)
+                                                      .ButtonOptions(b => b.Text("사진첨부")
+                                                          .Icon("fa fa-paperclip")
+                                                          .ID("dropFileUpload")
+                                                          //.Height("90%")
+                                                          .Width("100%")
+                                                          .StylingMode(ButtonStylingMode.Outlined)
+                                                          .Type(ButtonType.Success)
+                                                          .Disabled(new JS("!iudAuth()"))
+                                                      .OnClick("dropFileUpload_OnButtonClick")
+                                                      );
+                                                  //items.AddButton().ColSpan(4)
+                                                  //    .HorizontalAlignment(HorizontalAlignment.Left)
+                                                  //    .Visible(false)
+                                                  //    .ButtonOptions(b => b.Text("사진 크게 보기")
+                                                  //        .Icon("fa fa-file-image-o")
+                                                  //        .ID("imageView")
+                                                  //        //.Height("90%")
+                                                  //        .Width("100%")
+                                                  //        .StylingMode(ButtonStylingMode.Outlined)
+                                                  //        .Type(ButtonType.Success)
+                                                  //        .Disabled(new JS("!iudAuth()"))
+                                                  //    .OnClick("imageView_OnButtonClick")
+                                                  //    );
+                                                  //items.AddSimple()
+                                                  //    .Editor(e => e.TextBox().ReadOnly(true).Value(""))
+                                                  //    .Name("REVISION_NO")
+                                                  //    .Label(T => T.Text("현개정번호"))
+                                                  //    .ColSpan(3);
+                                                  //items.AddEmpty().ColSpan(2);
+                                                  //items.AddButton().ColSpan(4)
+                                                  //    .HorizontalAlignment(HorizontalAlignment.Left)
+                                                  //    .ButtonOptions(b => b.Text(LabelText.INSERTION)
+                                                  //        .Icon("check")
+                                                  //        .ID("btnSave")
+                                                  //        //.Height("90%")
+                                                  //        .Width("100%")
+                                                  //        .StylingMode(ButtonStylingMode.Contained)
+                                                  //        .Type(ButtonType.Success)
+                                                  //        .Disabled(new JS("!iudAuth()"))
+                                                  //    //.OnClick("btnSave_OnClick")
+                                                  //    );
+
+                                              })
+                )
+            }
+
+            <div style="padding-bottom: 20px"></div>
+
+            <div class="row">
+                <div class="col-6">
+                    <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> 이미지 </i></span></h4>
+                    <img style="width:auto;height:500px;" id="inspectImage" />
+                </div>
+                <div class="col-8">
+                    @*<h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @string.Format("개정 이력") </i></span></h4>
+                        @(Html.DevExtreme().DataGrid<InspectspecImageHistory>()
+                                                                                      .ID("grdRevisionSpec")
+                                                                                      .DataSource(d => d.WebApi()
+                                                                                          .Controller("MSTL022WebApi")
+                                                                                          .Key("SEQUENCE")
+                                                                                          .LoadAction("getRevisionSpec")
+                                                                                          .OnBeforeSend("grdRevisionSpec_OnBeforeSend")
+                                                                                      )
+                                                                                      .Columns(columns =>
+                                                                                      {
+                                                                                          columns.AddFor(m => m.SEQUENCE).Visible(false);
+                                                                                          columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime)).Caption("개정일자").Width(200).Alignment(HorizontalAlignment.Center);
+                                                                                          columns.AddFor(m => m.REVISION_NO).Caption("개정번호").Width(100).Alignment(HorizontalAlignment.Center).SortOrder(SortOrder.Desc);
+                                                                                          //columns.AddFor(m => m.PARTNUMBER).Caption("자재코드").Width(120);
+                                                                                          //columns.AddFor(m => m.PARTNUMBER).Caption("자재명").Width(150);
+                                                                                          //columns.AddFor(m => m.INSPECTTYPE).Caption("검사구분").Width(100);
+                                                                                          columns.AddFor(m => m.INSPECTIMAGEID).Caption("첨부이미지").Width(200)
+                                                                                                          .ShowEditorAlways(true)
+                                                                                                          .EditCellTemplate(new JS("grd_EditCellTemplate"));
+                                                                                          columns.AddFor(m => m.MEMO).Visible(false);
+
+                                                                                          //columns.AddFor(m => m.CREATEUSER);
+                                                                                      })
+                                                                                      .RemoteOperations(true)
+                                                                                      //.FilterPanel(f => f.Visible(true))
+                                                                                      .ColumnAutoWidth(false)
+                                                                                      .Height(150)
+                                                                                      .Paging(p => p.PageSize(3).Enabled(true))
+                                                                                      .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 3, 10, 25, 50, 100, 1000 }))
+                                                                                      .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                                      //.SearchPanel(searchPanel => searchPanel
+                                                                                      //    .Visible(true)
+                                                                                      //    .Width(180)
+                                                                                      //    .Placeholder("Search...")
+                                                                                      //)
+                                                                                      //.FilterRow(filterRow => filterRow
+                                                                                      //    .Visible(true)
+                                                                                      //    .ApplyFilter(GridApplyFilterMode.Auto)
+                                                                                      //)
+                                                                                      .ShowBorders(true)
+                                                                                      .AllowColumnResizing(true)
+                                                                                      .Editing(e =>
+                                                                                          e.Mode(GridEditMode.Batch)
+                                                                                              .AllowUpdating(false)
+                                                                                              .AllowAdding(false)
+                                                                                              .AllowDeleting(false)
+                                                                                      )
+                                                                                      .RowAlternationEnabled(true)
+                                                                                      //.Export(e => e.Enabled(true))
+                                                                                      .ShowRowLines(true)
+                                //.Option("KEY_FIELD", new object[] { "INSPECTSPECID" })
+                                //.Option("INIT_FIELD", new object[] { "USEYN" })
+                                //.Option("DELETE_IGNORE", true)
+                                //.OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                                //.OnInitialized("function(e) { userCustomGrid(e); }")
+                                //.OnInitNewRow("grdInspectSpec_OnInitNewRow")
+                                //.OnEditorPrepared("grdInspectSpec_OnEditorPrepared")
+                                //.OnToolbarPreparing("grdInspectSpec_OnToolbarPreparing")
+                        )*@
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@*이미지 뷰 팝업 _ FORM*@
+@(Html.DevExtreme().Popup()
+          .ID("GALLERYVIEW_POPUP")
+          .ElementAttr("class", "popup")
+          .ShowTitle(true)
+          .DragEnabled(true)
+          .ContentTemplate(new TemplateName("EmbeddedGalleryView"))
+          //.FullScreen(true)
+          .Animation(a => a.Show(s => s.Direction(Direction.Top).Type(AnimationType.SlideIn)))
+          .ShowCloseButton(true)
+
+
+          .Width(800)
+          .Height(600)
+          .Title("이미지 확인")
+)
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedGalleryView"))
+{
+    @(Html.DevExtreme().Gallery()
+              .ID("galleryView")
+              //.Height("100%")
+              .Width("90%")
+              //.InitialItemWidth("90%")
+              .ShowNavButtons(false)
+              .ShowIndicator(false)
+              .OnContentReady("galleryView_OnContentReady")
+              .StretchImages(false)
+              //.DataSource(d => d.WebApi().
+              //    Controller("MSTL023WebApi").
+              //    LoadAction("getPhoto").
+              //    OnBeforeSend("galleryView_OnBeforeSend"))
+
+    )
+}
+
+
+@*첨부 팝업 _ FORM*@
+@(Html.DevExtreme().Popup()
+        .ID("ATTACHMENTS_POPUP")
+        .ElementAttr("class", "popup")
+        .ShowTitle(true)
+        .DragEnabled(true)
+        .ContentTemplate(new TemplateName("EmbeddedUploader"))
+        .FullScreen(false)
+        .Animation(a => a.Show(s => s.Direction(Direction.Top).Type(AnimationType.SlideIn)))
+        .ShowCloseButton(true)
+        .Width(1000)
+        .Height(600)
+        .Title("첨부파일 업로드")
+        .OnHidden("ATTACHMENTS_POPUP_OnHidden")
+        .OnShowing("ATTACHMENTS_POPUP_OnShowing")
+      
+)
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedUploader"))
+{
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-primary" role="alert"> <i class="fa fa-exclamation-triangle"></i> 최대 업로드 허용 크기는 5Mb 입니다. 파일 확장자에 따라 업로드가 불가능 할 수 있습니다.</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div id="fileuploadWarningMessage" class="alert alert-danger" role="alert"> <i class="fa fa-exclamation-triangle"></i> 업로드 파일에 문제가 있습니다. 목록에서 확인하세요.</div>
+                @(Html.DevExtreme().ScrollView()
+                                      .ID("uploaderScrollView")
+                                      .ScrollByContent(true)
+                                      .ScrollByThumb(true)
+                                      .Height(400)
+                                      .Content(@<text>
+                                        @( Html.DevExtreme().FileUploader().ID("fileUploader")
+                                                               .Name("attachmentFile")
+                                                               .ID("attachmentFileUploader")
+                                                               .Multiple(false)
+                                                               .Accept("*")
+                                                               .UploadButtonText("업로드")
+                                                               .UploadMode(FileUploadMode.Instantly)
+                                                               .UploadUrl(Url.Action("UploadFiles2", "Attachment"))
+                                                               .OnValueChanged("attachmentFileUploader_OnValueChanged")
+                                                               .OnUploadError("attachmentFileUploader_OnUploadError")
+                                                               .OnUploaded("attachmentFileUploader_OnUploaded")
+                                               
+                                        )
+                                    </text>))
+
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            @(Html.DevExtreme().Button()
+                                                  .ID("uploadFileListClear")
+                                                  .Width("100%")
+                                                  .Text("목록 지우기")
+                                                  .OnClick("function(e) { $('#attachmentFileUploader').dxFileUploader('instance').reset(); $('#uploadFileListAccept').dxButton('instance').option('disabled', true); }").Visible(false))
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-8">
+                @(Html.DevExtreme().DataGrid<AttachmentFiles>()
+                                      .ID("grdFileList")
+                                      .ShowBorders(true)
+                                      .Height(480)
+                                      .ColumnAutoWidth(true)
+                                      .ShowRowLines(true)
+                                      .RowAlternationEnabled(true)
+                                      .AllowColumnResizing(true)
+                                      .Selection(s => s.Mode(SelectionMode.Multiple))
+                                      .OnToolbarPreparing("grdFileList_OnToolbarPreparing")
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA004WebApi")
+                                          .LoadAction("getFileList2")
+                                          .OnBeforeSend("grdFileList_OnBeforeSend")
+                                          .OnRemoved("DEL")
+                                          .Key("FILEID")
+                                      )
+                                      .Columns(columns =>
+                                      {
+                                          columns.AddFor(m => m.FILENAME).CellTemplate(new JS("grdFileList_FILENAME_CellTemplate")).AllowEditing(false);
+                                          columns.AddFor(m => m.FILEEXTENSION).CellTemplate(new JS("grdFileList_FILEEXTENSION_CellTemplate")).Width(30).AllowEditing(false).Visible(false);
+                                          columns.AddFor(m => m.FILESIZE).Format(f => f.Type(Format.FixedPoint).Precision(0)).AllowEditing(false).Visible(false);
+                                          //columns.AddFor(m => m.MEMO);
+                                          columns.AddFor(m => m.CREATEDATE).AllowEditing(false).Visible(true).Format(f => f.Type(Format.ShortDateShortTime)).SortOrder(SortOrder.Desc);
+                                          columns.AddFor(m => m.CREATEUSER).AllowEditing(false).Visible(true);
+                                      })
+                                    //.OnCellPrepared("grdFileList_OnCellPrepared")
+                                    //.OnInitialized("function(e){userCustomGrid(e);}")
+                                    @*.MasterDetail(md =>
+                                          {
+                                              md.Enabled(true);
+                                              md.Template(@<text>
+                                                @( Html.DevExtreme().DataGrid<AttachmentFiles>()
+                                                               .ColumnAutoWidth(true)
+                                                               .ShowBorders(true)
+                                                               .Columns(columns =>
+                                                               {
+                                                                               columns.AddFor(m => m.FILENAME).CellTemplate(new JS("grdFileList_OnCellPrepared_FILENAME_CellTemplate")).AllowEditing(false);
+                                                                               columns.AddFor(m => m.REVISIONNO).SortOrder(SortOrder.Desc).AllowEditing(false);
+                                                                               columns.AddFor(m => m.FILEEXTENSION).CellTemplate(new JS("grdFileList_detail_FILEEXTENSION_CellTemplate")).AllowEditing(false);
+                                                                               columns.AddFor(m => m.FILESIZE).CalculateCellValue("function(rowData) { return rowData.FILESIZE; }").Format(f => f.Type(Format.FixedPoint).Precision(0)).AllowEditing(false);
+                                                                               columns.AddFor(m => m.MEMO);
+                                                                               columns.AddFor(m => m.CREATEDATE).AllowEditing(false).Format(f => f.Type(Format.ShortDateShortTime));
+                                                                               columns.AddFor(m => m.CREATEUSER).AllowEditing(false);
+                                                                           })
+                                                               .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
+                                                               .DataSource(d => d.WebApi()
+                                                                   .Controller("COMA004WebApi")
+                                                                   .LoadAction("getFileRevisionList")
+                                                                   .Key("FILEID")
+                                                                   .LoadParams(new { fileId = new JS("data.FILEID") })
+                                                               )
+                                                               .OnInitialized("function(e){userCustomGrid(e);}")
+                                                )
+                                            </text>);
+                                        })*@
+                                    .Editing(e => e.AllowDeleting(true).AllowUpdating(true).Mode(GridEditMode.Batch))
+                )
+            </div>
+        </div>
+    </div>
+}
+
+<div id="layerPopup" class="image-container" style="display: none">
+    <button type="btnViewClose">닫기</button>
+    <img id="viewImg" />
+</div>
+<style>
+    .image-container {
+        background-color: white;
+        border: 4px solid #ddd;
+        position: absolute;
+        left: 100px;
+        top: 100px;
+        width: auto;
+        height: 900px;
+        padding: 0.5em;
+        z-index: 9999999;
+        /*overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;*/
+    }
+
+        .image-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: auto;
+            height: 900px;
+        }
+
+    #layerPopup button {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        z-index: 9999999;
+    }
+</style>
+
+<script>
+
+    $(function () {
+        $("#layerPopup").hide();
+
+        $("#layerPopup button").click(function () {
+            $("#layerPopup").hide();
+        });
+    });
+    $(function () {
+        $("#layerPopup").draggable();
+    });
+
+    $(function () {
+        $('#searchDate').dxDateBox('instance').option('value', new Date());
+        //initDateColumnHeader();
+        //GetHoliday();
+    });
+
+    function galleryView_OnContentReady(e) {
+        $('.dx-gallery-item-image')
+            .on('dxpinch', function (args) {
+                this._currentScale = this._currentScale ? this._currentScale * args.deltaScale : args.scale;
+                var currentscale = this._currentScale;
+                if (currentscale >= 1) { $(this).css('transform', 'scale(' + this._currentScale + ')'); }
+            })
+    }
+
+    var FileGUID;
+    function AA(e) {
+
+        GetPhoto(e.row.data.FOLDERID, e.row.data.FILEID);
+    }
+
+    function grdProductList_OnRowClick(e) {
+
+        getHisImg();
+    };
+
+    function getHisImg() {
+        
+        var grid = $('#grdProductList').dxDataGrid('instance');
+        var data = grid.getSelectedRowsData();
+
+        var partnum;
+
+        if (data[0] == undefined) {
+            partnum = "";
+        }
+        else {
+            partnum = data[0].PARTNUMBER;
+        }
+
+        $("#inspectImage").attr("src", '');
+
+        var dxDateBox = $('#searchDate').dxDateBox('instance');
+        var selectDate;
+
+        if (dxDateBox != undefined) {
+            selectDate = dxDateBox.option('value');
+        }
+        else {
+            selectDate = new Date();
+        }
+        var date = selectDate.toUTCString();
+        var param = $.param({ date: date, partnumber: partnum, flag: "S" }); // , processcode: proc
+        $.ajax({
+            url: '@Url.Action("getReportHis", "PRCD021WebApi", new {httproute = "DefaultApi",})' + "?" + param,
+            type: 'GET',
+            success: function(data) {
+                $("#grdReportHis").dxDataGrid({
+                    dataSource: data
+                });
+                //$("#grdReportHis").dxDataGrid('instance').cancelEditData();
+            },
+            error: function(e) {
+                showError(this, e);
+            }
+        });
+
+
+        $.ajax({
+            url: '@Url.Action("getReportImg", "PRCD021WebApi", new {httproute = "DefaultApi",})' + "?" + param,
+            type: 'GET',
+            success: function(data) {
+                if (data != undefined) {
+                    FileGUID = { _value: data.FOLDERID };
+                    //$('#formInfo').dxForm('instance').getEditor('REVISION_NO').option('value', data.REVISION_NO);
+
+                    if ( data.FILENAME != '') {
+                        var imageSrc = imageSrc = rootURL + "Content/Files/Attachments/" + data.FOLDERID + "/" +
+                            data.REVISIONID + "/" + data.REVISION_NO + "/" + data.FILENAME;
+
+                        $("#inspectImage").attr("src", imageSrc);
+                    } else {
+                        $("#inspectImage").attr("src", '');
+                    }
+                } else {
+                    FileGUID = new DevExpress.data.Guid();
+                    //$('#formInfo').dxForm('instance').getEditor('REVISION_NO').option('value', "0");
+                }
+
+                //$("#grdInspectSpec").dxDataGrid({
+                //    dataSource: data
+                //});
+                ////$("#grdInspectSpec").dxDataGrid("instance").refresh();//option('dataSource', []);
+                //$("#grdInspectSpec").dxDataGrid('instance').cancelEditData();
+            },
+            error: function(e) {
+                showError(this, e);
+            }
+        });
+        $("#grdReportHis").dxDataGrid("instance").refresh();
+    }
+
+    //$("#grdReportHis").dxDataGrid("instance").refresh();
+
+    function grdReportHis_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var grid = $('#grdProductList').dxDataGrid('instance');
+            var data = grid.getSelectedRowsData();
+
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.date = Globalize.dateFormatter({ date: "short" })(selectDate);
+            if (data[0] == undefined)
+                ajaxOptions.data.partnumber =  "";
+
+            else
+                ajaxOptions.data.partnumber = data[0].PARTNUMBER;
+
+            ajaxOptions.data.flag = "S";
+
+        }
+    }
+
+    function grdProductList_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.date = Globalize.dateFormatter({ date: "short" })(selectDate);
+        }
+    }
+
+
+    function grdProductList_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                widget: "dxDateBox",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '등록일자' +"</div> ", // @LabelText.STANDARDDATE
+                location: "before",
+                options: {
+                    elementAttr: { "id": "searchDate" },
+                    //maxZoomLevel: "year",
+                    //minZoomLevel: "day",//"century",
+                    displayFormat: "shortDate",
+                    onValueChanged: function (e) {
+                        if (e.previousValue != undefined) {
+                            getHisImg();
+                            //var grid = $('#grdProductList').dxDataGrid('instance');
+
+                            //grid.refresh();
+
+                            //grid.beginUpdate();
+                            //var dxDateBox = $('#searchDate').dxDateBox('instance');
+                            //var selectDate;
+
+                            //if (dxDateBox != undefined) {
+                            //    selectDate = dxDateBox.option('value');
+                            //}
+
+                            //var lastDay = (new Date(selectDate.getFullYear(), selectDate.getMonth() + 1, 0)).getDate();
+
+                            //for (dayIndex = 0; dayIndex < 31; dayIndex++) {
+                            //    grid.columnOption('DAY' + (dayIndex + 1), 'caption', dayIndex + 1);
+
+                            //    //안보임
+                            //    if ((dayIndex + 1) > lastDay) {
+                            //        $('#grdProductList').dxDataGrid('columnOption', 'DAY' + (dayIndex + 1), 'visible', false);
+                            //    }
+                            //    else if ((dayIndex + 1) <= lastDay) {
+                            //        $('#grdProductList').dxDataGrid('columnOption', 'DAY' + (dayIndex + 1), 'visible', true);
+                            //    }
+                            //}
+
+                            //grid.endUpdate();
+
+                            //GetHoliday();
+                        }
+                    }
+                },
+            }
+        )
+    }
+
+    function GetPhoto(guid, fileguid) {
+        var result = "";
+
+        var CheckMAKER = $.param({
+
+            FolderID: guid,
+            FileID: fileguid,
+            rootURL: rootURL
+
+        });
+
+        $.ajax({
+            url: '@Url.Action("getPhoto", "PRCD021WebApi", new { httproute = "DefaultApi" })',
+            async: false,
+            data: CheckMAKER,
+            type: 'GET',
+            success: function (data) {
+                if (data.length > 0) {
+
+                    $("#layerPopup").show();
+
+                    $("#viewImg").attr("src", data[0]);
+                    //$("#galleryView").dxGallery('instance').option('dataSource', data);
+
+                    //$("#galleryView").dxGallery({
+                    //    dataSource: data,
+                    //    height: 500,
+                    //    showNavButtons: true,
+                    //    showIndicator: true})
+                    return result;
+                }
+
+                return result;
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+        return result;
+    }
+
+    function imageView_OnButtonClick(e) {
+        if (FileGUID == undefined || FileGUID == null || FileGUID == "") {
+
+            return;
+        }
+
+        
+        var grid = $('#grdProductList').dxDataGrid('instance');
+        var data = grid.getSelectedRowsData();
+
+        if (data[0] == undefined)
+            return;
+
+        
+        //GetPhoto(data[0].FOLDERID, data[0].FILEID);
+        //AA();
+        //$('#GALLERYVIEW_POPUP').dxPopup('instance').show();
+        //GetPhoto(FileGUID._value);
+    }
+
+    function dropFileUpload_OnButtonClick(e) {
+        if (FileGUID == undefined || FileGUID == null || FileGUID == "") {
+
+            return;
+        }
+
+        $('#ATTACHMENTS_POPUP').dxPopup('instance').show();
+    }
+
+    function ATTACHMENTS_POPUP_OnHidden(e) {
+        if($('#folderGuid').dxTextBox('instance') != undefined)
+            $('#folderGuid').dxTextBox('instance').option('value', '');
+
+
+        @*var data = $('#grdProductList').dxDataGrid('instance').getSelectedRowsData();
+        if (!data.length > 0) {
+            return;
+        }
+        var partnumber = data[0].PARTNUMBER;
+
+        var dxDateBox = $('#searchDate').dxDateBox('instance');
+        var selectDate;
+
+        if (dxDateBox != undefined) {
+            selectDate = dxDateBox.option('value');
+        }
+        else {
+            selectDate = new Date();
+        }
+        var date = selectDate.toUTCString();
+
+        //var proc = $('#selectProc').dxSelectBox('instance').option('value');
+        //proc = proc == null ? "none" : proc;
+
+        var param = $.param({ date: date, partnumber: partnumber, flag: "S" });
+
+        $.ajax({
+            url: '@Url.Action("getReportImg", "PRCD021WebApi", new { httproute = "DefaultApi", })' + "?" + param,
+            type: 'GET',
+            success: function (data) {
+                if (data != undefined) {
+                    FileGUID = { _value: data.INSPECTIMAGEID };
+                    //$('#formInfo').dxForm('instance').getEditor('REVISION_NO').option('value', data.REVISION_NO);
+
+                    if ( data.FILENAME != '') {
+                        var imageSrc = imageSrc = rootURL +"Content/Files/Attachments/" + data.ATTACHMENTFOLDERID + "/" +
+                            data.REVISIONID + "/" + data.REVISIONNO + "/" + data.FILENAME;
+
+                        $("#inspectImage").attr("src", imageSrc);
+                    } else {
+                        $("#inspectImage").attr("src", '');
+                    }
+                } else {
+                    FileGUID = new DevExpress.data.Guid();
+                    //$('#formInfo').dxForm('instance').getEditor('REVISION_NO').option('value', "0");
+                }
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });*@
+
+        //var FileCount = getUploadFileInfo(FileGUID._value);
+
+        //$('#dropFileUpload').dxDropDownButton('instance').option('text', '첨부파일 ' + '(' + FileCount + ')');
+    }
+
+    function ATTACHMENTS_POPUP_OnShowing(e) {
+
+        var data = new Object();
+        var fileUploadGuid = FileGUID._value;
+        $('#attachmentFileUploader').dxFileUploader('instance').option('fileUploadGuid', fileUploadGuid);
+        $('#grdFileList').dxDataGrid('instance').option('fileUploadGuid', fileUploadGuid);
+        data.ATTACHMENTFOLDERID = fileUploadGuid;
+        $('#uploaderScrollView').dxScrollView('instance').option('height', 455);
+
+        $.ajax({
+            url: '@Url.Action("setFolder", "COMA004WebApi", new { httproute = "DefaultApi" })',
+            type: 'POST',
+            data: data,
+            error: function(e) {
+                showError(this, e);
+            }
+        });
+
+        $('#attachmentFileUploader').dxFileUploader('instance').element().find(".dx-fileuploader-button.dx-button.dx-button-normal.dx-button-mode-contained.dx-widget.dx-button-has-text")
+            .on('click', function(e) {
+                $('#attachmentFileUploader').dxFileUploader('instance').reset();
+                $('#uploaderScrollView').dxScrollView('instance').option('height', 455);
+                $('#fileuploadWarningMessage').hide();
+            });
+
+        $('#fileuploadWarningMessage').hide();
+        $('#grdFileList').dxDataGrid('instance').refresh();
+        $('#attachmentFileUploader').dxFileUploader('instance').reset();
+
+
+    }
+
+
+    function grdFileList_FILENAME_CellTemplate(container, options) {
+        var className = '';
+
+        if (options.data.FILEEXTENSION == "image") {
+            className = "fa-file-image-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "audio") {
+            className = "fa-file-audio-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "video") {
+            className = "fa-file-movie-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/pdf") {
+            className = "fa-file-pdf-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/msword" ||
+            options.data.FILEEXTENSION == "application/vnd.ms-word" ||
+            options.data.FILEEXTENSION == "application/vnd.oasis.opendocument.text" ||
+            options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml") {
+            className = "fa-file-pdf-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/vnd.ms-excel" ||
+            options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml" ||
+            options.data.FILEEXTENSION == "application/vnd.oasis.opendocument.spreadsheet") {
+            className = "fa-file-excel-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/vnd.ms-powerpoint" ||
+            options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml" ||
+            options.data.FILEEXTENSION == "application/vnd.oasis.opendocument.presentation") {
+            className = "fa-file-powerpoint-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "text/plain") {
+            className = "fa-file-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "text/html" || options.value == "application/json") {
+            className = "fa-file-text-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+            className = "fa-file-word-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+            className = "fa-file-excel-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml.presentation") {
+            className = "fa-file-powerpoint-o fa-lg";
+        } else if (options.data.FILEEXTENSION == "application/gzip" ||
+            options.data.FILEEXTENSION == "application/zip" ||
+            options.data.FILEEXTENSION == "application/x-zip-compressed" ||
+            options.data.FILEEXTENSION == "application/octet-stream" ||
+            options.data.FILEEXTENSION == "application/x-msdownload") {
+            className = "fa-file-archive-o fa-lg";
+        }
+
+        var formatterNumber = Globalize.numberFormatter({
+            minimumSignificantDigits: 1,
+            maximumSignificantDigits: 3
+        });
+
+        var path = rootURL + 'Content/Files/Attachments/' + options.data.ATTACHMENTFOLDERID + '/' + options.data.REVISIONID + '/' + options.data.REVISIONNO + '/' + options.data.FILENAME;
+
+        var markup = "<table>" +
+                "<thead>" +
+                "<tr>" +
+                "<th style='padding-right:5px;width:15%'></th><th style='padding-right:5px;width:60%'></th><th style='padding-right:5px;width:10%'></th><th style='padding-left:5px;width:10%'></th>" +
+                "</tr>" +
+                "</thread>" +
+                "<tbody>" +
+                "<tr>" +
+                "<td style='padding:5px;'> 파일 명</td><td style='padding:5px;'><span class='fa " + className + "' /> <a href='" + path + "'>" + options.data.FILENAME + "</a></td>" +
+                "<td style='padding:5px;'> 리비전 </td><td style='padding:5px;'>" + options.data.REVISIONNO + "</td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td style='padding:5px;'> 파일 용량</td><td colspan=3>" + (formatterNumber((options.data.FILESIZE / 1024.0) / 1024)) + " Mb</td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td style='padding:5px;'> 등록일</td><td colspan=3>" + Globalize.dateFormatter({ datetime: "medium" })(new Date(options.data.CREATEDATE)) + "</td>" +
+                "</tr>" +
+                "<tr>" +
+                "<td style='padding:5px;'> 등록자</td><td colspan=3>" + options.data.CREATEUSER + "</td>" +
+                "</tr>" +
+                "</tbody>" +
+                "</table>"
+            ;
+
+        container.append(markup);
+    }
+
+    function grdFileList_FILEEXTENSION_CellTemplate(container, options) {
+        setExtensionIcon(container, options);
+    }
+
+
+    function grdFileList_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            ajaxOptions.data.folderId = $('#grdFileList').dxDataGrid('instance').option('fileUploadGuid');
+
+            //$('#dropFileUpload').dxDropDownButton('instance').repaint();
+        }
+    }
+
+    function grdFileList_OnToolbarPreparing(e) {
+
+        e.toolbarOptions.items.unshift(
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    hint: "",
+                    icon: "fa fa-download",
+                    onClick: function () {
+                        var grid = $('#grdFileList').dxDataGrid('instance');
+                        var aJsonArray = new Array();
+                        grid.getSelectedRowsData().forEach(function (e) {
+
+                            var aJson = new Object();
+                            aJson.ATTACHMENTFOLDERID = e.ATTACHMENTFOLDERID;
+                            aJson.FILEID = e.FILEID;
+                            aJson.REVISIONID = e.REVISIONID;
+                            aJson.FILENAME = e.FILENAME;
+                            aJson.FILESIZE = e.FILESIZE;
+                            aJson.FILEEXTENSION = e.FILEEXTENSION;
+                            aJson.ISREVISION = e.ISREVISION;
+                            aJson.REVISIONNO = e.REVISIONNO;
+                            aJson.MEMO = e.MEMO;
+                            aJsonArray.push(aJson);
+                        });
+
+                        if (aJsonArray.length > 0) {
+                            var data = {};
+                            data.values = JSON.stringify(aJsonArray);
+
+                            $.ajax({
+                                url: '@Url.Action("getZipFileList", "COMA004WebApi", new { httproute = "DefaultApi", })',
+                                type: 'POST',
+                                data: data,
+                                success: function (param) {
+                                    window.location = rootURL + 'Attachment/DownloadFile?TempZipGuid=' + param.TempZipGuid
+                                        + '&ZipFileName=' + param.ZipFileName;
+                                },
+                                error: function (e) {
+                                    showError(this, e);
+                                }
+                            });
+                        } else {
+                            DevExpress.ui.notify('zip으로 다운로드할 파일을 선택해주세요.', 'error', globalNotificationErrorTime);
+                        }
+                    }
+                }
+            });
+    }
+
+
+    function attachmentFileUploader_OnValueChanged(e) {
+
+        var data = $('#grdProductList').dxDataGrid('instance').getSelectedRowsData();
+        if (!data.length > 0) {
+            return;
+        }
+
+        var url = e.component.option("uploadUrl");
+        var fileUploadGuid = e.component.option("fileUploadGuid");
+        url = updateQueryStringParameter(url, "FolderGuid", fileUploadGuid);
+        //url = url + "&date = " + date;
+        //url = updateQueryStringParameter(url, "partnumber", partnumber );
+        //url = updateQueryStringParameter(url, "flag", "S");
+        e.component.option("uploadUrl", url);
+
+
+        @*var partnumber = data[0].PARTNUMBER;
+
+        var dxDateBox = $('#searchDate').dxDateBox('instance');
+        var selectDate;
+
+        if (dxDateBox != undefined) {
+            selectDate = dxDateBox.option('value');
+        }
+        else {
+            selectDate = new Date();
+        }
+        var date = selectDate.toUTCString();
+
+        var param = $.param({ date: date, partnumber: partnumber, flag: "S" }); // , processcode: proc
+
+        $.ajax({
+            url: '@Url.Action("getReportImg", "PRCD021WebApi", new {httproute = "DefaultApi",})' + "?" + param,
+            type: 'GET',
+            success: function(data) {
+                if (data != undefined) {
+                    FileGUID = { _value: data.FILEID };
+                    //$('#formInfo').dxForm('instance').getEditor('REVISION_NO').option('value', data.REVISION_NO);
+
+                    if ( data.FILENAME != '') {
+                        var imageSrc = imageSrc = rootURL +"Content/Files/Attachments/" + data.ATTACHMENTFOLDERID + "/" +
+                            data.REVISIONID + "/" + data.REVISION_NO + "/" + data.FILENAME;
+
+                        $("#inspectImage").attr("src", imageSrc);
+                    } else {
+                        $("#inspectImage").attr("src", '');
+                    }
+                } else {
+                    FileGUID = new DevExpress.data.Guid();
+                    //$('#formInfo').dxForm('instance').getEditor('REVISION_NO').option('value', "0");
+                }
+
+                //$("#grdInspectSpec").dxDataGrid({
+                //    dataSource: data
+                //});
+                ////$("#grdInspectSpec").dxDataGrid("instance").refresh();//option('dataSource', []);
+                //$("#grdInspectSpec").dxDataGrid('instance').cancelEditData();
+            },
+            error: function(e) {
+                showError(this, e);
+            }
+        });*@
+
+        //var proc = $('#selectProc').dxSelectBox('instance').option('value');
+        //proc = proc == null ? "none" : proc;
+
+        //var param = $.param({ date: date, partnumber: partnumber, flag: "S" });
+
+    }
+
+    function updateQueryStringParameter(uri, key, value) {
+        var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+        var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+        if (uri.match(re)) {
+            return uri.replace(re, '$1' + key + "=" + value + '$2');
+        }
+        else {
+            return uri + separator + key + "=" + value;
+        }
+    }
+
+    function attachmentFileUploader_OnUploadError(e) {
+        $('#uploaderScrollView').dxScrollView('instance').option('height', 380);
+        $('#fileuploadWarningMessage').show();
+    }
+
+    function DEL(e) {
+        getHisImg();
+    }
+
+    function attachmentFileUploader_OnUploaded(e) {
+        $("#grdFileList").dxDataGrid("instance").refresh();
+        $('#uploaderScrollView').dxScrollView('instance').option('height', 455);
+        $('#fileuploadWarningMessage').hide();
+        //console.log(e.request.getResponseHeader('fileid'));
+        const obj = JSON.parse(e.request.response);
+
+
+        var data = $('#grdProductList').dxDataGrid('instance').getSelectedRowsData();
+        if (!data.length > 0) {
+            return;
+        }
+        var partnumber = data[0].PARTNUMBER;
+
+        var dxDateBox = $('#searchDate').dxDateBox('instance');
+        var selectDate;
+
+        if (dxDateBox != undefined) {
+            selectDate = dxDateBox.option('value');
+        }
+        else {
+            selectDate = new Date();
+        }
+        var date = selectDate.toUTCString();
+
+        //var proc = $('#selectProc').dxSelectBox('instance').option('value');
+        //proc = proc == null ? "none" : proc;
+
+        var param = $.param({ date: date, partnumber: partnumber, flag: "S", folderguid: obj.ATTACHMENTFOLDERID, fileguid: obj.FILEID});
+
+        //var param = $.param({ date: date, partnumber: e.data.PARTNUMBER, flag: "S" }); // , processcode: proc
+
+        $.ajax({
+            url: '@Url.Action("setReportImg", "PRCD021WebApi", new {httproute = "DefaultApi",})' + "?" + param,
+            type: 'GET',
+            success: function(data) {
+                if (data != undefined) {
+                    FileGUID = { _value: data.FOLDERID };
+                    //$('#formInfo').dxForm('instance').getEditor('REVISION_NO').option('value', data.REVISION_NO);
+
+                    if ( data.FILENAME != '') {
+                        var imageSrc = imageSrc = rootURL + "Content/Files/Attachments/" + data.FOLDERID + "/" +
+                            data.REVISIONID + "/" + data.REVISION_NO + "/" + data.FILENAME;
+
+                        $("#inspectImage").attr("src", imageSrc);
+                    } else {
+                        $("#inspectImage").attr("src", '');
+                    }
+
+                    $("#grdReportHis").dxDataGrid("instance").refresh();
+                } else {
+                    FileGUID = new DevExpress.data.Guid();
+                    //$('#formInfo').dxForm('instance').getEditor('REVISION_NO').option('value', "0");
+                }
+
+                //$("#grdInspectSpec").dxDataGrid({
+                //    dataSource: data
+                //});
+                ////$("#grdInspectSpec").dxDataGrid("instance").refresh();//option('dataSource', []);
+                //$("#grdInspectSpec").dxDataGrid('instance').cancelEditData();
+            },
+            error: function(e) {
+                showError(this, e);
+            }
+        });
+
+
+
+        @*$.ajax({
+            url: '@Url.Action("setReportImg", "PRCD021WebApi", new {httproute = "DefaultApi",})' + "?" + param,
+            type: 'GET',
+            success: function(data) {
+                if (data != undefined) {
+                    FileGUID = { _value: data.ATTACHMENTFOLDERID };
+                    //$('#formInfo').dxForm('instance').getEditor('REVISION_NO').option('value', data.REVISION_NO);
+
+                    if ( data.FILENAME != '') {
+                        var imageSrc = imageSrc = rootURL +"Content/Files/Attachments/" + data.ATTACHMENTFOLDERID + "/" +
+                            data.REVISIONID + "/" + data.REVISION_NO + "/" + data.FILENAME;
+
+                        $("#inspectImage").attr("src", imageSrc);
+                    } else {
+                        $("#inspectImage").attr("src", '');
+                    }
+                } else {
+                    FileGUID = new DevExpress.data.Guid();
+                    //$('#formInfo').dxForm('instance').getEditor('REVISION_NO').option('value', "0");
+                }
+
+                //$("#grdInspectSpec").dxDataGrid({
+                //    dataSource: data
+                //});
+                ////$("#grdInspectSpec").dxDataGrid("instance").refresh();//option('dataSource', []);
+                //$("#grdInspectSpec").dxDataGrid('instance').cancelEditData();
+            },
+            error: function(e) {
+                showError(this, e);
+            }
+        });
+        $("#grdReportHis").dxDataGrid("instance").refresh();*@
+
+    }
+
+    function dropFileUpload_OnBeforeSend(method, ajaxOptions) {
+        if (FileGUID != null)
+            ajaxOptions.data.folderId = FileGUID._value;
+        else
+            ajaxOptions.data.folderId = "";
+    }
+
+    function grd_EditCellTemplate(container, options) {
+        $("<div />").dxSelectBox({
+            dataSource: DevExpress.data.AspNet.createStore({
+                key: "FILEID",
+                loadUrl: rootURL + "api/COMA004WebApi/getFileList2",
+                loadParams: { folderId: options.data.FOLDERID, fileid: options.data.FILEID },
+            }),
+            valueExpr: 'FILEID',
+            displayExpr: 'FILENAME',
+            onItemClick: function (e) {
+                var path = rootURL + 'Content/Files/Attachments/' + e.itemData.ATTACHMENTFOLDERID + '/' + e.itemData.FILEID + '/' + e.itemData.REVISIONNO + '/' + e.itemData.FILENAME;
+                var x=new XMLHttpRequest();
+                x.open("GET", path, true);
+                x.responseType = 'blob';
+                x.onload=function(o){download(x.response, e.itemData.FILENAME, e.itemData.FILEEXTENSION ); }
+                x.send();
+            },
+            buttons: [{
+                    name: "download",
+                    location: "after",
+                    options: {
+                        icon: "download",
+                        type: "normal",
+                        FOLDERID: options.data.FOLDERID,
+                        onClick: function() {
+                            var data = {};
+                            var aJson = new Object();
+                            aJson.ATTACHMENTFOLDERID = this.option('FOLDERID');
+                            data.values = JSON.stringify(aJson);
+
+                            $.ajax({
+                                url: '@Url.Action("getAllZipFileList", "COMA004WebApi", new { httproute = "DefaultApi", })',
+                                type: 'POST',
+                                data: data,
+                                success: function (param) {
+                                    if (param.ZipFileName == '') {
+                                        DevExpress.ui.notify('등록된 파일이 없습니다.', 'warning', globalNotificationErrorTime);
+                                    } else {
+                                        window.location = rootURL + 'Attachment/DownloadFile?TempZipGuid=' + param.TempZipGuid
+                                            + '&ZipFileName=' + param.ZipFileName;
+                                    }
+                                },
+                                error: function (e) {
+                                    showError(this, e);
+                                }
+                            });
+                        }
+                    }
+                }
+                // , {
+                //name: "upload",
+                //location: "after",
+                //options: {
+                //    icon: "upload",
+                //    type: "normal",
+                //    INSPECTIMAGEID: options.data.INSPECTIMAGEID,
+                //    onClick: function() {
+                //        var fileUploadGuid = this.option('INSPECTIMAGEID');
+
+                //        if (fileUploadGuid == null || fileUploadGuid == undefined) {
+                //            DevExpress.ui.notify('업로드 정보가 없습니다. 관리자에게 문의하세요.', 'error', globalNotificationErrorTime);
+                //        } else {
+                //            $('#ATTACHMENTS_POPUP').dxPopup('instance').option('fileUploadGuid', fileUploadGuid);
+                //            $('#ATTACHMENTS_POPUP').dxPopup('instance').show();
+                //            $('#attachmentFileUploader').dxFileUploader('instance').option('accept', 'image/*');
+                //        }
+                //    }
+                //}
+                //}
+            ],
+            itemTemplate: function (itemData, itemIndex, itemElement) {
+                var className = '';
+
+                if (itemData.FILEEXTENSION == "image/png" || itemData.FILEEXTENSION == "image/jpeg") {
+                    className = "fa-file-image-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "audio") {
+                    className = "fa-file-audio-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "video") {
+                    className = "fa-file-movie-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/pdf") {
+                    className = "fa-file-pdf-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/msword" ||
+                    itemData.FILEEXTENSION == "application/vnd.ms-word" ||
+                    itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.text" ||
+                    itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml") {
+                    className = "fa-file-pdf-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.ms-excel" ||
+                    itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml" ||
+                    itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.spreadsheet") {
+                    className = "fa-file-excel-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.ms-powerpoint" ||
+                    itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml" ||
+                    itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.presentation") {
+                    className = "fa-file-powerpoint-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "text/plain") {
+                    className = "fa-file-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "text/html" || options.value == "application/json") {
+                    className = "fa-file-text-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+                    className = "fa-file-word-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+                    className = "fa-file-excel-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml.presentation") {
+                    className = "fa-file-powerpoint-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/gzip" ||
+                    itemData.FILEEXTENSION == "application/zip" ||
+                    itemData.FILEEXTENSION == "application/x-zip-compressed" ||
+                    itemData.FILEEXTENSION == "application/octet-stream" ||
+                    itemData.FILEEXTENSION == "application/x-msdownload") {
+                    className = "fa-file-archive-o fa-lg";
+                }
+
+                content = "<div><i class='fa " + className + "'></i>" + itemData.FILENAME + "</div>";
+                return content;
+            }
+        }).appendTo(container);
+    }
+    //var confirmDialog;
+    //var deferredArray = [], deferredIndex = 0;
+
+    //var treeLevel = [];
+
+    //treeLevel[2] = 'rgba(142,194,194,1)';
+    //treeLevel[3] = 'rgba(142,194,194,0.7)';
+    //treeLevel[4] = 'rgba(142,194,194,0.3)';
+    //treeLevel[5] = 'rgba(142,194,194,0.0)';
+
+    //function AA(row, value, current) {
+    //    var grid = $('#grdPartSingle').dxDataGrid('instance');
+    //    if (grid != undefined) {
+    //        var wdw = grid.getSelectedRowsData();
+    //        row.PARTNUMBER = value;
+    //        row.UNITCODE = wdw[0].UNITCODE;
+    //    }
+    //}
+
+    //function trBOMMaster_OnCellPrepared(e) {
+    //    if (e.rowType === "data" && e.column.dataField === "PARTNUMBER") {
+    //        if (e.data.LEVELNO > 1)
+    //            e.cellElement.css("background-color", treeLevel[e.data.LEVELNO]);
+    //    }
+    //}
+
+    //function trBOMMaster_OnBeforeSend(method, ajaxOptions) {
+    //    if (method == "load") {
+    //        var productList = $('#grdProductList').dxDataGrid('instance');
+
+    //        var productListRow = productList.getSelectedRowsData();
+
+    //        if (productListRow.length > 0) {
+    //            ajaxOptions.data.ROOTPARTNUMBER = productListRow[0].PARTNUMBER;
+    //        } else {
+    //            ajaxOptions.data.ROOTPARTNUMBER = "";
+    //        }
+    //    } else if (method == "insert") {
+    //        var productList = $('#grdProductList').dxDataGrid('instance');
+
+    //        var productListRow = productList.getSelectedRowsData();
+
+    //        var tmp = JSON.parse(ajaxOptions.data.values);
+
+    //        if (tmp.UNITCODE == "U02") {
+    //            tmp.USAGE = Math.round(tmp.USAGE * 1000);
+    //        } else {
+    //            tmp.USAGE = Math.round(tmp.USAGE);
+    //        }
+
+    //        ajaxOptions.data.values = JSON.stringify(tmp);
+
+    //        if (productListRow.length > 0) {
+    //            ajaxOptions.data.ROOTPARTNUMBER = productListRow[0].PARTNUMBER;
+    //        } else {
+    //            ajaxOptions.data.ROOTPARTNUMBER = "";
+    //        }
+
+    //    } else if (method == "update") {
+    //        var index = $('#trBOMMaster').dxTreeList('instance').getRowIndexByKey(ajaxOptions.data.key);
+    //        var unitcode = $('#trBOMMaster').dxTreeList('instance').cellValue(index, 'UNITCODE');
+    //        //var partnumber = $('#trBOMMaster').dxTreeList('instance').cellValue(index, 'PARTNUMBER');
+
+    //        var tmp = JSON.parse(ajaxOptions.data.values);
+    //        //tmp.PARTNUMBER = partnumber;
+
+    //        if (unitcode == "U02") {
+    //            if (tmp.USAGE != undefined)
+    //                tmp.USAGE = Math.round(tmp.USAGE * 1000);
+    //            //ajaxOptions.data.values = JSON.stringify(tmp);
+    //        } else {
+    //            if (tmp.USAGE != undefined)
+    //                tmp.USAGE = Math.round(tmp.USAGE);
+    //        }
+
+    //        ajaxOptions.data.values = JSON.stringify(tmp);
+    //        //ajaxOptions.data.UNITCODE = unitcode;
+    //    }
+    //}
+
+    //function trBOMMaster_OnEditingStart(e) {
+    //    if (e.data.LEVELNO == 1) {
+    //        e.cancel = true;
+    //    }
+    //}
+
+    //function trBOMMaster_onContentReady(e) {
+    //    e.component.columnOption("command:add", "visible", false);
+    //}
+
+    //function trBOMMaster_onToolbarPreparing(e) {
+    //    var toolbarItems = e.toolbarOptions.items;
+    //    // Modifies an existing item
+    //    $.each(toolbarItems, function (_, item) {
+    //        if (item.name == "addRowButton") {
+    //            // Change the item options here
+    //            item.visible = false;
+    //        }
+    //    });
+    //}
+
+    //function trBOMMaster_AllowDeleting(e) {
+    //    if (e.row.rowType == "data") {
+    //        if (e.row.data.LEVELNO == 1) {
+    //            return false;
+    //        }
+    //    }
+    //    return true;
+    //}
+
+
+    //var getNodeKeys = function (node) {
+    //    var keys = [];
+    //    keys.push(node.key);
+    //    node.children.forEach(function (item) {
+    //        keys = keys.concat(getNodeKeys(item));
+    //    });
+    //    return keys;
+    //}
+</script>

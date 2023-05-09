@@ -1,0 +1,401 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.MST.MSTA;
+@using JSMES.WebUI.Alpha.ViewModels;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<MSTA001_LIST>()
+                      .ID("grdEmpMaster")
+                      .DataSource(d => d.WebApi().Controller("MSTA001WebApi").Key("EMPID"))
+                      .Columns(columns =>
+                      {
+                          columns.AddFor(m => m.VIEWEMPCODE).CalculateDisplayValue("EMPCODE").AllowEditing(false);
+
+                          columns.AddFor(m => m.EMPCODE)
+                            .Lookup(l => l.DataSource(d => d.WebApi()
+                                    .Controller("MSTA001WebApi")
+                                    .LoadAction("getHRList")
+                                    .Key("EMPCODE")
+                                )
+                                .ValueExpr("EMPCODE")
+                                .DisplayExpr("VIEWEMPCODE")
+                              )
+                              .EditCellTemplate(new TemplateName("EmbeddedEMP"))
+                              .SetCellValue("function(newData , value , currentRowData)" +
+                                              "{ if(value != null) {newData.EMPCODE = value.EMPCODE;" +
+                                              "newData.VIEWEMPCODE = value.EMPCODE;" +
+                                              "newData.PLANTCODE = value.PLANTCODE;" +
+                                              "newData.DEPARTMENT = value.DEPARTMENT;" +
+                                              "newData.POSITION = value.POSITION;" +
+                                              "}}");
+                          columns.AddFor(m => m.EMPGRPCODE)
+                              .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                  .Controller("COMA001WebApi").Key("EMPGRPCODE")
+                                  .LoadAction("EMP_GROUP_LIST"))
+                                  .DisplayExpr("EMPGRPNAME")
+                                  .ValueExpr("EMPGRPCODE")
+                              );
+                          columns.AddFor(m => m.PLANTCODE)
+                              .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                  .Controller("COMA001WebApi").Key("PLANTCODE")
+                                  .LoadAction("PLANT_LIST"))
+                                  .DisplayExpr("PLANTNAME")
+                                  .ValueExpr("PLANTCODE")
+                              ).AllowEditing(false);
+                          columns.AddFor(m => m.DEPARTMENT)
+                              .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                  .LoadAction("DEPARTMENT_LIST"))
+                                  .DisplayExpr("SYSCODENAME")
+                                  .ValueExpr("SYSCODE")
+                              ).AllowEditing(false);
+                          columns.AddFor(m => m.POSITION)
+                              .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                  .LoadAction("POSITION_LIST"))
+                                  .DisplayExpr("SYSCODENAME")
+                                  .ValueExpr("SYSCODE")
+                              ).AllowEditing(false);
+                          columns.AddFor(m => m.PHONENUMBER);
+                          columns.AddFor(m => m.EMAIL);
+                          columns.AddFor(m => m.WORKYN)
+                              .Lookup(c => c.DataSource(new JS("USE_YN"))
+                                  .DisplayExpr("NAME").ValueExpr("CODE")
+                              ).AllowEditing(false);
+                          columns.Add().Caption("암호 변경")
+                              .ShowEditorAlways(true)
+                              .Width(150)
+                              .EditCellTemplate(new JS("grdEmpMaster_PASSWORDRESET_EditCellTemplate"))
+                              .Visible(new JS("iudAuth()"))
+                              ;
+                      })
+                      .OnEditorPrepared("grdEmpMaster_OnEditorPrepared")
+                      .RemoteOperations(true)
+                      .FilterPanel(f => f.Visible(true))
+                      .Paging(p => p.PageSize(25).Enabled(true))
+                      .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                      .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                      .SearchPanel(searchPanel => searchPanel
+                          .Visible(true)
+                          .Width(180)
+                          .Placeholder("Search...")
+                      )
+                      .FilterRow(filterRow => filterRow
+                          .Visible(true)
+                          .ApplyFilter(GridApplyFilterMode.Auto)
+                      )
+                      .ShowBorders(true)
+                      .AllowColumnResizing(true)
+                      .Editing(e =>
+                          e.Mode(GridEditMode.Batch)
+                              .AllowUpdating(new JS("iudAuth()"))
+                              .AllowAdding(new JS("iudAuth()"))
+                              .AllowDeleting(new JS("iudAuth()"))
+                      )
+                    .ColumnAutoWidth(true)
+                    .ShowRowLines(true)
+                    .RowAlternationEnabled(true)
+                    .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                    .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, ''); }")
+                    .OnCellPrepared("grdEmpMaster_OnCellPrepared")
+                    .OnInitialized("grdEmpMaster_OnInitialized")
+                    .Option("KEY_FIELD", new object[] { "EMPCODE" })
+                    .OnRowUpdating("grdEmpMaster_onRowEditing")
+                    .OnRowInserting("grdEmpMaster_onRowEditing")
+                    .OnRowRemoving("grdEmpMaster_onRowEditing")
+                    .OnContentReady("grdEmpMaster_onContentReady")
+            )
+        </div>
+    </div>
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedEMP"))
+{
+    @(Html.DevExtreme().DropDownBox()
+        .ID("ddbEmp")
+        .Value(new JS("data.EMPCODE"))
+        .DropDownOptions(o => o.Width(600))
+        .ValueExpr("EMPCODE")
+        .DisplayExpr("VIEWEMPCODE")
+        .DataSource(d => d.WebApi().Controller("MSTA001WebApi").LoadAction("getHRList").Key("EMPCODE"))
+        .AcceptCustomValue(true)
+        .OnValueChanged(@<text>
+            function(e){
+                setValue(e.value);
+            }
+        </text>)
+        .ContentTemplate(new TemplateName("EmbeddedEMPSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedEMPSingle"))
+{
+    @(Html.DevExtreme().DataGrid<MSTA001_LIST>()
+        .ID("grdEmpSingle")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.EMPCODE);
+            columns.AddFor(m => m.VIEWEMPCODE);
+            columns.AddFor(m => m.PLANTCODE)
+                .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                    .Controller("COMA001WebApi").Key("PLANTCODE")
+                    .LoadAction("PLANT_LIST"))
+                    .DisplayExpr("PLANTNAME")
+                    .ValueExpr("PLANTCODE")
+                ).AllowEditing(false);
+            columns.AddFor(m => m.DEPARTMENT)
+                .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                    .Controller("COMA003WebApi").Key("SYSCODE")
+                    .LoadAction("DEPARTMENT_LIST"))
+                    .DisplayExpr("SYSCODENAME")
+                    .ValueExpr("SYSCODE")
+                ).AllowEditing(false);
+            columns.AddFor(m => m.POSITION)
+                .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                    .Controller("COMA003WebApi").Key("SYSCODE")
+                    .LoadAction("POSITION_LIST"))
+                    .DisplayExpr("SYSCODENAME")
+                    .ValueExpr("SYSCODE")
+                ).AllowEditing(false);
+        })
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"component.option(""value"")"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var haskey;
+                var keys = selectedItems.selectedRowKeys;
+
+                if(typeof keys !== undefined && keys.length > 0)
+                {
+                    haskey = true;
+                }
+
+                if(typeof keys !== 'undefined' && keys.length > 0){
+                    if(!(selectedItems.currentDeselectedRowKeys.length > 1)){
+                        component.close();
+                    }
+                }
+
+                if (haskey != undefined){
+                    component.option("value", selectedItems.selectedRowsData[0])
+                }
+            }
+        </text>)
+    )
+}
+
+@*첨부 팝업 _ FORM*@
+@(Html.DevExtreme().Popup()
+    .ID("PASSWORDCHANGE_POPUP")
+    .ElementAttr("class", "popup")
+    .ShowTitle(true)
+    .DragEnabled(true)    
+    .ContentTemplate(@<text>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    @(Html.DevExtreme().Form<PasswordChangeViewModel>()
+                        .ID("passwordChangeForm")
+                        .ColCount(2)
+                        .Items(items =>
+                        {
+                            items.AddSimpleFor(m => m.EMPID)
+                                .Editor(e => e
+                                    .TextArea()
+                                    .StylingMode(EditorStylingMode.Filled)).ColSpan(2).Visible(false);
+
+                            items.AddSimpleFor(m => m.EMPCODE)
+                                .Editor(e => e
+                                    .DropDownBox()
+                                    .Disabled((true))
+                                    .ValueExpr("EMPCODE")
+                                    .DisplayExpr("EMPNAME")
+                                    .DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                        .LoadAction("HR_LIST")
+                                        .Key("EMPCODE")
+                                    )
+                                ).ColSpan(2);
+
+                            items.AddSimpleFor(m => m.EMPPWD)
+                                .Editor(e => e
+                                    .TextBox()
+                                    .Mode(TextBoxMode.Password)
+                                    .StylingMode(EditorStylingMode.Filled)).ColSpan(2);
+
+                            items.AddSimpleFor(m => m.EMPCONFIRMPWD)
+                                .Editor(e => e
+                                    .TextBox()
+                                    .Mode(TextBoxMode.Password)
+                                    .StylingMode(EditorStylingMode.Filled)).ColSpan(2);
+
+                        })
+                    )
+                </div>
+            </div>
+        </div>
+        </text>)
+    .FullScreen(false)
+    .ShowCloseButton(true)
+    .Width(430)
+    .Height(250)
+    .Title(LabelText.RESET_PASSWORD)
+    .ToolbarItems(t =>
+    {
+      t.Add().Widget(w => w.Button().Text(LabelText.INSERT)
+          .Width(200)
+          .OnClick("form_save_onClick")
+          .Icon("check")
+          .Disabled(new JS("!iudAuth()"))
+          .Type(ButtonType.Success).StylingMode(ButtonStylingMode.Contained))
+          .Location(ToolbarItemLocation.After).Toolbar(Toolbar.Bottom);
+         
+      t.Add().Widget(w => w.Button().Text(LabelText.CANCEL)
+          .OnClick("form_cancel_onClick")
+          .Icon("close")
+          .Disabled(new JS("!iudAuth()"))
+          .Type(ButtonType.Normal)
+          .Width(200).StylingMode(ButtonStylingMode.Contained))
+          .Location(ToolbarItemLocation.After).Toolbar(Toolbar.Bottom);
+    })
+)
+
+
+<script>
+    
+    function grdEmpMaster_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdEmpMaster_OnEditorPrepared(e) {
+        if (e.parentType == 'dataRow' && e.dataField == 'EMPGRPCODE') {
+            e.editorElement.dxSelectBox('instance').option('onValueChanged', function(args) {
+                var result = DevExpress.ui.dialog.confirm('@LabelText.AREYOUSURECHANGEGROUP', '@LabelText.EMPGROUPNAME @LabelText.CHANGE');
+
+                result.done(function (dialogResult) {
+                    if (dialogResult == true) {
+                        e.cancel = false;
+                        var grid = $("#grdEmpMaster").dxDataGrid('instance');
+                        grid.cellValue(e.row.rowIndex, 'EMPGRPCODE', args.value);
+                    }
+                    else {
+                        e.cancel = true;
+                        return false;
+                    }
+                });
+            });
+        }
+    }
+
+    function grdEmpMaster_OnCellPrepared(e) {
+        if (e.rowType == 'data' && e.row.data["WORKYN"] == 'N')
+            e.cellElement.addClass('noUseData');
+    }
+
+    function grdEmpMaster_PASSWORDRESET_EditCellTemplate(container, options) {
+        $('<div />').dxButton({
+            icon: 'fa fa-key',
+            stylingMode: "text",
+            width: '100%',
+            text: '@LabelText.RESET_PASSWORD',
+            EMPID: options.data.EMPID,
+            EMPCODE: options.data.EMPCODE,
+            disable: !iudAuth(),
+            onClick: function (e) {
+                var param = new Object();
+                param.EMPID = this.option('EMPID');
+                param.EMPCODE = this.option('EMPCODE');
+                param.EMPPWD = '';
+                param.EMPCONFIRMPWD = ''; 
+
+                $('#PASSWORDCHANGE_POPUP').dxPopup('instance').show();
+                var form = $('#passwordChangeForm').dxForm('instance');
+                form.option('formData', param);
+                var editor = form.getEditor('EMPPWD');
+                editor.option("isValid", true);
+                var editor = form.getEditor('EMPCONFIRMPWD');
+                editor.option("isValid", true);
+            }
+        })
+            .appendTo(container);
+    }
+
+    // 암호 변경 
+    function form_save_onClick(e) {
+        var form = $('#passwordChangeForm').dxForm('instance');
+        var result = form.validate();
+
+        if (result.isValid == true) {
+            var data = {};
+            data.key = form.option('formData.EMPID');
+            data.values = JSON.stringify(form.option('formData'));
+
+            $.ajax({
+                url: '@Url.Action("changePassword", "MSTA001WebApi", new { httproute = "DefaultApi", })',
+                type: 'POST',
+                data: data,
+                success: function () {
+                    $('#PASSWORDCHANGE_POPUP').dxPopup('instance').hide();
+                    DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+                },
+                error: function (e) {
+                    showError(this, e);
+                }
+            });
+        }
+    }
+
+    // 암호 변경 취소
+    function form_cancel_onClick(e) {
+        var form = $('#passwordChangeForm').dxForm('instance');
+        form.option('formData.EMPPWD', null);
+        form.option('formData.EMPCONFIRMPWD', null);
+        var validate = form.validate();
+
+        if (validate.brokenRules.length > 0) {
+            validate.brokenRules.forEach(function (e) {
+                e.validator.reset();
+            });
+        }
+
+        $('#PASSWORDCHANGE_POPUP').dxPopup('instance').hide();
+    }
+
+    var updating = false;
+
+    function grdEmpMaster_onRowEditing(e) {
+        if(!updating)
+            updating = true;
+    }
+
+    function grdEmpMaster_onContentReady(e) {
+        @*if(updating && !e.component.hasEditData()){  // updates finished successfully
+            updating = false;
+            DevExpress.ui.notify('@LabelText.JOBSUCCESS', "success", globalNotificationSuccessTime);
+        }*@
+    }
+
+</script>

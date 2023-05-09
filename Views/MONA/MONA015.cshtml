@@ -1,0 +1,101 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.MON;
+@using JSMES.WebUI.Alpha.Models.LogStruct
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTM;
+@using JSMES.WebUI.Alpha.ViewModels.MAT.MATD;
+@using JSMES.WebUI.Alpha.ViewModels.MON.MONA;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @*<h4><span class="bottom-gradient"><i class="fa fa-angle-right"> 설비별 생산중인 아이템 정보 </i></span></h4>*@
+            @(Html.DevExtreme().DataGrid<MONA015_LIST>()
+                                          .ID("grdMONWork")
+                                          .DataSource(d => d.WebApi().Controller("MONA015WebApi").Key("EQUIPMENTCODE"))
+                                          .Columns(columns =>
+                                          {
+                                              columns.AddFor(m => m.EQUIPMENTCODE).Visible(false);
+                                              columns.AddFor(m => m.EQUIPMENTNAME);
+                                              columns.AddFor(m => m.STATE).Visible(false);
+                                              columns.AddFor(m => m.STATENAME);
+                                              columns.AddFor(m => m.PARTNUMBER);
+                                              columns.AddFor(m => m.PRODUCTNAME);
+                                              columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+                                              columns.AddFor(m => m.UDNF1).Visible(false);
+                                              columns.AddFor(m => m.UDNF2).Visible(false);
+                                              columns.AddFor(m => m.UDNF3).Visible(false);
+                                              columns.AddFor(m => m.UDNF4).Visible(false);
+                                              columns.AddFor(m => m.ISSAMPLEINSPECT).Alignment(HorizontalAlignment.Center);
+                                              columns.AddFor(m => m.TOTALORDERCOUNT).Alignment(HorizontalAlignment.Center);
+                                              columns.AddFor(m => m.WAITORDERCOUNT).Alignment(HorizontalAlignment.Center);
+                                              columns.AddFor(m => m.WORKER);
+                                          })
+                                          .RemoteOperations(true)
+                                          .ColumnAutoWidth(true)
+                                          .Paging(p => p.PageSize(25).Enabled(true))
+                                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                          .ShowBorders(true)
+                                          .AllowColumnResizing(true)
+                                            //.OnToolbarPreparing("grdMatInout_OnToolbarPreparing")
+                                          .Editing(e =>
+                                              e.Mode(GridEditMode.Batch)
+                                                  .AllowAdding(false)
+                                                  .AllowUpdating(false)
+                                                  .AllowDeleting(false)
+                                          )
+                                          .RowAlternationEnabled(true)
+                                          .ShowRowLines(true)
+                                          .Option("KEY_FIELD", new object[]
+                                          {
+                                  "WORKDATE", "SERIALNUMBER", "LOTNUMBER", "PRODUCTTYPE", "MATERIALTYPE",
+                                  "PARTNUMBER", "MATERIALNAME", "WAREHOUSECODE", "TRANSCODE", "VENDORCODE",
+                                  "QUANTITY", "HOLDINGYN", "MEMO", "CANCELYN", "CANCELTIME", "CREATEDATE", "CREATEUSER"
+                                          })
+
+                                          .Option("USE_REQUIRED_HEADER", true)
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    var refreshSec = 10000;
+
+    var interval = setInterval(grdWorkorderAutoRefresh, 100);
+    clearInterval(interval);
+
+    function grdWorkorderAutoRefresh() {
+        $('#grdMONWork').dxDataGrid('instance').refresh();
+    }
+
+    $(function () {
+        clearInterval(interval);
+        interval = setInterval(grdWorkorderAutoRefresh, refreshSec);
+    });
+
+    //function grdMatInout_OnToolbarPreparing(e) {
+    //    e.toolbarOptions.items.unshift(
+    //        {
+    //            location: "after",
+    //            html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + 'Refresh Time' + "</div>",
+    //            widget: "dxTextBox",
+    //        },
+
+    //        {
+    //            location: "after",
+    //            widget: "dxButton",
+    //            options: {
+    //                disabled: !iudAuth(),
+    //                icon: "save",
+    //            }
+    //        }
+    //    )
+    //}
+</script>

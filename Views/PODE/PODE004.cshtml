@@ -1,0 +1,158 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.POD.PODE;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<PODE004_LIST>()
+                          .ID("grdProductInout")
+                          .DataSource(d => d.WebApi().Controller("PODE004WebApi").Key("PRODHISSEQ"))
+                          .Columns(columns =>
+                          {
+                              columns.AddFor(m => m.WORKDATE).Width(170)
+                                  .Format(f => f.Type(Format.ShortDate))
+                                  .SelectedFilterOperation(FilterOperations.Between)
+                                  .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date }).SortOrder(SortOrder.Desc).SortIndex(0).GroupIndex(0);
+                              columns.AddFor(m => m.LOTNUMBER);
+                              columns.AddFor(m => m.SERIALNUMBER).SortOrder(SortOrder.Asc).SortIndex(2);
+                              columns.AddFor(m => m.PRODUCTTYPE).Visible(false)
+                                  .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                      .Controller("COMA003WebApi").Key("SYSCODE")
+                                      .LoadAction("PRODUCTTYPE_LIST"))
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  );
+
+                              columns.AddFor(m => m.PARTNUMBER);
+                              columns.AddFor(m => m.PRODUCTNAME);
+                              columns.AddFor(m => m.WAREHOUSECODE)
+                                  .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                      .Controller("COMA001WebApi").Key("WAREHOUSECODE")
+                                      .LoadAction("WAREHOUSE_LIST"))
+                                      .DisplayExpr("WAREHOUSENAME")
+                                      .ValueExpr("WAREHOUSECODE")
+                                  );
+                              columns.AddFor(m => m.TRANSCODE)
+                                  .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                      .Controller("COMA001WebApi").Key("TRANSCODE")
+                                      .LoadAction("TRANSACTION_LIST"))
+                                      .DisplayExpr("TRANSNAME")
+                                      .ValueExpr("TRANSCODE")
+                                  );
+                              columns.AddFor(m => m.VENDORCODE).GroupIndex(1)
+                                  .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                      .Controller("COMA001WebApi").Key("VENDORCODE")
+                                      .LoadAction("VENDOR_LIST"))
+                                      .DisplayExpr("VENDORNAME")
+                                      .ValueExpr("VENDORCODE")
+                                  );
+                              columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                              columns.AddFor(m => m.HOLDINGYN)
+                                  .Lookup(lookup => lookup.DataSource(new JS("USE_YN"))
+                                      .DisplayExpr("NAME")
+                                      .ValueExpr("CODE"));
+                              columns.AddFor(m => m.MEMO);
+                              columns.AddFor(m => m.CANCELYN)
+                                  .Lookup(lookup => lookup.DataSource(new JS("USE_YN"))
+                                      .DisplayExpr("NAME")
+                                      .ValueExpr("CODE"));
+                              columns.AddFor(m => m.CANCELTIME);
+                              columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime)).SortOrder(SortOrder.Desc).SortIndex(1);
+                              columns.AddFor(m => m.CREATEUSER); // lookup _ EMP 코드로 변경가능성 있음
+                          })
+                          .RemoteOperations(true)
+                          .FilterPanel(f => f.Visible(true))
+                          .ColumnAutoWidth(true)
+                          .Paging(p => p.PageSize(25).Enabled(true))
+                          .Selection(s=>s.SelectAllMode(SelectAllMode.Page).Mode(SelectionMode.Multiple))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .SearchPanel(searchPanel => searchPanel
+                              .Visible(true)
+                              .Width(180)
+                              .Placeholder("Search...")
+                          )
+                          .FilterRow(filterRow => filterRow
+                              .Visible(true)
+                              .ApplyFilter(GridApplyFilterMode.Auto)
+                          )
+                          .ShowBorders(true)
+                          .AllowColumnResizing(true)
+                          .Editing(e =>
+                              e.Mode(GridEditMode.Batch)
+                                  .AllowAdding(false)
+                                  .AllowUpdating(false)
+                                  .AllowDeleting(false)
+                          )
+                          //.StateStoring(s => s.Enabled(true).StorageKey("PODE004_grdProductInout").Type(StateStoringType.LocalStorage))
+                          .RowAlternationEnabled(true)
+                  .Export(e=>e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .OnToolbarPreparing("grdProductInout_OnToolbarPreparing")
+                  .ShowRowLines(true)
+                          .OnInitialized("grdProductInout_OnInitialized")
+                          .Option("KEY_FIELD", new object[]
+                          {
+                              "WORKDATE", "SERIALNUMBER", "LOTNUMBER", "PRODUCTTYPE",
+                              "PARTNUMBER", "PRODUCTNAME", "WAREHOUSECODE", "TRANSCODE", "VENDORCODE",
+                              "QUANTITY", "HOLDINGYN", "MEMO", "CANCELYN", "CANCELTIME", "CREATEDATE", "CREATEUSER"
+                          })
+                  .Option("USE_REQUIRED_HEADER", true)
+                  .OnRowPrepared("grdProductInout_OnRowPrepared")
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdProductInout_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+        
+    function grdProductInout_OnRowPrepared(e) {
+        if (e.rowType == "data") { 
+            if (e.data.SPECIFICATIONS_PRINTYN == "Y") {
+                e.rowElement.css("font-weight", "bold");                
+
+                if (e.data.CREATECOUNT ==  e.data.PRINTCOUNT) {
+                    e.rowElement.css("color", "silver");
+                    e.rowElement.css("font-style", "italic");
+                }                    
+            }            
+        }
+    }    
+    
+    function grdProductInout_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    hint: "",
+                    icon: "fa fa-print",
+                    onClick: function () {
+
+                        var selectedList = $("#grdProductInout").dxDataGrid("instance").getSelectedRowsData();
+
+                        if (selectedList.length > 0) {
+                            var param = '';
+                            var seqs = '';
+                            selectedList.forEach(function (e) {
+                                param = param + "," + e.SERIALNUMBER;
+                                seqs = seqs + "," + e.PRODHISSEQ;
+                            });
+
+                            var popup = window.open(rootURL + "PrintOut/TransactionDetails?serialNumberList=" + param + "&prodSEQList=" + seqs, "popupWindow", "width=600,height=600,scrollbars=yes");
+                            popup.onbeforeunload = function (e) { $("#grdProductInout").dxDataGrid("instance").refresh(); };
+                        }                        
+                    }
+                }
+            });
+    }
+
+</script>

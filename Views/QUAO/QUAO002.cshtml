@@ -1,0 +1,123 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAO;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<QUAO002_LIST>()
+                .ID("grdQCImprovementHis")
+                /*
+                    .DataSource(d => d.WebApi()
+                                .Controller("QUAI021WebApi")
+                                .Key("INSPECTCODE")
+                                .LoadAction("getSampleInspection")
+                                .OnBeforeSend("grdSampleInspection_onBeforeSend")
+                            )
+                */
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.WORKDATE).AllowEditing(false);
+                    columns.AddFor(m => m.WORKER).AllowEditing(false);
+                    columns.AddFor(m => m.DEFECTCAUSE).AllowEditing(false);
+                    columns.AddFor(m => m.MEASURES).AllowEditing(false);
+                    columns.AddFor(m => m.MEASURES_PLAN).AllowEditing(false);
+                    columns.AddFor(m => m.MEASURES_MEMO).AllowEditing(false);
+                    columns.AddFor(m => m.POSTEVALUATION).AllowEditing(false);
+                    columns.AddFor(m => m.POSTEVALUATION_PLAN).AllowEditing(false);
+                    columns.AddFor(m => m.POSTEVALUATION_MEMO).AllowEditing(false);                    
+                })
+                .ShowBorders(true)
+                .RowAlternationEnabled(true)
+                .ColumnMinWidth(50)
+                .SearchPanel(c => c.Visible(false))
+                .RemoteOperations(true)
+                .ColumnAutoWidth(true)
+                .FilterRow(f=>f.Visible(true))
+                .ShowRowLines(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .AllowColumnResizing(true)
+                .Export(e => e.Enabled(true))
+                .FilterPanel(f => f.Visible(true))
+                .Paging(p => p.PageSize(1000).Enabled(false))                                            
+                .Selection(s => s.Mode(SelectionMode.Multiple))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .RowAlternationEnabled(true)
+                .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                .OnInitialized("grdQCImprovementHis_OnInitialized")
+                .OnToolbarPreparing("grdQCImprovementHis_OnToolbarPreparing")
+            )            
+        </div>
+    </div>
+</div>
+
+<script>
+    
+    function grdQCImprovementHis_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdQCImprovementHis_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+        { 
+            location: "after",
+            widget: "dxButton",
+            options: {
+                icon: "fa fa-print",
+                    onClick: function () {                        
+
+                        var grid = e.component;
+
+                        if (grid.getSelectedRowsData().length == 0) {
+                            DevExpress.ui.notify("발행할 데이터를 선택해주세요.", 'warning', globalNotificationWarningTime);
+                            return;
+                        }
+                        
+                        if (grid.hasEditData()) {
+                            DevExpress.ui.notify("수정 중인 데이터가 있습니다. 저장 후 발행 해주세요.", 'warning', globalNotificationWarningTime);
+                        } else {                            
+                            var aJsonArray = [];
+                            grid.getSelectedRowsData().forEach(function(e) {
+                                aJsonArray.push(e.SERIALNUMBER);
+                            });
+
+                            var data = {};
+                            data.values = JSON.stringify(aJsonArray);
+                        
+                            $.ajax({
+                                url: '@Url.Action("getLabelPrint", "MATA051WebApi", new { httproute = "DefaultApi", })',
+                                type: 'POST',
+                                data: data,
+                                success: function (data) {
+
+                                    if (zebraBrowserSelected_device != null) {
+
+                                        var offset = 0;
+
+                                        data.forEach(function(e) {
+                                            setTimeout(function(){
+                                                console.log(e);
+                                                writeToSelectedPrinter(e);
+                                            }, 500 + offset);
+                                            offset += 500;
+                                        });
+                                    }
+
+                                    
+                                },
+                                error: function (e) {
+                                    showError(this, e);
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        );
+    }
+</script>

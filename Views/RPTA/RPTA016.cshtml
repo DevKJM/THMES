@@ -1,0 +1,171 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<RPTA016_LIST>
+                  ()
+                  .ID("grdProductStock")
+                  .DataSource(d => d.WebApi().Controller("RPTA016WebApi").OnBeforeSend("grdProductStock_OnBeforeSend"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.PARTNUMBER)
+                          .SortOrder(SortOrder.Asc).SortIndex(2) ;
+                      columns.AddFor(m => m.PRODUCTNAME);
+                      columns.AddFor(m => m.CUSTOMERPARTNUMBER).Visible(false);
+                      columns.AddFor(m => m.PRODUCTTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("PRODUCTTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          ).SortOrder(SortOrder.Desc).SortIndex(0).Visible(false);
+                      columns.AddFor(m => m.MATERIALTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("MATERIALTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.UNITCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("UNITCODE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.SAFETYINVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                      columns.AddFor(m => m.INVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0)).SortOrder(SortOrder.Desc).SortIndex(1);
+                      //.SortOrder(SortOrder.Asc).SortIndex(2);;
+                  })
+                  //.Summary(s => s.GroupItems(items =>
+                  //{
+                  //    items.AddFor(m => m.INVENTQUANTITY)
+                  //        .SummaryType(SummaryType.Sum)
+                  //        .Column("INVENTQUANTITY")
+                  //        .ValueFormat(Format.FixedPoint)
+                  //        .DisplayFormat("{0}")
+                  //        .ShowInGroupFooter(false)
+                  //        .AlignByColumn(true);
+                  //}))
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowAdding(false)
+                          .AllowUpdating(false)
+                          .AllowDeleting(false)
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e=>e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  .OnInitialized("grdProductStock_OnInitialized")
+                  .Option("KEY_FIELD", new object[]
+                  {
+                      "PLANTCODE", "PARTNUMBER", "PRODUCTNAME", "PRODUCTTYPE", "MATERIALTYPE", "UNITCODE",
+                      "INVENTQUANTITY", "SAFETYINVENTQUANTITY"
+                  })
+                  .OnToolbarPreparing("grdProductStock_OnToolbarPreparing")
+                  //.Option("USE_REQUIRED_HEADER", true)
+                  )
+        </div>
+    </div>
+</div>
+<script>
+    function grdProductStock_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    var priorities = [{
+        "CODE": "MATERIAL",
+        "NAME": "자재"
+    }, {
+        "CODE": "PRODUCT",
+        "NAME": "제품"
+    }];
+
+    function grdProductStock_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                widget: "dxRadioGroup",
+                //html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '@LabelText.LABELTYPE' +"</div> ",
+                location: "before",
+                options: {
+                    items: priorities,
+                    elementAttr: { "id": "LABELTYPE" },
+                    value: "MATERIAL",
+                    valueExpr: "CODE",
+                    displayExpr: "NAME",
+                    layout: "horizontal",
+                    onValueChanged: function(e) {
+                        if (e.value == "MATERIAL") {
+
+                            $('#grdProductStock').dxDataGrid('instance').beginUpdate();
+
+                            $('#grdProductStock').dxDataGrid('columnOption', 'MATERIALTYPE', 'visible', true);
+                            $('#grdProductStock').dxDataGrid('columnOption', 'PRODUCTTYPE', 'visible', false);
+                            $('#grdProductStock').dxDataGrid('columnOption', 'CUSTOMERPARTNUMBER', 'visible', false);
+   
+                            $('#grdProductStock').dxDataGrid('instance').endUpdate();
+
+                            $('#grdProductStock').dxDataGrid('instance').refresh();
+                        } else if (e.value == "PRODUCT") {
+
+                            $('#grdProductStock').dxDataGrid('instance').beginUpdate();
+
+                            $('#grdProductStock').dxDataGrid('columnOption', 'MATERIALTYPE', 'visible', false);
+                            $('#grdProductStock').dxDataGrid('columnOption', 'PRODUCTTYPE', 'visible', true);
+                            $('#grdProductStock').dxDataGrid('columnOption', 'CUSTOMERPARTNUMBER', 'visible', true);
+
+                            $('#grdProductStock').dxDataGrid('instance').endUpdate();
+
+                            $('#grdProductStock').dxDataGrid('instance').refresh();
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    function grdProductStock_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+
+            var dxRadioGroup = $('#LABELTYPE').dxRadioGroup('instance');
+            var selectedLabelType;
+
+            if (dxRadioGroup != undefined) {
+                selectedLabelType = dxRadioGroup.option('value');
+            }
+            else {
+                selectedLabelType = "";
+            }
+
+            ajaxOptions.data.LABELTYPE = selectedLabelType;
+        }
+    }
+</script>

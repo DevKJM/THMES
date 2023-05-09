@@ -1,0 +1,670 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.ViewModels.LAY;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Controllers;
+@using JSMES.WebUI.Alpha.Infrastructure.DBA;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@System.Configuration.ConfigurationManager.AppSettings["systemFullName"] - @ViewBag.Title</title>
+    @Styles.Render(BundleConfig.DxCssBundle)
+    @Styles.Render("~/Content/css")
+    @Styles.Render("~/font-awesome/css")
+
+    @if (IsSectionDefined("Styles"))
+    {@RenderSection("Styles", required: false)}
+
+    @{
+        string theme = "material.Teal.light";
+
+        if (string.IsNullOrEmpty(theme))
+        {
+            theme = "light";
+        }
+        var themeName = "generic." + theme;
+
+        var device = "desktop";
+        if (theme.StartsWith("ios"))
+        {
+            device = "iPhone";
+        }
+        else if (theme.StartsWith("android"))
+        {
+            device = "androidPhone";
+        }
+
+        var dba = new XDBContext();
+        var system = dba.systemMaster.SingleOrDefault(w => w.SYSGRPCD == "BASICOPTION");
+
+        var ABLE_WORKCENTERCODE = false;
+        var ABLE_PROCCESSCODE = false;
+
+        if (system.ATTRIBUTE2.ToLower() == "true")
+        {
+            ABLE_WORKCENTERCODE = true;
+            ABLE_PROCCESSCODE = false;
+        }
+        else
+        {
+            ABLE_WORKCENTERCODE = false;
+            ABLE_PROCCESSCODE = true;
+        }
+    }
+
+    <link rel="stylesheet" href="~/Content/DevExtreme/dx.@(theme).css" />
+
+    @Scripts.Render(BundleConfig.JsBundle)
+
+    <script>
+         DevExpress.devices.current("@device");
+         DevExpress.viz.currentTheme("@themeName");
+
+         var rootURL = '@Url.Content("~/")';
+         var controllerName = '@this.ViewContext.RouteData.Values["controller"].ToString()';
+         var actionName = '@this.ViewContext.RouteData.Values["action"].ToString()';
+
+         function iudAuth() {
+             return '@User.IsInRole(String.Format("/{0}/{1}_iud", ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))';
+         }
+
+         function getAuth() {
+             return '@User.IsInRole(String.Format("/{0}/{1}_get", ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString()))';
+         }
+
+         function getLoginUserId() {
+             return '@User.Identity.GetUserId()';
+         }
+    </script>
+
+    <script src="@Url.Action("CldrData", "Localization", new { t = CldrDataScriptBuilder.GetCacheParam() })"></script>
+    @RenderSection("Localization", false)
+
+    <script>
+        var locale = getLocale();
+
+        var globalize = Globalize.locale(locale);
+
+        function getLocale() {
+            var locale = Cookies.get("Culture");
+            return locale != null ? locale : "ko-KR";
+        }
+    </script>
+
+    <style>
+        .headerTitle {
+            background-color: #fff;
+        }
+
+        .panel-list, .dx-theme-background-color {
+            background-color: #fff !important;
+            fill: #3f3f4b !important;
+        }
+
+        .dx-treeview-item-without-checkbox.dx-state-focused > .dx-treeview-item {
+            background-color: #CDDC39;
+        }
+
+        .dx-treeview-item.dx-state-hover {
+            background-color: rgba(205, 220, 57, 0.5);
+            color: #fff;
+        }
+
+        .product > img {
+            float: left;
+        }
+
+        .product > div {
+            padding-left: 5px;
+            vertical-align: top;
+            font-size: 15px;
+            float: left;
+        }
+
+            .product > div.price {
+                float: right;
+                font-size: 18px;
+            }
+
+        /*.dx-item-content.dx-toolbar-item-content > .dx-button.dx-button-mode-contained.dx-widget.dx-button-has-icon.dx-button-has-text > .dx-button-content {
+            padding-top: 14px;
+        }*/
+    </style>
+</head>
+<body style="background-color: #fff;">
+    <div class="toolbar">
+        @(Html.DevExtreme().Toolbar()
+                                .Items(items =>
+                                {
+                                    items.Add()
+                                    .Widget(w => w
+                                        .Button()
+                                        .Icon("menu")
+                                        .OnClick("openButton_click")
+                                    )
+                                    .Location(ToolbarItemLocation.Before);
+
+                                    items.Add()
+                            .Widget(w => w
+                                .Button()
+                                .Icon("fa fa-cog")
+                                .OnClick("toolbar_Config_OnClick")
+                        )
+                        .Location(ToolbarItemLocation.After)
+                        .LocateInMenu(ToolbarItemLocateInMenuMode.Never);
+
+                                    items.Add()
+                                .Template(@<text><div class="toolbar-label" id="header_title_text"><h3><b></b></h3></div></text>)
+                                        .LocateInMenu(ToolbarItemLocateInMenuMode.Never)
+                                        .Location(ToolbarItemLocation.Center);
+                                    }).ElementAttr("class", "headerTitle")
+        )
+    </div>
+    <div class="drawer">
+        <div id="noSelectProcessMessage" style="display: none;width:100%;" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fa fa-exclamation-triangle"></i> 공정이 선택 되지 않아 작업 지시 목록을 불러 올수 없습니다. <b>공정을 선택해주세요.</b>
+            @(Html.DevExtreme().Button()
+                  .ID("btnWarningConfig")
+                  .Text("공정 설정하기")
+                  .Icon("fa fa-cogs")
+                  .OnClick("toolbar_Config_OnClick")
+                  .StylingMode(ButtonStylingMode.Contained)
+                  .Type(ButtonType.Default)
+                  )
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div id="noSelectWorkcenterMessage" style="display: none;width:100%;" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fa fa-exclamation-triangle"></i> 공정과 작업장이 선택 되지 않아 작업 지시 목록을 불러 올수 없습니다. <b>공정/작업장을 선택해주세요.</b>
+            @(Html.DevExtreme().Button()
+                  .ID("btnWarningConfig2")
+                  .Text("공정/작업장 설정하기")
+                  .Icon("fa fa-cogs")
+                  .OnClick("toolbar_Config_OnClick")
+                  .StylingMode(ButtonStylingMode.Contained)
+                  .Type(ButtonType.Default)
+                  )
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        @(Html.DevExtreme().Drawer()
+                              .ID("drawer")
+                              .OpenedStateMode(DrawerOpenedStateMode.Overlap)
+                              .Position(DrawerPosition.Left)
+                              .RevealMode(DrawerRevealMode.Expand)
+                              .CloseOnOutsideClick(true)
+                              .MaxSize(250)
+                              .Shading(true)
+                              .Content(@<text>
+                                <div id="scrollViewContainer">
+                                    @RenderBody()
+                                </div>
+                            </text>)
+                                      .Template(@<text>
+                                        @(Html.DevExtreme().TreeView()
+                                                              .ID("treeMenu")
+                                                              .DataStructure(TreeViewDataStructure.Plain)
+                                                              .DataSource(d => d.WebApi().Controller("COMA002WebApi").LoadAction("USER_HMI_MENU_LIST")
+                                                                  .LoadParams(new
+                                                                      {
+                                                                          Culture = new JS("function() { return locale; }"),
+                                                                          EMPID = User.Identity.GetUserId()
+                                                                      }).Key("MENUID"))
+                                                              .DisplayExpr("MENUNAME")
+                                                              .ParentIdExpr("PARENTMENUID")
+                                                              .KeyExpr("MENUID")
+                                                              .Width("300")
+                                                              .ElementAttr("class", "panel-list dx-theme-background-color")
+                                                              .OnItemClick("treeMenu_OnItemClick")
+                                                              .OnContentReady("drawer_OnContentReady")
+                                        )
+                                    </text>)
+        )
+    </div>
+
+    @(Html.DevExtreme().Popup()
+                .ID("setting_popup")
+                .Title(LabelText.SYSTEM_SETTINGS)
+                .ContentTemplate(new TemplateName("EmbeddedSettingsForm"))
+                .FullScreen(new JS("MobileEsp.DetectAndroid()"))
+                .ToolbarItems(t =>
+                {
+                    t.Add().Widget(w => w.Button().Text(LabelText.INSERT)
+                            .OnClick("formSettings_save_onClick")
+                            .Icon("check")
+                            .Type(ButtonType.Success).StylingMode(ButtonStylingMode.Contained))
+                            .Location(ToolbarItemLocation.After).Toolbar(Toolbar.Bottom);
+                    t.Add().Widget(w => w.Button().Text(LabelText.REMOVE)
+                            .OnClick("formSettings_cancel_onClick")
+                            .Icon("refresh")
+                            .Type(ButtonType.Normal)
+                            .StylingMode(ButtonStylingMode.Contained))
+                            .Location(ToolbarItemLocation.After).Toolbar(Toolbar.Bottom);
+                })
+    )
+
+    @using (Html.DevExtreme().NamedTemplate("EmbeddedSettingsForm"))
+    {
+        @(Html.DevExtreme().Form<LAYA001A_LIST>()
+                    .ID("formSettings")
+                    .AlignItemLabelsInAllGroups(false)
+                    .ScrollingEnabled(true)
+                    //.ColCountByScreen(s => s.Lg(System.Configuration.ConfigurationManager.AppSettings["optionLanguage"] == "true" ? 4 : 3).Sm(1))
+                    .ColCountByScreen(s => s.Lg(System.Configuration.ConfigurationManager.AppSettings["optionLanguage"] == "true"
+                        ? (System.Configuration.ConfigurationManager.AppSettings["optionPrinter"] == "true" ? 4 : 3) 
+                        : (System.Configuration.ConfigurationManager.AppSettings["optionPrinter"] == "true" ? 3 : 2)).Sm(1))
+
+                    .Items(items =>
+                    {
+                    items.AddGroup()
+                        .Caption(LabelText.LOGIN)
+                        .Items(groupitem =>
+                        {
+                            groupitem.AddSimple().Label(l => l.Text(LabelText.USERNAME))
+                                .ColSpan(4)
+                                .Template(@<text>@LoginUserInfo.get(User.Identity.GetUserId()).EMPNAME</text>);
+
+                                        groupitem.AddSimple().Label(l => l.Text(LabelText.DEPARTMENT))
+                                            .ColSpan(4)
+                                            .Template(@<text>@LoginUserInfo.get(User.Identity.GetUserId()).DEPARTMENT</text>);
+
+
+
+
+                            groupitem.AddSimple().Label(l => l.Text("작업자 메뉴얼 다운로드"))
+                                .ColSpan(4)
+                                .Template(@<text><a id="DownloadWorkerManual"><span class="badge badge-info">[작업자 메뉴얼] 다운로드</span></a></text>);
+
+
+                                                groupitem.AddSimple()
+                                                .Template(@<text>
+                                                    @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm" }))
+                                                                {
+                                                        @Html.AntiForgeryToken()
+                                                        @(Html.DevExtreme().Button()
+                                                                    .Text(LabelText.LOGOUT)
+                                                                    .Type(ButtonType.Default)
+                                                                    .Icon("fa fa-sign-out")
+                                                                    .OnClick("function(e){document.getElementById('logoutForm').submit();}")
+                                                        )
+                                                                }
+                                                </text>);
+                                                    });
+
+                                                    items.AddGroup()
+                                                    .Visible(System.Configuration.ConfigurationManager.AppSettings["optionLanguage"] == "true" ? true : false)
+                                                    .Caption(LabelText.LANG_CHANGE)
+                                                    .Items(groupitem =>
+                                                    {
+                                                        groupitem.AddSimpleFor(m => m.LANGUAGE)
+                                                        .Template(@<text>
+                                                            @(Html.DevExtreme().List()
+                                                                                .DisplayExpr("SYSCODENAME")
+                                                                                .DataSource(d => d.WebApi()
+                                                                                            .Controller("COMA003WebApi")
+                                                                                            .LoadAction("LANGUAGE_LIST")
+                                                                                            .Key("SYSCODE")
+                                                                                            .LoadParams(new { Culture = new JS("function() { return locale; }") })
+                                                                                        )
+                                                                                .SelectionMode(ListSelectionMode.Single)
+                                                                                .ShowSelectionControls(true)
+                                                                                .SelectedItemKeys(new JS("[locale]"))
+                                                                                .ItemTemplate(new JS("formSettings_LANGUAGE_ItemTemplate"))
+                                                            )
+
+                                                        </text>);
+                                                                });
+
+                                        items.AddGroup()
+                                .Caption(LabelText.FIELDCONFIG)
+                                .Visible(ABLE_PROCCESSCODE)
+                                .Items(groupitem =>
+                                {
+                                    groupitem.AddSimpleFor(m => m.PROCESSCODE)
+                                                                        .Editor(e => e
+                                                                            .SelectBox()
+                                                                            .ValueExpr("PROCESSCODE")
+                                                                            .DisplayExpr("PROCESSNAME")
+                                                                            .DataSource(d => d.WebApi()
+                                                                                        .Controller("COMA001WebApi")
+                                                                                        .LoadAction("PROCESS_LIST")
+                                                                                        .Key("PROCESSCODE")
+                                                                                        .LoadParams(new { Culture = new JS("function() { return locale; }") })
+                                                                                    )
+                                                                            .Placeholder("Select a value...")
+                                                                            .OnValueChanged("formSettings_PROCESSCODE_OnValueChanged")
+                                                                            .ShowClearButton(true)
+                                                                            .Value(new JS("globalProcessCode"))
+                                                                        );
+
+                                    groupitem.AddSimpleFor(m => m.EQUIPMENTCODE)
+                                                                        .Editor(e => e
+                                                                            .TagBox()
+                                                                            .ShowSelectionControls(true)
+                                                                            .ApplyValueMode(EditorApplyValueMode.UseButtons)
+                                                                            .ValueExpr("EQUIPMENTCODE")
+                                                                            .DisplayExpr("EQUIPMENTNAME")
+                                                                            .ShowDropDownButton(true)
+                                                                            .DataSource(d => d.WebApi()
+                                                                                        .Controller("COMA001WebApi")
+                                                                                        .LoadAction("EQUIPMENT_LIST")
+                                                                                        .Key("EQUIPMENTCODE")
+                                                                                        .LoadParams(new
+                                                                                        {
+                                                                                            Culture = new JS("function() { return locale; }"),
+                                                                                            PROCESSCODE = new JS("function() { return $('#formSettings').dxForm('instance').option('formData.PROCESSCODE'); }")
+                                                                                        })
+                                                                                    )
+                                                                            .Placeholder("Select a value...")
+                                                                            .Value(new JS("globalEquipmentCode"))
+                                                                            .ShowClearButton(true)
+                                                                        );
+                                });
+
+                                        items.AddGroup()
+                            .Visible(ABLE_WORKCENTERCODE)
+                            .Caption(LabelText.FIELDCONFIG)
+                            .Items(groupitem =>
+                            {
+                                groupitem.AddSimpleFor(m => m.PROCESSCODE)
+                                                                    .Editor(e => e
+                                                                        .SelectBox()
+                                                                        .ValueExpr("PROCESSCODE")
+                                                                        .DisplayExpr("PROCESSNAME")
+                                                                        .DataSource(d => d.WebApi()
+                                                                                    .Controller("COMA001WebApi")
+                                                                                    .LoadAction("PROCESS_LIST")
+                                                                                    .Key("PROCESSCODE")
+                                                                                    .LoadParams(new { Culture = new JS("function() { return locale; }") })
+                                                                                )
+                                                                        .Placeholder("Select a value...")
+                                                                        .ShowClearButton(true)
+                                                                        .Value(new JS("globalProcessCode"))
+                                                                    );
+
+                                groupitem.AddSimpleFor(m => m.WORKCENTERCODE)
+                                                                    .Editor(e => e
+                                                                        .SelectBox()
+                                                                        .ValueExpr("WORKCENTERCODE")
+                                                                        .DisplayExpr("WORKCENTERNAME")
+                                                                        .ShowDropDownButton(true)
+                                                                        .DataSource(d => d.WebApi()
+                                                                            .Controller("COMA001WebApi")
+                                                                            .LoadAction("WORKCENTER_LIST")
+                                                                            .Key("WORKCENTERCODE")
+                                                                        )
+                                                                        .Placeholder("Select a value...")
+                                                                        .Value(new JS("globalWorkcenterCode"))
+                                                                        .ShowClearButton(true)
+                                                                    );
+                            });
+
+                                        items.AddGroup()
+                                .Caption(LabelText.ZEBRAPRINTCONFIG)
+                                            .Visible(System.Configuration.ConfigurationManager.AppSettings["optionPrinter"] == "true")
+            
+                                .ColCount(4)
+                                .Items(groupitem =>
+                                {
+                                groupitem.AddSimple().Label(l => l.Text(LabelText.ZEBRABROWSERPRINTDOWNLOAD))
+                                                        .ColSpan(4)
+                                                        .Template(@<text><a id="DownloadZebraBrowserPrint"><span class="badge badge-info">@LabelText.ZEBRABROWSERPRINTDOWNLOAD</span></a></text>);
+
+                                                                groupitem.AddSimple().Label(l => l.Text(LabelText.USEPRINTER))
+                                                        .Editor(e => e
+                                                            .Switch()
+                                                            .ID("useZebraPrinter")
+                                                            .OnValueChanged("useZebraPrinter_OnValueChanged")
+                                                        ).ColSpan(1);
+
+                                                                groupitem.AddSimple().Label(l => l.Text(LabelText.SELECTPRINTER))
+                                                        .Editor(e => e
+                                                            .SelectBox()
+                                                            .ID("zebraPrinterList")
+                                                            .DataSource(new JS("zebraBrowserdeviceNames"))
+                                                            .OnSelectionChanged("zebraPrinterList_OnSelectionChanged")
+                                                        ).ColSpan(3);
+
+                                                                groupitem.AddSimple().Label(l => l.Text(LabelText.ZPLMANUALSEND))
+                                                        .Editor(e => e
+                                                            .TextBox().ID("zebraPrinterRequest").Value("~HS").ElementAttr("float", "left").Width("100%")
+                                                            .Buttons(c => c.Add().Name("zebraPrinterButtons").Widget(w => w.Button().Text("전송").ID("btnzebraPrinterSend")
+                                                          .OnClick("function(e){ writeToSelectedPrinter($('#zebraPrinterRequest').dxTextBox('instance').option('value')); }"))
+                                                            )
+                                                        ).ColSpan(4);
+
+                                                                groupitem.AddSimple().Label(l => l.Text(LabelText.RESPONSEMESSAGE))
+                                            .Editor(e => e
+                                                .TextArea().ID("zebraPrinterResponse").Height(90).StylingMode(EditorStylingMode.Outlined)
+                                            ).ColSpan(4);
+                                                            });
+                                                        })
+        )
+    }
+
+    @Html.Partial("_rightSidebar")
+    @Html.Partial("_CommonPartial")
+
+    <!-- End wrapper-->
+
+    @Scripts.Render("~/plugins/popper")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/plugins/metsiMenu")
+    @Scripts.Render("~/plugins/pace")
+    @Scripts.Render("~/plugins/slimScroll")
+    @Scripts.Render("~/scripts/common.js")
+    @Scripts.Render("~/scripts/chartJs")
+    @Scripts.Render("~/plugins/footable")
+    @Scripts.Render("~/plugins/moment")
+    @Scripts.Render("~/plugins/mdetect")
+    @RenderSection("scripts", required: false)
+
+    <script>
+        $(function () {
+
+
+
+            $ ("#scrollViewContainer").dxScrollView ({
+                useNative : true
+            });
+
+            if (MobileEsp.DetectAndroid()) {
+                $(".dx-drawer-wrapper").css("height", window.innerHeight);
+            } else {
+                $(".dx-drawer-wrapper").css("height", window.innerHeight - parseInt($(".dx-toolbar-items-container").css("height").replace("px","")));
+            }
+        });
+
+        $(window).resize(function(){
+            if (MobileEsp.DetectAndroid()) {
+                $(".dx-drawer-wrapper").css("height", window.innerHeight);
+            } else {
+                $(".dx-drawer-wrapper").css("height", window.innerHeight - parseInt($(".dx-toolbar-items-container").css("height").replace("px","")));
+            }
+        });
+
+        function formSettings_LANGUAGE_ItemTemplate(data, index) {
+            var result = $('<div>').addClass('product');
+
+            if (data.SYSCODE == "en-US") {
+                $("#currentLang").attr("src", rootURL + "Content/Images/Flag/US.png");
+                $('<img>').attr('src', '/Content/Images/Flag/US.png').appendTo(result);
+            } else if (data.SYSCODE == "zh-CN") {
+                $('<img>').attr('src', '/Content/Images/Flag/CN.png').appendTo(result);
+            } else if (data.SYSCODE == "de-DE") {
+                $('<img>').attr('src', '/Content/Images/Flag/DE.png').appendTo(result);
+            } else if (data.SYSCODE == "ja-JP") {
+                $('<img>').attr('src', '/Content/Images/Flag/JP.png').appendTo(result);
+            } else if (data.SYSCODE == "vi-VN") {
+                $('<img>').attr('src', '/Content/Images/Flag/VN.png').appendTo(result);
+            } else {
+                $('<img>').attr('src', '/Content/Images/Flag/KR.png').appendTo(result);
+            }
+
+            $('<div>').text(data.SYSCODENAME).appendTo(result);
+
+            return result;
+        }
+
+        function toolbar_Config_OnClick() {
+            $('#setting_popup').dxPopup('instance').show();
+
+            if ("@System.Configuration.ConfigurationManager.AppSettings["systemName"]" == "IEPMES") {
+                var ManualAddress = "Content/Files/ProgramManual/IEPMES/worker/아이앤폴리머 작업자 메뉴얼.pdf";
+            }
+            
+            if ("@System.Configuration.ConfigurationManager.AppSettings["systemName"]" == "THMES") {
+                var ManualAddress = "Content/Files/ProgramManual/THMES/worker/작업자 메뉴얼.pdf";
+            }
+
+            if ("@System.Configuration.ConfigurationManager.AppSettings["systemName"]" == "JHTMES") {
+                var ManualAddress = "Content/Files/ProgramManual/JHTMES/worker/작업자 메뉴얼.pdf";
+            }
+
+            if ("@System.Configuration.ConfigurationManager.AppSettings["systemName"]" == "HJMES") {
+                var ManualAddress = "Content/Files/ProgramManual/HJMES/사용자 매뉴얼.pdf";
+            }
+
+            $("#DownloadWorkerManual").attr("href", rootURL + ManualAddress);
+
+            $("#DownloadZebraBrowserPrint").attr("href", rootURL + "Content/Files/ZebraBrowserPrint/ZebraBrowserPrintSetup-1.2.1.279.exe");
+
+            if (globalProcessCode === undefined) {
+                $('#formSettings').dxForm('instance').validate();
+            }
+
+            if (Cookies.get("useZebraPrinter") == "true"){
+                $('#useZebraPrinter').dxSwitch('instance').option('value', true);
+            } else {
+                if ($('#useZebraPrinter').dxSwitch('instance') != undefined)
+                    $('#useZebraPrinter').dxSwitch('instance').option('value', false);
+            }
+
+            $('#btnzebraPrinterSend').dxButton('instance').option('disabled', !$('#useZebraPrinter').dxSwitch('instance').option('value'));
+        }
+
+        function useZebraPrinter_OnValueChanged() {
+            if ($('#useZebraPrinter').dxSwitch('instance').option('value')) {
+                Cookies.set("useZebraPrinter", true, { expires: 99999 });
+                zebraBrowserPrintSetup();
+            }
+            else {
+                Cookies.set("useZebraPrinter", false, { expires: 99999 });
+            }
+
+            $('#btnzebraPrinterSend').dxButton('instance').option('disabled', !$('#useZebraPrinter').dxSwitch('instance').option('value'));
+        }
+
+        function zebraPrinterList_OnSelectionChanged(e) {
+            for (var i = 0; i < zebraBrowserdevices.length; ++i) {
+                if (e.selectedItem == zebraBrowserdevices[i].uid) {
+                    zebraBrowserSelected_device = zebraBrowserdevices[i];
+                    Cookies.set("zebraBrowserSelectePrinter", e.selectedItem, { expires: 99999 });
+                    return;
+                }
+            }
+        }
+
+        function openButton_click() {
+            var drawer = $("#drawer").dxDrawer("instance");
+            drawer.toggle();
+        }
+
+        function formSettings_PROCESSCODE_OnValueChanged(e) {
+            if ($('#formSettings').dxForm('instance') != undefined) {
+                var equipment = $('#formSettings').dxForm('instance').getEditor("EQUIPMENTCODE");
+                var data = equipment.getDataSource();
+                $('#formSettings').dxForm('instance').updateData('EQUIPMENTCODE', null);
+                data.reload();
+            }
+        }
+
+        function drawer_OnContentReady() {
+            var treeView = $('#treeMenu').dxTreeView('instance');
+            var nodeItems = treeView.element().find(".dx-treeview-item");
+            for (var i = 0; i < nodeItems.length; i++) {
+                treeView.expandItem(nodeItems[i]);
+            }
+
+            getCurrentNode(treeView.getNodes(), treeView);
+        }
+
+        function getCurrentNode(nodes, tree) {
+            nodes.forEach(function(node) {
+                if (node.children.length) {
+                    getCurrentNode(node.children, tree);
+                } else {
+                    if (node.itemData.URL1 == controllerName && node.itemData.URL2 == actionName) {
+                        var parnetNode = node.parent;
+                        var breadCrumb;
+
+                        if (parnetNode != undefined) {
+                            breadCrumb = parnetNode.text + ' > ' + node.itemData.MENUNAME;
+                        } else {
+                            breadCrumb = node.itemData.MENUNAME;
+                        }
+
+                        if (breadCrumb != '') {
+                            $('#header_title_text').html('<i class="fa fa-location-arrow"> ' + breadCrumb + '</i>');
+                        }
+                    }
+                }
+            });
+        }
+
+        function treeMenu_OnItemClick(e) {
+            if (e.node.expanded) {
+                e.component.collapseItem(e.node.key);
+            } else {
+                e.component.expandItem(e.node.key);
+            }
+
+            if (e.itemData.URL1 != undefined && e.itemData.URL2) {
+                window.location.replace(rootURL + e.itemData.URL1 + '/' + e.itemData.URL2);
+            }
+        }
+
+        function formSettings_save_onClick(e) {
+            var form = $('#formSettings').dxForm('instance');
+            var result = form.validate();
+
+            if (result == undefined ||  result.isValid == true) {
+
+                var settingData = []; //반드시 Array 여야 함.
+                settingData.push({ id: "PROCESSCODE", name: form.option('formData.PROCESSCODE') });
+                settingData.push({ id: "EQUIPMENTCODE", name: form.option('formData.EQUIPMENTCODE') });
+                settingData.push({ id: "WORKCENTERCODE", name: form.option('formData.WORKCENTERCODE') });
+
+                var store = new DevExpress.data.LocalStore({
+                    key: "id",
+                    data: settingData,
+                    name: "settings"
+                });
+
+                DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+
+                $('#setting_popup').dxPopup('instance').hide();
+
+                if (globalProcessCode != form.option('formData.PROCESSCODE') || globalEquipmentCode != form.option('formData.EQUIPMENTCODE') || globalWorkcenterCode != form.option('formData.WORKCENTERCODE')) {
+                    globalEquipmentCode = form.option('formData.EQUIPMENTCODE');
+                    globalProcessCode = form.option('formData.PROCESSCODE');
+                    globalWorkcenterCode = form.option('formData.WORKCENTERCODE');
+                    location.reload(true);
+                }
+            }
+        }
+
+        function formSettings_cancel_onClick(e) {
+            var form = $('#formSettings').dxForm('instance');
+            form.updateData('EQUIPMENTCODE', null);
+            form.updateData('PROCESSCODE', null);
+            form.updateData('WORKCENTERCODE', null);
+        }
+    </script>
+</body>
+</html>

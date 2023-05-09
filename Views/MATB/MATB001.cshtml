@@ -1,0 +1,167 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.MAT.MATB;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<MATB001_LIST>()
+                            .ID("grdMaterialStock")
+                            .DataSource(d => d.WebApi().Controller("MATB001WebApi").Key("SERIALNUMBER"))
+                            .RepaintChangesOnly(true)
+                            .Columns(columns =>
+                            {
+                                columns.AddFor(m => m.RELEASE).AllowSorting(false).AllowFiltering(false);
+                                columns.AddFor(m => m.SERIALNUMBER).SortOrder(SortOrder.Asc).SortIndex(1);
+                                columns.AddFor(m => m.LOTNUMBER).SortOrder(SortOrder.Asc).SortIndex(0);
+                                columns.AddFor(m => m.PRODUCTTYPE)
+                                    .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                        .Controller("COMA003WebApi").Key("SYSCODE")
+                                        .LoadAction("PRODUCTTYPE_LIST"))
+                                        .DisplayExpr("SYSCODENAME")
+                                        .ValueExpr("SYSCODE")
+                                        );
+                                columns.AddFor(m => m.PARTNUMBER).SortOrder(SortOrder.Asc).SortIndex(3);
+                                columns.AddFor(m => m.PRODUCTNAME);
+                                columns.AddFor(m => m.WAREHOUSECODE)
+                                    .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                        .Controller("COMA001WebApi").Key("WAREHOUSECODE")
+                                        .LoadAction("WAREHOUSE_LIST"))
+                                        .DisplayExpr("WAREHOUSENAME")
+                                        .ValueExpr("WAREHOUSECODE")
+                                        );
+                                columns.AddFor(m => m.PLANTCODE)
+                                    .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                        .Controller("COMA001WebApi").Key("PLANTCODE")
+                                        .LoadAction("PLANT_LIST"))
+                                        .DisplayExpr("PLANTNAME")
+                                        .ValueExpr("PLANTCODE")
+                                        );
+                                columns.AddFor(m => m.INVENTQUANTITY);
+                                columns.AddFor(m => m.QUANTITY).SetCellValue("QUANTITY_SetCellValue");
+                                columns.AddFor(m => m.WORKDATE);
+                                columns.AddFor(m => m.REASON);
+                            })
+                            .FilterPanel(f => f.Visible(true))
+                            .ColumnAutoWidth(true)
+                            .Paging(p => p.PageSize(25).Enabled(true))
+                            .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                            .Selection(s => s.Mode(SelectionMode.None))
+                            .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                            .SearchPanel(searchPanel => searchPanel
+                                .Visible(true)
+                                .Width(180)
+                                .Placeholder("Search...")
+                            )
+                            .FilterRow(filterRow => filterRow
+                                .Visible(true)
+                                .ApplyFilter(GridApplyFilterMode.Auto)
+                            )
+                            .Editing(e =>
+                                e.Mode(GridEditMode.Batch)
+                                .AllowUpdating(true)
+                            )
+                            .Summary(s => s
+                                .RecalculateWhileEditing(true)
+                                .TotalItems(items =>
+                                {
+                                    items.AddFor(m => m.INVENTQUANTITY).SummaryType(SummaryType.Sum);
+                                })
+                            )
+                            .RemoteOperations(true)
+                            .ShowRowLines(true)
+                            .ShowBorders(true)
+                            .AllowColumnResizing(true)
+                            .RowAlternationEnabled(true)
+                            .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                            .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                            .OnInitialized("grdMaterialStock_OnInitialized")
+                            .OnRowUpdating("grdMaterialStock_OnRowUpdating")
+                            .OnCellClick("grdMaterialStock_OnCellClick")
+                            .Option("USE_REQUIRED_HEADER", true)
+                            .Option("KEY_FIELD", new object[] { "SERIALNUMBER", "LOTNUMBER", "PRODUCTTYPE", "PARTNUMBER", "PRODUCTNAME", "WAREHOUSECODE", "PLANTCODE", "INVENTQUANTITY" })
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    var cellheight = 0;
+
+    function grdMaterialStock_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function QUANTITY_SetCellValue(rowData, value) {
+        rowData.QUANTITY = value;
+        rowData.WORKDATE = new Date();
+    }
+
+    function grdMaterialStock_OnRowUpdating(e) {
+        for (var property in e.oldData) {
+            if (!e.newData.hasOwnProperty(property)) {
+                e.newData[property] = e.oldData[property];
+            }
+        }
+    }
+
+    function grdMaterialStock_OnCellClick(e) {
+        cellheight = e.cellElement[0].clientHeight;
+        var grid = $("#grdMaterialStock").dxDataGrid('instance');
+
+        if (e.rowType == "data" && e.column.dataField == "RELEASE") {
+            if (e.data.RELEASE == false) {
+                grid.cellValue(e.row.rowIndex, 'QUANTITY', e.data.INVENTQUANTITY);
+                grid.cellValue(e.row.rowIndex, 'RELEASE', true);
+            } else {
+
+                grid.cellValue(e.row.rowIndex, 'QUANTITY', null);
+                grid.cellValue(e.row.rowIndex, 'WORKDATE', null);
+                grid.cellValue(e.row.rowIndex, 'RELEASE', false);
+
+                if (e.data.REASON != null) {
+                    grid.cellValue(e.row.rowIndex, 'REASON', null);
+                }
+            }
+        }
+        else if (e.rowType == "header" && e.column.dataField == "RELEASE") {
+            var cnt = grid.totalCount();
+
+            if (cnt > grid.pageSize()) {
+                cnt = grid.pageSize();
+            }
+
+            var truecnt = 0;
+            var falsecnt = 0;
+            var chk = true;
+
+            for (var i = 0; i < cnt; i++) {
+                if (grid.cellValue(i, "RELEASE"))
+                    truecnt++;
+                else
+                    falsecnt++;
+            }
+
+            if (truecnt >= falsecnt)
+                chk = false;
+            else
+                chk = true;
+
+            if (chk == true) {
+                for (var i = 0; i < cnt; i++) {
+                    grid.cellValue(i, 'QUANTITY', grid.getDataSource()._items[i].INVENTQUANTITY);
+                    grid.cellValue(i, "RELEASE", chk);
+                }
+            }
+            else {
+                grid.cancelEditData();
+            }
+
+        }
+    }
+
+</script>

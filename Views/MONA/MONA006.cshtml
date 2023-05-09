@@ -1,0 +1,425 @@
+﻿@using JSMES.WebUI.Alpha.App_GlobalResources
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MON.MONA
+
+@{
+    ViewBag.Title = "Main";
+}
+@*<style>
+    .dx-toast-message {
+        white-space: pre-line;
+    }
+</style>*@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().Form()
+                        .ID("formInfo")
+                        .ColCount(8)
+                        //.OnContentReady("formInfo_OnContentReady")
+                        .ScrollingEnabled(false)
+                        .Items(items =>
+                        {
+                            items.AddSimple().Editor(e => e.NumberBox().Min(0).Format("#0 초").Value(30))
+                                .Name("uptime")
+                                .Label(T => T.Text("갱신시간"))
+                                .ColSpan(1);
+
+                            items.AddEmpty().ColSpan(5);
+
+                            items.AddSimple().Editor(e => e.Switch().SwitchedOffText("작게보기").SwitchedOnText("크게보기").Width("100%").Value(false))
+                                .Name("zoomcheck")
+                                .Label(T => T.Text(""))
+                                .ColSpan(1);
+
+                            items.AddSimple().Editor(e => e.NumberBox().Min(10).Format("#0 초").Value(30))
+                                .Name("interval")
+                                .Label(T => T.Text("시간설정"))
+                                .ColSpan(1);
+                        })
+            )
+            @(Html.DevExtreme().DataGrid<MONA006A_LIST>
+            ()
+            .ID("grdList")
+            .DataSource(d => d.WebApi().Controller("MONA006WebApi").Key("PARTNUMBER", "PROCESSCODE", "EQUIPMENTCODE", "SHIFTCODE"))
+            .Columns(columns =>
+            {
+            columns.AddFor(m => m.PARTNUMBER);
+            columns.AddFor(m => m.PRODUCTNAME);
+            columns.AddFor(m => m.PROCESSCODE).Lookup(e => e
+                .DataSource(d => d.WebApi()
+                .Controller("COMA001WebApi").Key("PROCESSCODE")
+                .LoadAction("PROCESS_LIST"))
+                .DisplayExpr("PROCESSNAME")
+                .ValueExpr("PROCESSCODE")
+                ).AllowEditing(false);
+            columns.AddFor(m => m.EQUIPMENTCODE).Lookup(e => e
+                .DataSource(d => d.WebApi()
+                .Controller("COMA001WebApi").Key("EQUIPMENTCODE")
+                .LoadAction("EQUIPMENT_LIST"))
+                .DisplayExpr("EQUIPMENTNAME")
+                .ValueExpr("EQUIPMENTCODE")
+                ).AllowEditing(false);
+            columns.AddFor(m => m.SHIFTCODE).Lookup(e => e
+                .DataSource(d => d.WebApi()
+                .Controller("COMA003WebApi").Key("SYSCODE")
+                .LoadAction("SHIFT_LIST"))
+                .DisplayExpr("SYSCODENAME")
+                .ValueExpr("SYSCODE")
+                ).AllowEditing(false);
+            columns.Add().Caption("초품").Alignment(HorizontalAlignment.Center)
+                   .Columns(col =>
+                   {
+                       col.AddFor(m => m.WORKER1).Caption("1").CellTemplate(new JS("grdList_celltemplate1")).Alignment(HorizontalAlignment.Center).Width(100);
+                       col.AddFor(m => m.WORKER11).Caption("2").CellTemplate(new JS("grdList_celltemplate2")).Alignment(HorizontalAlignment.Center).Width(100);
+
+                   });
+            columns.Add().Caption("중품").Alignment(HorizontalAlignment.Center)
+                  .Columns(col =>
+                  {
+                      col.AddFor(m => m.WORKER2).Caption("1").CellTemplate(new JS("grdList_celltemplate3")).Alignment(HorizontalAlignment.Center).Width(100);
+                      col.AddFor(m => m.WORKER21).Caption("2").CellTemplate(new JS("grdList_celltemplate4")).Alignment(HorizontalAlignment.Center).Width(100);
+
+                  });
+            columns.Add().Caption("종품").Alignment(HorizontalAlignment.Center)
+                  .Columns(col =>
+                  {
+                      col.AddFor(m => m.WORKER3).Caption("1").CellTemplate(new JS("grdList_celltemplate5")).Alignment(HorizontalAlignment.Center).Width(100);
+                      col.AddFor(m => m.WORKER31).Caption("2").CellTemplate(new JS("grdList_celltemplate6")).Alignment(HorizontalAlignment.Center).Width(100);
+
+                  });
+
+                @*columns.AddFor(m => m.WORKER1).Caption("초품").CellTemplate(new JS("grdList_celltemplate")).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.WORKER2).Caption("중품").CellTemplate(new JS("grdList_celltemplate1")).Alignment(HorizontalAlignment.Center);
+                columns.AddFor(m => m.WORKER3).Caption("종품").CellTemplate(new JS("grdList_celltemplate2")).Alignment(HorizontalAlignment.Center);*@
+
+
+                //columns.AddFor(m => m.INVENTQUANTITY).Format("#,##0.###").Width(200);
+                ////columns.AddFor(m => m.USAGEDAY).Format(f => f.Type(Format.FixedPoint).Precision(0)).Width(100).Caption("재고일수");
+                //columns.AddFor(m => m.UNITCODE)
+                //        .Lookup(lookup => lookup
+                //            .DataSource(d => d.WebApi()
+                //                .Controller("COMA003WebApi").Key("SYSCODE")
+                //                .LoadAction("UNITCODE_LIST"))
+                //            .DisplayExpr("SYSCODENAME")
+                //            .ValueExpr("SYSCODE")
+                //        ).AllowEditing(false);
+                //columns.AddFor(m => m.STATUS);
+            })
+        .RemoteOperations(true)
+            .FilterPanel(f => f.Visible(false))
+        .ColumnAutoWidth(true)
+            .Paging(p => p.PageSize(10).Enabled(true))
+        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+        .SearchPanel(searchPanel => searchPanel
+        .Visible(false)
+        .Width(180)
+        .Placeholder("Search...")
+        )
+        .FilterRow(filterRow => filterRow
+        .Visible(false)
+        .ApplyFilter(GridApplyFilterMode.Auto)
+        )
+        .ShowBorders(true)
+        .AllowColumnResizing(true)
+        .RowAlternationEnabled(true)
+        .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+        .ShowRowLines(true)
+        .OnCellPrepared("grdList_OnCellPrepared")
+            )
+        </div>
+    </div>
+</div>
+
+<style>
+    .useClass01 {
+        font-size: xx-large;
+        font-weight: bold;
+        height: 60px;
+        vertical-align: middle;
+        padding: 10px;
+    }
+
+    .useClass02 {
+        padding: 10px;
+        font-size: xx-large;
+        height: 60px;
+    }
+
+
+    .circle01 {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        shape-outside: circle();
+        background-color: red;
+        vertical-align: middle;
+        display: inline-block;
+    }
+
+
+    .circle02 {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        shape-outside: circle();
+        background-color: #1b9f39;
+        vertical-align: middle;
+        display: inline-block;
+    }
+</style>
+
+<script>
+    var cnt = 0;
+    var pageIndex = 0;
+    var timerId;
+    var interval = 10000;
+    var lastChk = true;
+
+    $(function () {
+        //set();
+        var form = $('#formInfo').dxForm('instance');
+        var setInterval = form.getEditor('interval').option('value');
+        form.getEditor('uptime').option('value', setInterval);
+        cnt = setInterval;
+
+        set();
+        //StartTimer();
+    });
+
+    function StartTimer() {
+
+        var form = $('#formInfo').dxForm('instance');
+        var setInterval = form.getEditor('interval').option('value');// $("#interval").dxNumberBox("instance").option('value');
+        var chk = form.getEditor('zoomcheck').option('value');// $("#zoomcheck").dxNumberBox("instance").option('value');
+        form.getEditor('uptime').option('value', setInterval);
+        cnt = setInterval;
+
+        form.getEditor('uptime').option('value', setInterval)
+        search(chk);
+
+        //if (setInterval != undefined || setInterval == null)
+        //    timerId = setTimeout(StartTimer, setInterval * 1000);
+        //else
+        //    timerId = setTimeout(StartTimer, interval);
+    }
+
+    function set() {// $("#interval").dxNumberBox("instance").option('value');
+        if (cnt < 1) {
+            StartTimer();
+        } else {
+            cnt--;
+            var form = $('#formInfo').dxForm('instance');
+            form.getEditor('uptime').option('value', cnt);
+        }
+        
+        timerId = setTimeout(set, 1000);
+
+    }
+
+    function StopTimer() {
+        if (timerId != null) {
+            clearTimeout(timerId);
+        }
+    }
+
+    function search(check) {
+        var grd = $('#grdList').dxDataGrid('instance');
+        var maxIndex = grd.pageCount();
+        var nowIndex = grd.pageIndex();
+
+        if (grd.totalCount() < 1) {
+            grd.refresh();
+            return;
+        }
+
+        if (pageIndex < maxIndex) {
+            grd.pageIndex(pageIndex);
+            pageIndex++;
+        } else {
+            pageIndex = 0;
+            grd.pageIndex(pageIndex);
+            grd.refresh();
+        }
+        //$(".dx-datagrid-text-content").css("vertical-align", "middle");
+
+        if (check) {
+            $("#grdList").dxDataGrid('instance').pageSize(6);
+            $(".dx-datagrid-text-content").addClass("useClass01");
+            
+
+        } else {
+            $("#grdList").dxDataGrid('instance').pageSize(10);
+            $(".dx-datagrid-text-content").removeClass("useClass01");
+        }
+
+    }
+    function grdList_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+
+    function grdList_celltemplate(container, options) {
+
+        var STATUS = options.data.STATUS1;
+        var WORKER1 = options.data.WORKER1 == null ? "" : options.data.WORKER1;
+        var WORKTIME1 = options.data.WORKTIME1 == null ? "" : options.data.WORKTIME1 ;
+        var WORKER2 = options.data.WORKER11 == null ? "" : options.data.WORKER11;
+        var WORKTIME2 = options.data.WORKTIME11 == null ? "" : options.data.WORKTIME11;
+        var fieldHtml = "";
+        var statusHtml = STATUS == "Y" ? "circle02" : "circle01";
+
+        if (options.data.WORKTIME1 != null)
+            WORKTIME1 = new Date(WORKTIME1).getHours() + ":" + new Date(WORKTIME1).getMinutes() + ":" + new Date(WORKTIME1).getSeconds();
+
+        if (options.data.WORKTIME11 != null)
+            WORKTIME2 = new Date(WORKTIME2).getHours() + ":" + new Date(WORKTIME2).getMinutes() + ":" + new Date(WORKTIME2).getSeconds();
+
+        fieldHtml = "<div><div class='" + statusHtml + "'></div><div>" + WORKER1 + "</div><div>" + WORKTIME1 + "</div>";
+
+        //fieldHtml = "<div><table style='text-align:center' width='100%' ><tr rowspan='2'><td colspan='2' style='text-align:center;'><div class='" + statusHtml +"'></div></td></tr>" +
+        //    "<tr><td width='50%'>" + WORKER1 + "</td > <td  width='50%' >" + WORKER2 + "</td></tr > " +
+        //    "<tr><td>" + WORKTIME1 + "</td > <td>" + WORKTIME2 + "</td></tr > " +
+        //    "</table></div> ";
+
+        $(fieldHtml).appendTo(container);
+
+    }
+
+    function grdList_celltemplate1(container, options) {
+
+        //var STATUS = options.data.STATUS1;
+        var WORKER = options.data.WORKER1 == null ? "" : options.data.WORKER1;
+        var WORKTIME = options.data.WORKTIME1 == null ? "" : options.data.WORKTIME1;
+        
+        var statusHtml = options.data.WORKTIME1 != null ? "circle02" : "circle01";
+
+        if (WORKER != "")
+            WORKTIME = new Date(WORKTIME).getHours() + ":" + new Date(WORKTIME).getMinutes() + ":" + new Date(WORKTIME).getSeconds();
+
+
+        var fieldHtml = "<div><div class='" + statusHtml + "'></div><div>" + WORKER + "</div><div>" + WORKTIME + "</div>";
+
+        $(fieldHtml).appendTo(container);
+
+    }
+
+    function grdList_celltemplate2(container, options) {
+
+        //var STATUS = options.data.STATUS1;
+        var WORKER = options.data.WORKER11 == null || options.data.WORKER11 == "" ? "" : options.data.WORKER11;
+        var WORKTIME = options.data.WORKER11 == null || options.data.WORKER11 == "" ? "" : options.data.WORKTIME11;
+
+        var statusHtml = options.data.WORKER11 != null && options.data.WORKER11 != "" ? "circle02" : "circle01";
+
+        if (WORKER != "")
+            WORKTIME = new Date(WORKTIME).getHours() + ":" + new Date(WORKTIME).getMinutes() + ":" + new Date(WORKTIME).getSeconds();
+
+
+        var fieldHtml = "<div><div class='" + statusHtml + "'></div><div>" + WORKER + "</div><div>" + WORKTIME + "</div>";
+
+        $(fieldHtml).appendTo(container);
+
+    }
+
+    function grdList_celltemplate3(container, options) {
+
+        //var STATUS = options.data.STATUS1;
+        var WORKER = options.data.WORKER2 == null || options.data.WORKER2 == "" ? "" : options.data.WORKER2;
+        var WORKTIME = options.data.WORKER2 == null || options.data.WORKER2 == "" ? "" : options.data.WORKTIME2;
+
+        var statusHtml = options.data.WORKER2 != null && options.data.WORKER2 != "" ? "circle02" : "circle01";
+
+        if (WORKER != "")
+            WORKTIME = new Date(WORKTIME).getHours() + ":" + new Date(WORKTIME).getMinutes() + ":" + new Date(WORKTIME).getSeconds();
+
+
+        var fieldHtml = "<div><div class='" + statusHtml + "'></div><div>" + WORKER + "</div><div>" + WORKTIME + "</div>";
+
+        $(fieldHtml).appendTo(container);
+
+    }
+
+    function grdList_celltemplate4(container, options) {
+
+        //var STATUS = options.data.STATUS1;
+        var WORKER = options.data.WORKER21 == null || options.data.WORKER21 == "" ? "" : options.data.WORKER21;
+        var WORKTIME = options.data.WORKER21 == null || options.data.WORKER21 == "" ? "" : options.data.WORKTIME21;
+
+        var statusHtml = options.data.WORKER21 != null && options.data.WORKER21  != "" ? "circle02" : "circle01";
+
+        if (WORKER != "")
+            WORKTIME = new Date(WORKTIME).getHours() + ":" + new Date(WORKTIME).getMinutes() + ":" + new Date(WORKTIME).getSeconds();
+
+
+        var fieldHtml = "<div><div class='" + statusHtml + "'></div><div>" + WORKER + "</div><div>" + WORKTIME + "</div>";
+
+        $(fieldHtml).appendTo(container);
+
+    }
+
+    function grdList_celltemplate5(container, options) {
+
+        //var STATUS = options.data.STATUS1;
+        var WORKER = options.data.WORKER3 == null || options.data.WORKER3 == "" ? "" : options.data.WORKER3;
+        var WORKTIME = options.data.WORKER3 == null || options.data.WORKER3 == "" ? "" : options.data.WORKTIME3;
+
+        var statusHtml = options.data.WORKER3 != null && options.data.WORKER3 != "" ? "circle02" : "circle01";
+
+        if (WORKER != "")
+            WORKTIME = new Date(WORKTIME).getHours() + ":" + new Date(WORKTIME).getMinutes() + ":" + new Date(WORKTIME).getSeconds();
+
+
+        var fieldHtml = "<div><div class='" + statusHtml + "'></div><div>" + WORKER + "</div><div>" + WORKTIME + "</div>";
+
+        $(fieldHtml).appendTo(container);
+
+    }
+
+    function grdList_celltemplate6(container, options) {
+
+        //var STATUS = options.data.STATUS1;
+        var WORKER = options.data.WORKER31 == null || options.data.WORKER31 == "" ? "" : options.data.WORKER31;
+        var WORKTIME = options.data.WORKER31 == null || options.data.WORKER31 == "" ? "" : options.data.WORKTIME31;
+
+        var statusHtml = options.data.WORKER31 != null && options.data.WORKER31 != "" ? "circle02" : "circle01";
+
+        if (WORKER != "")
+            WORKTIME = new Date(WORKTIME).getHours() + ":" + new Date(WORKTIME).getMinutes() + ":" + new Date(WORKTIME).getSeconds();
+
+
+        var fieldHtml = "<div><div class='" + statusHtml + "'></div><div>" + WORKER + "</div><div>" + WORKTIME + "</div>";
+
+        $(fieldHtml).appendTo(container);
+
+    }
+
+
+
+
+    function grdList_OnCellPrepared(e) {
+
+        fieldHtml = "";
+
+
+        if (e.rowType == "data") {
+
+            var chk = $('#formInfo').dxForm('instance').getEditor('zoomcheck').option('value');
+            if (chk) {
+                e.cellElement.css("height", '70px');
+                e.cellElement.css("font-size", "medium ");
+                e.cellElement.css("padding", "10px");
+                e.cellElement.css("vertical-align", "middle");
+                //e.cellElement.css("font-weight", "bold");
+
+            } else {
+                e.cellElement.css("height", '');
+                e.cellElement.css("font-size", "");
+                e.cellElement.css("padding", "");
+                //e.cellElement.css("font-weight", "");
+            }
+        }
+    }
+
+</script>

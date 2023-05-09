@@ -1,0 +1,170 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAK;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="options">
+                <div class="option">
+                    <span>@LabelText.SELECT @LabelText.DATE</span>
+                    @(Html.DevExtreme().DateBox()
+                        .ID("searchFrom")
+                        .Type(DateBoxType.Date)
+                        .DisplayFormat(Format.Year)
+                        .Value(DateTime.Now)
+                        .CalendarOptions(c=>c.ZoomLevel(CalendarZoomLevel.Century).MinZoomLevel(CalendarZoomLevel.Decade).MaxZoomLevel(CalendarZoomLevel.Decade))
+                        .OnValueChanged("function(e){ $('#grdDefectHis').dxDataGrid('instance').refresh(); }")
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            @(Html.DevExtreme().Chart()
+                .ID("chtDefectHis")
+                .Palette(VizPalette.GreenMist)
+                .Title("유형별 불량 발생 현황")                
+                .SeriesTemplate(s=>s.NameField("DEFECTNAME"))
+                .Tooltip(t => t
+                    .Enabled(true)
+                    .Shared(true)
+                    .Format(f=>f.Type(Format.FixedPoint).Precision(0))
+                )
+                .DataSource(new JS("chartData"))
+                .CommonSeriesSettings(s => s
+                    .ArgumentField("MONTH")
+                    .ValueField("VALUE")
+                    .Label(l => l
+                        .Visible(true)
+                        .Format(f => f
+                            .Type(Format.FixedPoint)
+                            .Precision(0)
+                        )
+                    )
+                )
+                .ResolveLabelOverlapping(ChartResolveLabelOverlapping.Hide)
+                .Legend(l => l
+                    .VerticalAlignment(VerticalEdge.Top)
+                    .HorizontalAlignment(HorizontalAlignment.Center)
+                ))
+        </div>
+    </div>
+     <div class="row mt-2"">
+        <div class="col-lg-12">
+            @(Html.DevExtreme().DataGrid<QUAK060_LIST>()
+                .ID("grdDefectHis")
+                .DataSource(d => d.WebApi()
+                    .Controller("QUAK060WebApi")
+                    .Key("DEFECTCODE")
+                    .OnBeforeSend("grdDefectHis_OnBeforeSend")
+                    .OnLoaded("grdDefectHis_OnLoaded")
+                )
+                .FilterRow(f=>f.Visible(true))
+                .ShowRowLines(true)
+                .Columns(columns =>
+                {
+                    columns.AddFor(m=>m.DEFECTCODE).Visible(false);
+                    columns.AddFor(m=>m.DEFECTNAME).Width("30%");
+                    columns.AddFor(m=>m.DEF1).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF2).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF3).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF4).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF5).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF6).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF7).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF8).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF9).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF10).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF11).Format(f=>f.Type(Format.FixedPoint)).Width("5%");
+                    columns.AddFor(m=>m.DEF12).Format(f=>f.Type(Format.FixedPoint)).Width("5%");                  
+                    columns.AddFor(m=>m.DEFSUM).Format(f=>f.Type(Format.FixedPoint)).Width("5%").Caption("합 계");          
+                    columns.AddFor(m=>m.DEFAVG).Format(f=>f.Type(Format.FixedPoint).Precision(2)).Width("5%").Caption("평 균");
+                })
+                .ColumnHidingEnabled(false)
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .WordWrapEnabled(true)
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{ 10, 25, 50, 100, 1000}))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .OnCellPrepared("grdDefectHis_OnCellPrepared")
+            )
+        </div>
+     </div>
+</div>
+
+<script>
+
+    function grdDefectHis_OnCellPrepared(e) {
+        if (e.rowType == 'data') { 
+            if (e.column.dataField == "DEFSUM") {
+                e.cellElement.css('background', 'rgba(60,186,178,0.3)'); 
+            } else if (e.column.dataField == "DEFAVG") {
+                e.cellElement.css('background', 'rgba(60,186,178,0.5)'); 
+            }
+        }
+    }
+    
+    function grdDefectHis_OnLoaded(e) {
+        chartData = [];        
+        var grid = $('#grdDefectHis').dxDataGrid('instance');
+        var searchFrom = $('#searchFrom').dxDateBox('instance').option("value");
+        searchFrom = new Date(searchFrom);
+        var maxDate = (new Date(searchFrom.getFullYear(), searchFrom.getMonth() + 1, 0)).getDate();
+        var startDate = (new Date(searchFrom.getFullYear(), searchFrom.getMonth(), 1));
+        //var weekDay = Globalize.dateFormatter({raw: "EEE"});
+        
+        for (var colIndex = 1; 12 >= colIndex; colIndex++) {
+            var field = "DEF" + colIndex;
+            grid.columnOption(field, "caption", Globalize.cldr.main("dates/calendars/gregorian/months/format/wide/" + colIndex));
+
+            for (var rowIndex = 0; e.length > rowIndex; rowIndex++) {
+                chartData.push({DEFECTNAME: e[rowIndex].DEFECTNAME, MONTH: Globalize.cldr.main("dates/calendars/gregorian/months/format/wide/" + colIndex), VALUE: e[rowIndex]['DEF' + colIndex]});
+            }            
+        }                        
+       
+        $("#chtDefectHis").dxChart("instance").option("dataSource", chartData);
+    }
+
+    function grdDefectHis_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var searchFrom = $('#searchFrom').dxDateBox('instance').option("value");
+            ajaxOptions.data.searchDate = Globalize.formatDate((searchFrom),{dateTime:'short'});
+        }
+    }
+    
+    function chtDefectHis_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var searchFrom = $('#searchFrom').dxDateBox('instance').option("value");
+            ajaxOptions.data.searchDate = Globalize.formatDate((searchFrom),{dateTime:'short'});
+        }
+    }
+
+    
+    var chartData = [];
+
+
+    $(function(){
+        $("#searchFrom").dxDateBox("instance").option("value", new Date());
+    })
+
+    function searchFrom_OnValueChanged(e) {
+        $('#pie').dxPieChart('instance').refresh();
+        $('#chtDefectSum').dxChart('instance').refresh();
+    }
+
+    function searchTo_OnValueChanged(e) {
+        $('#chtDefectSum').dxChart('instance').refresh();
+    }
+</script>

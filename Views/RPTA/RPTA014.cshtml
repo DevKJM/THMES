@@ -1,0 +1,214 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Infrastructure.Enums
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            <div id="tabs" class="animated">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs ">
+                        <li>
+                            <a class="nav-link active" data-toggle="tab" href="#tab-side-1">
+                                <i class="fa fa-calendar"> 기간별 불량율</i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" data-toggle="tab" href="#tab-side-2">
+                                <i class="fa fa-wrench"> 항목별 불량현황</i>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content onlyHeader">
+                        <div id="tab-side-1" class="tab-pane active">
+                            @(Html.DevExtreme().DataGrid<RPTA014A_LIST>
+                                  ()
+                                  .ID("grdDefectRate")
+                                  .DataSource(d => d.WebApi().Controller("RPTA004WebApi")
+                                      .LoadAction("get_period"))
+                                  .Columns(columns =>
+                                  {
+                                      columns.AddFor(m => m.PLANTCODE).Visible(false);
+                                      columns.AddFor(m => m.WORKDATE).Format(f => f.Type(Format.ShortDate))
+                                          .SelectedFilterOperation(FilterOperations.Between)
+                                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                                      columns.AddFor(m => m.SHIFTCODE)
+                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                              .Controller("COMA003WebApi").Key("SYSCODE")
+                                              .LoadAction("SHIFT_LIST"))
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE")
+                                          );
+                                      columns.AddFor(m => m.PARTNUMBER)
+                                          .SortOrder(SortOrder.Asc).SortIndex(1);
+                                      columns.AddFor(m => m.PRODUCTNAME);
+                                      columns.AddFor(m => m.PROCESSCODE)
+                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                              .Controller("COMA001WebApi").Key("PROCESSCODE")
+                                              .LoadAction("PROCESS_LIST"))
+                                              .DisplayExpr("PROCESSNAME")
+                                              .ValueExpr("PROCESSCODE")
+                                          )
+                                          .SortOrder(SortOrder.Asc).SortIndex(2);
+                                      columns.AddFor(m => m.EQUIPMENTCODE)
+                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                              .Controller("COMA001WebApi").Key("EQUIPMENTCODE")
+                                              .LoadAction("EQUIPMENT_LIST"))
+                                              .DisplayExpr("EQUIPMENTNAME")
+                                              .ValueExpr("EQUIPMENTCODE")
+                                          )
+                                          .SortOrder(SortOrder.Asc).SortIndex(3);
+                                      
+                                      columns.AddFor(m => m.PRODUCTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                      columns.AddFor(m => m.DEFECTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                      columns.AddFor(m => m.DEFECTRATE).Format(f => f.Type(Format.FixedPoint).Precision(1));
+                                  })
+                                  .RemoteOperations(true)
+                                  .FilterPanel(f => f.Visible(true))
+                                  .ColumnAutoWidth(true)
+                                  .Paging(p => p.PageSize(25).Enabled(true))
+                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                  .SearchPanel(searchPanel => searchPanel
+                                      .Visible(true)
+                                      .Width(180)
+                                      .Placeholder("Search...")
+                                  )
+                                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                                  .FilterRow(filterRow => filterRow
+                                      .Visible(true)
+                                      .ApplyFilter(GridApplyFilterMode.Auto)
+                                  )
+                                  .ShowBorders(true)
+                                  .AllowColumnResizing(true)
+                                  .Editing(e =>
+                                      e.Mode(GridEditMode.Batch)
+                                          .AllowAdding(false)
+                                          .AllowUpdating(false)
+                                          .AllowDeleting(false)
+                                  )
+                                  .RowAlternationEnabled(true)
+                                  .Export(e => e.Enabled(true))
+                                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                                  .ShowRowLines(true)
+                                  .OnInitialized("grdDefectRate_OnInitialized")
+                                  .Option("KEY_FIELD", new object[]
+                                  {
+                                      "PLANTCODE", "WORKDATE", "PARTNUMBER", "PRODUCTNAME", "SHIFTCODE", "PROCESSCODE", "EQUIPMENTCODE"
+                                      , "DEFECTRATE"
+                                  })
+                                  //.Option("USE_REQUIRED_HEADER", true)
+                                  )
+                        </div>
+                        <div id="tab-side-2" class="tab-pane">
+                            @(Html.DevExtreme().DataGrid<RPTA014B_LIST>
+                                  ()
+                                  .ID("grdDefectStatus")
+                                  .DataSource(d => d.WebApi().Controller("RPTA004WebApi")
+                                      .LoadAction("get_item"))
+                                  .Columns(columns =>
+                                  {
+                                      columns.AddFor(m => m.PLANTCODE).Visible(false);
+                                      columns.AddFor(m => m.WORKDATE).Format(f => f.Type(Format.ShortDate))
+                                          .SelectedFilterOperation(FilterOperations.Between)
+                                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                                      columns.AddFor(m => m.SHIFTCODE)
+                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                              .Controller("COMA003WebApi").Key("SYSCODE")
+                                              .LoadAction("SHIFT_LIST"))
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE")
+                                          );
+                                      columns.AddFor(m => m.PARTNUMBER)
+                                          .SortOrder(SortOrder.Asc).SortIndex(1);
+                                      columns.AddFor(m => m.PRODUCTNAME);
+                                      columns.AddFor(m => m.PROCESSCODE)
+                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                              .Controller("COMA001WebApi").Key("PROCESSCODE")
+                                              .LoadAction("PROCESS_LIST"))
+                                              .DisplayExpr("PROCESSNAME")
+                                              .ValueExpr("PROCESSCODE")
+                                          )
+                                          .SortOrder(SortOrder.Asc).SortIndex(2);
+                                      columns.AddFor(m => m.EQUIPMENTCODE)
+                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                              .Controller("COMA001WebApi").Key("EQUIPMENTCODE")
+                                              .LoadAction("EQUIPMENT_LIST"))
+                                              .DisplayExpr("EQUIPMENTNAME")
+                                              .ValueExpr("EQUIPMENTCODE")
+                                          )
+                                          .SortOrder(SortOrder.Asc).SortIndex(3);
+                                      
+                                      columns.AddFor(m => m.PRODUCTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                      columns.AddFor(m => m.DEFECTCODE)
+                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                              .Controller("COMA001WebApi").Key("DEFECTCODE")
+                                              .LoadAction("DEFECTCODE_LIST"))
+                                              .DisplayExpr("DEFECTNAME")
+                                              .ValueExpr("DEFECTCODE")
+                                          );
+                                      columns.AddFor(m => m.DEFECTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                      columns.AddFor(m => m.DEFECTRATE).Format(f => f.Type(Format.FixedPoint).Precision(1));
+                                  })
+                                  .RemoteOperations(true)
+                                  .FilterPanel(f => f.Visible(true))
+                                  .ColumnAutoWidth(true)
+                                  .Paging(p => p.PageSize(25).Enabled(true))
+                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                  .SearchPanel(searchPanel => searchPanel
+                                      .Visible(true)
+                                      .Width(180)
+                                      .Placeholder("Search...")
+                                  )
+                                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                                  .FilterRow(filterRow => filterRow
+                                      .Visible(true)
+                                      .ApplyFilter(GridApplyFilterMode.Auto)
+                                  )
+                                  .ShowBorders(true)
+                                  .AllowColumnResizing(true)
+                                  .Editing(e =>
+                                      e.Mode(GridEditMode.Batch)
+                                          .AllowAdding(false)
+                                          .AllowUpdating(false)
+                                          .AllowDeleting(false)
+                                  )
+                                  .RowAlternationEnabled(true)
+                                  .Export(e => e.Enabled(true))
+                                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                                  .ShowRowLines(true)
+                                  .OnInitialized("grdDefectStatus_OnInitialized")
+                                  .Option("KEY_FIELD", new object[]
+                                  {
+                                      "PLANTCODE", "WORKDATE", "PARTNUMBER", "PRODUCTNAME", "SHIFTCODE", "PROCESSCODE", "EQUIPMENTCODE"
+                                      , "DEFECTQUANTITY", "DEFECTCODE", "DEFECTRATE"
+                                  })
+                                  //.Option("USE_REQUIRED_HEADER", true)
+                                  )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdDefectRate_OnInitialized(e) {
+        //userCustomGrid(e);
+    }
+    function grdDefectStatus_OnInitialized(e) {
+        //userCustomGrid(e);
+    }
+</script>

@@ -1,0 +1,1016 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.PrintOut;
+@using JSMES.WebUI.Alpha.ViewModels.MON
+
+@{
+    Layout = null;
+    var PRINTOUTDATA = (PrintOutData)ViewData["PRINTOUTDATA"];
+}
+
+<html>
+<head>
+<style>
+    table
+	{mso-displayed-decimal-separator:"\.";
+	mso-displayed-thousand-separator:"\,";}
+.font51571
+	{color:windowtext;
+	font-size:8.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;}
+.font61571
+	{color:red;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;}
+.font71571
+	{color:red;
+	font-size:18.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;}
+.font81571
+	{color:#0070C0;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;}
+.font91571
+	{color:#0070C0;
+	font-size:18.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;}
+.xl151571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:general;
+	vertical-align:middle;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl631571
+	{padding:0px;
+	mso-ignore:padding;
+	color:red;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:general;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl641571
+	{padding:0px;
+	mso-ignore:padding;
+	color:red;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl651571
+	{padding:0px;
+	mso-ignore:padding;
+	color:#0070C0;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:general;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl661571
+	{padding:0px;
+	mso-ignore:padding;
+	color:#0070C0;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl671571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:general;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl681571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:general;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl691571
+	{padding:0px;
+	mso-ignore:padding;
+	color:#0070C0;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:general;
+	vertical-align:middle;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl701571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border-top:.5pt dotted windowtext;
+	border-right:none;
+	border-bottom:.5pt solid #00B0F0;
+	border-left:none;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl711571
+	{padding:0px;
+	mso-ignore:padding;
+	color:red;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:normal;}
+.xl721571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl731571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:20.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl741571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl751571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:12.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl761571
+	{padding:0px;
+	mso-ignore:padding;
+	color:red;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl771571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:"_-* \#\,\#\#0_-\;\\-* \#\,\#\#0_-\;_-* \0022-\0022_-\;_-\@("@")_-";
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl781571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:10.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl791571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid red;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl801571
+	{padding:0px;
+	mso-ignore:padding;
+	color:#0070C0;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:normal;}
+.xl811571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:20.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl821571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl831571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:12.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl841571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl851571
+	{padding:0px;
+	mso-ignore:padding;
+	color:#0070C0;
+	font-size:10.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl861571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:"_-* \#\,\#\#0_-\;\\-* \#\,\#\#0_-\;_-* \0022-\0022_-\;_-\@("@")_-";
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl871571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:11.0pt;
+	font-weight:700;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border:.5pt solid #00B0F0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl881571
+	{padding:0px;
+	mso-ignore:padding;
+	color:red;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:right;
+	vertical-align:middle;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl891571
+	{padding:0px;
+	mso-ignore:padding;
+	color:#0070C0;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:right;
+	vertical-align:middle;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+.xl901571
+	{padding:0px;
+	mso-ignore:padding;
+	color:black;
+	font-size:11.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-number-format:General;
+	text-align:center;
+	vertical-align:middle;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt dotted windowtext;
+	border-left:none;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	white-space:nowrap;}
+ruby
+	{ruby-align:left;}
+rt
+	{color:windowtext;
+	font-size:8.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:"맑은 고딕", monospace;
+	mso-font-charset:129;
+	mso-char-type:none;}
+</style>
+
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+</head>
+<body>
+
+<button id="print" onclick="viewPrint();">인쇄 하기</button>
+
+@foreach(var vendor in PRINTOUTDATA.VENDORLIST)
+{
+    <div class="printPage" align=center style="height:280mm;padding-top:20px;">
+    <table border=0 cellpadding=0 cellspacing=0 width=648 style='border-collapse:
+     collapse;table-layout:fixed;width:493pt'>
+     <col width=31 style='mso-width-source:userset;mso-width-alt:992;width:23pt'>
+     <col width=8 style='mso-width-source:userset;mso-width-alt:256;width:6pt'>
+     <col width=49 style='mso-width-source:userset;mso-width-alt:1568;width:37pt'>
+     <col width=6 style='mso-width-source:userset;mso-width-alt:192;width:5pt'>
+     <col width=53 style='mso-width-source:userset;mso-width-alt:1696;width:40pt'>
+     <col width=24 style='mso-width-source:userset;mso-width-alt:768;width:18pt'>
+     <col width=27 style='mso-width-source:userset;mso-width-alt:864;width:20pt'>
+     <col width=24 style='mso-width-source:userset;mso-width-alt:768;width:18pt'>
+     <col width=16 style='mso-width-source:userset;mso-width-alt:512;width:12pt'>
+     <col width=59 style='mso-width-source:userset;mso-width-alt:1888;width:44pt'>
+     <col width=34 style='mso-width-source:userset;mso-width-alt:1088;width:26pt'>
+     <col width=14 span=12 style='mso-width-source:userset;mso-width-alt:448;
+     width:11pt'>
+     <col width=37 style='mso-width-source:userset;mso-width-alt:1184;width:28pt'>
+     <col width=7 style='mso-width-source:userset;mso-width-alt:224;width:5pt'>
+     <col width=36 style='mso-width-source:userset;mso-width-alt:1152;width:27pt'>
+     <col width=8 style='mso-width-source:userset;mso-width-alt:256;width:6pt'>
+     <col width=61 style='mso-width-source:userset;mso-width-alt:1952;width:46pt'>
+     <tr height=22 style='mso-height-source:userset;height:16.5pt'>
+      <td colspan=10 rowspan=2 height=43 class=xl641571 width=297 style='height:
+      32.25pt;width:223pt'><a name="RANGE!A1:AB36"><font class="font71571">거 래 명 세
+      표</font><font class="font61571"> (1) 공급자용</font></a></td>
+      <td rowspan=2 class=xl711571 width=34 style='width:26pt'>발행<br>
+        번호</td>
+      <td rowspan=2 class=xl791571 width=14 style='width:11pt'>　</td>
+      <td rowspan=2 class=xl721571 width=14 style='width:11pt'>　</td>
+      <td rowspan=2 class=xl721571 width=14 style='width:11pt'>　</td>
+      <td rowspan=2 class=xl721571 width=14 style='width:11pt'>　</td>
+      <td class=xl671571 width=14 style='border-left:none;width:11pt'>　</td>
+      <td rowspan=2 class=xl721571 width=14 style='width:11pt'>　</td>
+      <td rowspan=2 class=xl721571 width=14 style='width:11pt'>　</td>
+      <td class=xl671571 width=14 style='border-left:none;width:11pt'>　</td>
+      <td rowspan=2 class=xl721571 width=14 style='width:11pt'>　</td>
+      <td rowspan=2 class=xl721571 width=14 style='width:11pt'>　</td>
+      <td rowspan=2 class=xl721571 width=14 style='width:11pt'>　</td>
+      <td rowspan=2 class=xl721571 width=14 style='width:11pt'>　</td>
+      <td rowspan=2 class=xl711571 width=37 style='width:28pt'>발행<br>
+        일자</td>
+      <td colspan=4 rowspan=2 class=xl641571 width=112 style='width:84pt'>@DateTime.Now.ToShortDateString()
+     </tr>
+     <tr height=21 style='mso-height-source:userset;height:15.75pt'>
+      <td height=21 class=xl671571 style='height:15.75pt;border-top:none;
+      border-left:none'>　</td>
+      <td class=xl671571 style='border-top:none;border-left:none'>　</td>
+     </tr>
+     <tr height=35 style='mso-height-source:userset;height:26.25pt'>
+      <td rowspan=3 height=105 class=xl711571 width=31 style='height:78.75pt;
+      border-top:none;width:23pt'>공<br>
+        급<br>
+        자</td>
+      <td colspan=2 class=xl641571 style='border-left:none'>등록번호</td>
+      <td colspan=9 height=35 width=257 style='height:26.25pt;width:194pt'
+      align=left valign=top><span style='mso-ignore:vglayout;
+      position:absolute;z-index:1;margin-left:192px;margin-top:4px;width:96px;
+      height:96px'><img width=96 height=96  src="~/Content/Images/Stamp/SAMPC.png"
+      v:shapes="그림_x0020_3"></span><span style='mso-ignore:vglayout2'>
+      <table cellpadding=0 cellspacing=0>
+       <tr>
+        <td colspan=9 height=35 class=xl731571 width=257 style='height:26.25pt;
+        border-left:none;width:194pt'> @PRINTOUTDATA.SUPPLIER.BUSINESSNUMBER</td>
+       </tr>
+      </table>
+      </span></td>
+      <td colspan=2 rowspan=3 class=xl711571 width=28 style='width:22pt'>공<br>
+        급<br>
+        받<br>
+        는<br>
+        자</td>
+      <td colspan=4 class=xl641571 style='border-left:none'>등록번호</td>
+      <td colspan=10 class=xl721571 style='border-left:none'>@vendor.BUSINESSNUMBER</td>
+     </tr>
+     <tr height=35 style='mso-height-source:userset;height:26.25pt'>
+      <td colspan=2 height=35 class=xl641571 style='height:26.25pt;border-left:
+      none'>상<span style='mso-spacerun:yes'>&nbsp; </span>호</td>
+      <td colspan=4 class=xl751571 style='border-left:none'>@PRINTOUTDATA.SUPPLIER.VENDORNAME</td>
+      <td colspan=2 class=xl781571 style='border-left:none'>성 명</td>
+      <td colspan=3 class=xl751571 style='border-left:none'>@PRINTOUTDATA.SUPPLIER.CEONAME</td>
+      <td colspan=4 class=xl641571 style='border-left:none'>상<span
+      style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp; </span>호</td>
+      <td colspan=7 class=xl771571 style='border-left:none'>@vendor.VENDORNAME</td>
+      <td class=xl631571 style='border-top:none;border-left:none'>성 명</td>
+      <td colspan=2 class=xl721571 style='border-left:none'>@vendor.CEONAME</td>
+     </tr>
+     <tr height=35 style='mso-height-source:userset;height:26.25pt'>
+      <td colspan=2 height=35 class=xl711571 width=57 style='height:26.25pt;
+      border-left:none;width:43pt'>사 업 장<br>
+        주<span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>소</td>
+      <td colspan=9 class=xl741571 style='border-left:none'>@PRINTOUTDATA.SUPPLIER.ADDRESS</td>
+      <td colspan=4 class=xl711571 width=56 style='border-left:none;width:44pt'>사 업
+      장<br>
+        주<span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>소</td>
+      <td colspan=10 class=xl721571 style='border-left:none'>@vendor.ADDRESS</td>
+     </tr>
+     <tr height=28 style='mso-height-source:userset;height:21.0pt'>
+      <td height=28 class=xl631571 style='height:21.0pt;border-top:none'>순번</td>
+      <td colspan=5 class=xl641571 style='border-left:none'>품<span
+      style='mso-spacerun:yes'>&nbsp; </span>명 (품 번)</td>
+      <td colspan=2 class=xl641571 style='border-left:none'>규<span
+      style='mso-spacerun:yes'>&nbsp; </span>격</td>
+      <td colspan=3 class=xl641571 style='border-left:none'>단<span
+      style='mso-spacerun:yes'>&nbsp; </span>위</td>
+      <td colspan=5 class=xl641571 style='border-left:none'>수 량</td>
+      <td colspan=5 class=xl641571 style='border-left:none'>\ 단 가</td>
+      <td colspan=6 class=xl641571 style='border-left:none'>\ 공 급 가 액</td>
+      <td class=xl641571 style='border-top:none;border-left:none'>비 고</td>
+     </tr>
+
+    @{ 
+        for(int RowIndex = 0; 7 > RowIndex; RowIndex++)
+        {
+            var list1 = PRINTOUTDATA.PARTLIST.Where(W=>W.VENDORCODE == vendor.VENDORCODE).ToList();
+
+            if(list1.Count > RowIndex)
+            {
+                <tr height=28 style='mso-height-source:userset;height:21.0pt'>
+                <td height=28 class=xl641571 style='height:21.0pt;border-top:none'>@(RowIndex + 1)</td>
+                <td colspan=5 class=xl721571 style='border-left:none'>@list1[RowIndex].PRODUCTNAME</td>
+                <td colspan=2 class=xl721571 style='border-left:none'>　</td>
+                <td colspan=3 class=xl721571 style='border-left:none'>@list1[RowIndex].UNITCODE</td>
+                <td colspan=5 class=xl721571 style='border-left:none'>@list1[RowIndex].QUANTITY</td>
+                <td colspan=5 class=xl721571 style='border-left:none'>　</td>
+                <td colspan=6 class=xl721571 style='border-left:none'>　</td>
+                <td class=xl671571 style='border-top:none;border-left:none'>　</td>
+                </tr>             
+            }
+            else
+            {
+                <tr height=28 style='mso-height-source:userset;height:21.0pt'>
+                    <td height=28 class=xl641571 style='height:21.0pt;border-top:none'>@(RowIndex + 1)</td>
+                    <td colspan=5 class=xl721571 style='border-left:none'>  </td>
+                    <td colspan=2 class=xl721571 style='border-left:none'>　</td>
+                    <td colspan=3 class=xl721571 style='border-left:none'>  </td>
+                    <td colspan=5 class=xl721571 style='border-left:none'>  </td>
+                    <td colspan=5 class=xl721571 style='border-left:none'>　</td>
+                    <td colspan=6 class=xl721571 style='border-left:none'>　</td>
+                    <td class=xl671571 style='border-top:none;border-left:none'>　</td>
+                    </tr>
+            }        
+        }
+    }
+
+     <tr height=22 style='mso-height-source:userset;height:16.5pt'>
+      <td colspan=2 rowspan=3 height=83 class=xl711571 width=39 style='height:62.25pt;
+      width:29pt'>자<br>
+        <br>
+        재</td>
+      <td colspan=2 class=xl641571 style='border-left:none'>담<span
+      style='mso-spacerun:yes'>&nbsp; </span>당</td>
+      <td class=xl641571 style='border-top:none;border-left:none'>팀<span
+      style='mso-spacerun:yes'>&nbsp; </span>장</td>
+      <td colspan=2 class=xl641571 style='border-left:none'>부<span
+      style='mso-spacerun:yes'>&nbsp; </span>장</td>
+      <td colspan=2 rowspan=3 class=xl711571 width=40 style='width:30pt'>품<br>
+        <br>
+        관</td>
+      <td class=xl641571 style='border-top:none;border-left:none'>담<span
+      style='mso-spacerun:yes'>&nbsp; </span>당</td>
+      <td colspan=3 class=xl711571 width=62 style='border-left:none;width:48pt'>팀<span
+      style='mso-spacerun:yes'>&nbsp; </span>장</td>
+      <td colspan=4 class=xl641571 style='border-left:none'>부<span
+      style='mso-spacerun:yes'>&nbsp; </span>장</td>
+      <td colspan=11 rowspan=3 class=xl641571>　</td>
+     </tr>
+     <tr height=40 style='mso-height-source:userset;height:30.0pt'>
+      <td colspan=2 height=40 class=xl641571 style='height:30.0pt;border-left:none'>　</td>
+      <td class=xl641571 style='border-top:none;border-left:none'>　</td>
+      <td colspan=2 class=xl641571 style='border-left:none'>　</td>
+      <td class=xl631571 style='border-top:none;border-left:none'>　</td>
+      <td colspan=3 class=xl711571 width=62 style='border-left:none;width:48pt'>　</td>
+      <td colspan=4 class=xl641571 style='border-left:none'>　</td>
+     </tr>
+     <tr height=21 style='mso-height-source:userset;height:15.75pt'>
+      <td colspan=2 height=21 class=xl641571 style='height:15.75pt;border-left:
+      none'>/</td>
+      <td class=xl641571 style='border-top:none;border-left:none'>/</td>
+      <td colspan=2 class=xl641571 style='border-left:none'>/</td>
+      <td class=xl641571 style='border-top:none;border-left:none'>/</td>
+      <td colspan=3 class=xl711571 width=62 style='border-left:none;width:48pt'>/</td>
+      <td colspan=4 class=xl641571 style='border-left:none'>/</td>
+     </tr>
+     <tr height=22 style='height:16.5pt'>
+      <td colspan=7 height=22 class=xl761571 style='height:16.5pt'></td>
+      <td colspan=10 class=xl761571></td>
+      <td colspan=11 class=xl881571>신 아 엠 피 씨</td>
+     </tr>
+     <tr height=27 style='mso-height-source:userset;height:20.25pt'>
+      <td colspan=28 height=27 class=xl901571 style='height:20.25pt'>　</td>
+     </tr>
+     <tr height=25 style='mso-height-source:userset;height:18.75pt'>
+      <td colspan=28 height=25 class=xl701571 style='height:18.75pt'>　</td>
+     </tr>
+     <tr height=22 style='height:16.5pt'>
+      <td colspan=10 rowspan=2 height=44 class=xl661571 style='height:33.0pt'><font
+      class="font91571">거 래 명 세 표</font><font class="font81571"> (2) 공급받는자</font></td>
+      <td rowspan=2 class=xl801571 width=34 style='border-top:none;width:26pt'>발행<br>
+        번호</td>
+      <td rowspan=2 class=xl841571 style='border-top:none'>　</td>
+      <td rowspan=2 class=xl821571 style='border-top:none'>　</td>
+      <td rowspan=2 class=xl821571 style='border-top:none'>　</td>
+      <td rowspan=2 class=xl821571 style='border-top:none'>　</td>
+      <td class=xl681571 style='border-top:none;border-left:none'>　</td>
+      <td rowspan=2 class=xl821571 style='border-top:none'>　</td>
+      <td rowspan=2 class=xl821571 style='border-top:none'>　</td>
+      <td class=xl681571 style='border-top:none;border-left:none'>　</td>
+      <td rowspan=2 class=xl821571 style='border-top:none'>　</td>
+      <td rowspan=2 class=xl821571 style='border-top:none'>　</td>
+      <td rowspan=2 class=xl821571 style='border-top:none'>　</td>
+      <td rowspan=2 class=xl821571 style='border-top:none'>　</td>
+      <td rowspan=2 class=xl801571 width=37 style='border-top:none;width:28pt'>발행<br>
+        일자</td>
+      <td colspan=4 rowspan=2 class=xl661571>@DateTime.Now.ToShortDateString()
+     </tr>
+     <tr height=22 style='height:16.5pt'>
+      <td height=22 class=xl681571 style='height:16.5pt;border-top:none;border-left:
+      none'>　</td>
+      <td class=xl681571 style='border-top:none;border-left:none'>　</td>
+     </tr>
+     <tr height=36 style='mso-height-source:userset;height:27.0pt'>
+      <td rowspan=3 height=108 class=xl801571 width=31 style='height:81.0pt;
+      border-top:none;width:23pt'>공<br>
+        급<br>
+        자</td>
+      <td colspan=2 class=xl661571 style='border-left:none'>등록번호</td>
+      <td colspan=9 height=36 width=257 style='height:27.0pt;width:194pt'
+      align=left valign=top><span style='mso-ignore:vglayout;
+      position:absolute;z-index:2;margin-left:193px;margin-top:6px;width:97px;
+      height:97px'><img width=97 height=97 src="~/Content/Images/Stamp/SAMPC.png"></span><span style='mso-ignore:vglayout2'>
+      <table cellpadding=0 cellspacing=0>
+       <tr>
+        <td colspan=9 height=36 class=xl811571 width=257 style='height:27.0pt;
+        border-left:none;width:194pt'>503-81-74602</td>
+       </tr>
+      </table>
+      </span></td>
+      <td colspan=2 rowspan=3 class=xl801571 width=28 style='width:22pt'>공<br>
+        급<br>
+        받<br>
+        는<br>
+        자</td>
+      <td colspan=4 class=xl661571 style='border-left:none'>등록번호</td>
+      <td colspan=10 class=xl821571 style='border-left:none'>@vendor.BUSINESSNUMBER</td>
+     </tr>
+     <tr height=36 style='mso-height-source:userset;height:27.0pt'>
+      <td colspan=2 height=36 class=xl661571 style='height:27.0pt;border-left:none'>상<span
+      style='mso-spacerun:yes'>&nbsp; </span>호</td>
+      <td colspan=4 class=xl831571 style='border-left:none'>@PRINTOUTDATA.SUPPLIER.VENDORNAME</td>
+      <td colspan=2 class=xl851571 style='border-left:none'>성 명</td>
+      <td colspan=3 class=xl831571 style='border-left:none'>@PRINTOUTDATA.SUPPLIER.CEONAME (인)</td>
+      <td colspan=4 class=xl661571 style='border-left:none'>상<span
+      style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp;&nbsp; </span>호</td>
+      <td colspan=7 class=xl861571 style='border-left:none'>@vendor.VENDORNAME</td>
+      <td class=xl651571 style='border-top:none;border-left:none'>성 명</td>
+      <td colspan=2 class=xl821571 style='border-left:none'>@vendor.CEONAME</td>
+     </tr>
+     <tr height=36 style='mso-height-source:userset;height:27.0pt'>
+      <td colspan=2 height=36 class=xl801571 width=57 style='height:27.0pt;
+      border-left:none;width:43pt'>사 업 장<br>
+        주<span style='mso-spacerun:yes'>&nbsp;&nbsp;&nbsp; </span>소</td>
+      <td colspan=9 class=xl871571 style='border-left:none'>@PRINTOUTDATA.SUPPLIER.ADDRESS</td>
+      <td colspan=4 class=xl801571 width=56 style='border-left:none;width:44pt'>사 업
+      장<br>
+        주<span style='mso-spacerun:yes'>&nbsp;&nbsp; </span>소</td>
+      <td colspan=10 class=xl821571 style='border-left:none'>@vendor.ADDRESS</td>
+     </tr>
+     <tr height=30 style='mso-height-source:userset;height:22.5pt'>
+      <td height=30 class=xl651571 style='height:22.5pt;border-top:none'>순번</td>
+      <td colspan=5 class=xl661571 style='border-left:none'>품<span
+      style='mso-spacerun:yes'>&nbsp; </span>명 (품 번)</td>
+      <td colspan=2 class=xl661571 style='border-left:none'>규<span
+      style='mso-spacerun:yes'>&nbsp; </span>격</td>
+      <td colspan=3 class=xl661571 style='border-left:none'>단<span
+      style='mso-spacerun:yes'>&nbsp; </span>위</td>
+      <td colspan=5 class=xl661571 style='border-left:none'>수 량</td>
+      <td colspan=5 class=xl661571 style='border-left:none'>\ 단 가</td>
+      <td colspan=6 class=xl661571 style='border-left:none'>\ 공 급 가 액</td>
+      <td class=xl661571 style='border-top:none;border-left:none'>비 고</td>
+     </tr>
+
+        
+    @{ 
+        var list2 = PRINTOUTDATA.PARTLIST.Where(W=>W.VENDORCODE == vendor.VENDORCODE).ToList();
+
+        for(int RowIndex = 0; 7 > RowIndex; RowIndex++)
+        {            
+            if(list2.Count > RowIndex)
+            {
+                <tr height=28 style='mso-height-source:userset;height:21.0pt'>
+                <td height=28 class=xl661571 style='height:21.0pt;border-top:none'>@(RowIndex + 1)</td>
+                <td colspan=5 class=xl821571 style='border-left:none'>@list2[RowIndex].PRODUCTNAME</td>
+                <td colspan=2 class=xl821571 style='border-left:none'>　</td>
+                <td colspan=3 class=xl821571 style='border-left:none'>@list2[RowIndex].UNITCODE</td>
+                <td colspan=5 class=xl821571 style='border-left:none'>@list2[RowIndex].QUANTITY</td>
+                <td colspan=5 class=xl821571 style='border-left:none'>　</td>
+                <td colspan=6 class=xl821571 style='border-left:none'>　</td>
+                <td class=xl681571 style='border-top:none;border-left:none'>　</td>
+                </tr>
+            }
+            else
+            {
+                <tr height=28 style='mso-height-source:userset;height:21.0pt'>
+                    <td height=28 class=xl661571 style='height:21.0pt;border-top:none'>@(RowIndex + 1)</td>
+                    <td colspan=5 class=xl821571 style='border-left:none'>　</td>
+                    <td colspan=2 class=xl821571 style='border-left:none'>　</td>
+                    <td colspan=3 class=xl821571 style='border-left:none'>　</td>
+                    <td colspan=5 class=xl821571 style='border-left:none'>　</td>
+                    <td colspan=5 class=xl821571 style='border-left:none'>　</td>
+                    <td colspan=6 class=xl821571 style='border-left:none'>　</td>
+                    <td class=xl681571 style='border-top:none;border-left:none'>　</td>
+                </tr>
+            }  
+        }
+    }
+
+     <tr height=21 style='mso-height-source:userset;height:15.75pt'>
+      <td colspan=2 rowspan=3 height=82 class=xl801571 width=39 style='height:61.5pt;
+      width:29pt'>자<br>
+        <br>
+        재</td>
+      <td colspan=2 class=xl661571 style='border-left:none'>담<span
+      style='mso-spacerun:yes'>&nbsp; </span>당</td>
+      <td class=xl661571 style='border-top:none;border-left:none'>팀<span
+      style='mso-spacerun:yes'>&nbsp; </span>장</td>
+      <td colspan=2 class=xl661571 style='border-left:none'>부<span
+      style='mso-spacerun:yes'>&nbsp; </span>장</td>
+      <td colspan=2 rowspan=3 class=xl801571 width=40 style='width:30pt'>품<br>
+        <br>
+        관</td>
+      <td class=xl661571 style='border-top:none;border-left:none'>담<span
+      style='mso-spacerun:yes'>&nbsp; </span>당</td>
+      <td colspan=3 class=xl801571 width=62 style='border-left:none;width:48pt'>팀<span
+      style='mso-spacerun:yes'>&nbsp; </span>장</td>
+      <td colspan=4 class=xl661571 style='border-left:none'>부<span
+      style='mso-spacerun:yes'>&nbsp; </span>장</td>
+      <td colspan=11 rowspan=3 class=xl661571>　</td>
+     </tr>
+     <tr height=40 style='mso-height-source:userset;height:30.0pt'>
+      <td colspan=2 height=40 class=xl661571 style='height:30.0pt;border-left:none'>　</td>
+      <td class=xl661571 style='border-top:none;border-left:none'>　</td>
+      <td colspan=2 class=xl661571 style='border-left:none'>　</td>
+      <td class=xl651571 style='border-top:none;border-left:none'>　</td>
+      <td colspan=3 class=xl801571 width=62 style='border-left:none;width:48pt'>　</td>
+      <td colspan=4 class=xl661571 style='border-left:none'>　</td>
+     </tr>
+     <tr height=21 style='mso-height-source:userset;height:15.75pt'>
+      <td colspan=2 height=21 class=xl661571 style='height:15.75pt;border-left:
+      none'>/</td>
+      <td class=xl661571 style='border-top:none;border-left:none'>/</td>
+      <td colspan=2 class=xl661571 style='border-left:none'>/</td>
+      <td class=xl661571 style='border-top:none;border-left:none'>/</td>
+      <td colspan=3 class=xl801571 width=62 style='border-left:none;width:48pt'>/</td>
+      <td colspan=4 class=xl661571 style='border-left:none'>/</td>
+     </tr>
+     <tr height=22 style='height:16.5pt'>
+      <td height=22 class=xl691571 style='height:16.5pt'></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td class=xl691571></td>
+      <td colspan=11 class=xl891571>신 아 엠 피 씨</td>
+     </tr>
+     <![if supportMisalignedColumns]>
+     <tr height=0 style='display:none'>
+      <td width=31 style='width:23pt'></td>
+      <td width=8 style='width:6pt'></td>
+      <td width=49 style='width:37pt'></td>
+      <td width=6 style='width:5pt'></td>
+      <td width=53 style='width:40pt'></td>
+      <td width=24 style='width:18pt'></td>
+      <td width=27 style='width:20pt'></td>
+      <td width=24 style='width:18pt'></td>
+      <td width=16 style='width:12pt'></td>
+      <td width=59 style='width:44pt'></td>
+      <td width=34 style='width:26pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=14 style='width:11pt'></td>
+      <td width=37 style='width:28pt'></td>
+      <td width=7 style='width:5pt'></td>
+      <td width=36 style='width:27pt'></td>
+      <td width=8 style='width:6pt'></td>
+      <td width=61 style='width:46pt'></td>
+     </tr>
+     <![endif]>
+    </table>
+    </div>
+}
+    
+
+
+</body>
+</html>
+<script>
+    $(function(e){
+        $(".printPage").animate({'zoom':0.75}, 200);
+    })
+
+    function viewPrint() {
+        var data = {};
+        data.SEQS = "@PRINTOUTDATA.SEQS";
+
+        $('#print').hide();
+        $(".printPage").animate({ 'zoom': 1 }, 0);
+        window.onafterprint = function (e) {
+            $.ajax({
+                url: '@Url.Action("put", "PODE004WebApi", new { httproute = "DefaultApi", })',
+                type: 'PUT',
+                data: data,
+                success: function () {
+                    window.close();
+                },
+                error: function (e) {
+                    alert(e);                    
+                }
+            });
+        };        
+        window.print();        
+
+        $(".printPage").animate({'zoom':0.75}, 200);
+        $('#print').show();        
+    }
+</script>

@@ -1,0 +1,413 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTH;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-3 col-md-12">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.PRODUCTLIST </i></span></h4>
+            @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                .ID("grdPartNumberList")
+                .DataSource(d => d.WebApi()
+                                .Controller("MSTH002WebApi").Key("PARTNUMBERID")
+                                .LoadAction("getPartNumberList")
+                            )
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.PARTNUMBERID).Visible(false);
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                })
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+       
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .Selection(s => s.Mode(SelectionMode.Single))
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .ShowRowLines(true)
+                .KeyboardNavigation(options =>
+                {
+                    // MoveFocus : 엔터시 이동 
+                    // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                    options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                    // 엔터 이외 키 입력시 EditMode 여부
+                    options.EditOnKeyPress(true);
+                    // Row : 엔터시 열 단위 이동 →
+                    // Column : 엔터시 행 단위 이동 ↓
+                    options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                })
+                .OnCellClick("grdPartNumberList_OnRowClick")
+                .Option("KEY_FIELD", new object[] { "PARTNUMBERID", "PARTNUMBER", "PRODUCTNAME" })
+                .Option("IGNORE_AUTOWIDTH", new object[] { "PARTNUMBERID", "PARTNUMBER", "PRODUCTNAME" })
+                .OnInitialized("grdPartNumberList_OnInitialized")
+            )
+        </div>
+        <div class="col-xl-9 col-md-12">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @string.Format("{0} {1}", LabelText.ROUTE, LabelText.LIST) </i></span></h4>
+            @(Html.DevExtreme().DataGrid<MSTH002_LIST>()
+                .ID("grdProcessList")
+                .DataSource(d => d.WebApi().Controller("MSTH002WebApi")
+                    .Key("PROCESSID")
+                    .OnBeforeSend("grdProcessList_OnBeforeSend")
+                )
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.CHKUSEYN).AllowSorting(false).Width(100).SortOrder(SortOrder.Desc).SortIndex(0);
+                    columns.AddFor(m => m.ROUTEID).Visible(false);
+                    columns.AddFor(m => m.PARTNUMBER).Visible(false);
+                    columns.AddFor(m => m.PROCESSSQEUENCE).SortOrder(SortOrder.Asc).SortIndex(1);
+                    columns.AddFor(m => m.PROCESSID).Visible(false);
+                    columns.AddFor(m => m.PROCESSCODE).SortOrder(SortOrder.Asc).SortIndex(2)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("MSTF001WebApi")
+                            .Key("PROCESSCODE"))
+                            .DisplayExpr("PROCESSNAME")
+                        .ValueExpr("PROCESSCODE")
+                        );
+                    columns.AddFor(m => m.CREATEUSER).Visible(true)
+                        .Lookup(lookup => lookup
+                            .DataSource(d => d.WebApi()
+                                .Controller("COMA001WebApi")
+                                .Key("EMPCODE")
+                                .LoadAction("HR_LIST")
+                            )
+                            .DisplayExpr("EMPNAME")
+                            .ValueExpr("EMPCODE")
+                        );
+                    columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime)).Visible(true);
+                    columns.AddFor(m => m.RECENTUSER).Visible(true).Lookup(lookup => lookup
+                        .DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi")
+                            .Key("EMPCODE")
+                            .LoadAction("HR_LIST")
+                        )
+                        .DisplayExpr("EMPNAME")
+                        .ValueExpr("EMPCODE")
+                    );
+                    columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime)).Visible(true);
+                })
+                .ShowRowLines(true)
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .Editing(e =>
+                    e.Mode(GridEditMode.Batch)
+                        .AllowUpdating(new JS("iudAuth()"))
+                )
+                .RowAlternationEnabled(true)
+                .KeyboardNavigation(options =>
+                {
+                    // MoveFocus : 엔터시 이동 
+                    // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                    options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                    // 엔터 이외 키 입력시 EditMode 여부
+                    options.EditOnKeyPress(true);
+                    // Row : 엔터시 열 단위 이동 →
+                    // Column : 엔터시 행 단위 이동 ↓
+                    options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                })
+                
+                .Option("KEY_FIELD", new object[] { "ROUTEID", "PARTNUMBER", "PROCESSID", "PROCESSCODE", "CREATEDATE", "CREATEUSER", "RECENTDATE", "RECENTUSER" })
+                .Option("IGNORE_AUTOWIDTH", new object[] { "ROUTEID", "PARTNUMBER", "PROCESSID", "PROCESSCODE", "CREATEDATE", "CREATEUSER", "RECENTDATE", "RECENTUSER" })
+                .OnToolbarPreparing("grdProcessList_OnToolbarPreparing")
+                .OnInitialized("grdProcessList_OnInitialized")
+                .OnEditorPreparing("grdProcessList_OnEditorPreparing")
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function grdProcessList_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdPartNumberList_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdPartNumberList_OnRowClick(e) {
+        this.selectedValue = e.key;
+        e.component.selectRows([e.key], false);
+
+        if (e.rowType == "data") {
+            $('#grdProcessList').dxDataGrid('instance').refresh();
+            $('#grdProcessList').dxDataGrid('instance').cancelEditData();
+            $('#grdProcessList').dxDataGrid('instance').repaint(); //Widget control reset.
+        }
+    }
+
+    function grdProcessList_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var partNumberRow = $('#grdPartNumberList').dxDataGrid('instance').getSelectedRowsData();
+
+            if (partNumberRow.length > 0) {
+                ajaxOptions.data.PARTNUMBER = partNumberRow[0].PARTNUMBER;
+            } else {
+                ajaxOptions.data.PARTNUMBER = "";
+            }
+        } else if (method == "update") {
+            var partNumberRow = $('#grdPartNumberList').dxDataGrid('instance').getSelectedRowsData();
+            var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+
+            var processGrid = $('#grdProcessList').dxDataGrid('instance');
+            var processData = processGrid.getDataSource();
+            var index = processGrid.getRowIndexByKey(ajaxOptions.data.key);
+            var processCode = processGrid.cellValue(index, 'PROCESSCODE');
+            var processSequence = processGrid.cellValue(index, 'PROCESSSQEUENCE');
+            var UseYN = processSequence != null ? "Y" : "N"
+
+            var isValidation = true;
+
+            if (processGrid.cellValue(index, "PARTNUMBER") == null) {
+  
+                DevExpress.ui.dialog.alert('@LabelText.ANSWERPLEASESELECTPARTNUMBER', 'error', globalNotificationErrorTime);
+                isValidation = false;
+            }
+            for (var i = 0; i < processData._items.length; i++) {
+                if (processGrid.cellValue(i, "PROCESSCODE") != processCode) {
+                    if (processGrid.cellValue(i, "PROCESSSQEUENCE") != "" && processGrid.cellValue(i, "PROCESSSQEUENCE") != null) {
+                        if (processGrid.cellValue(i, "PROCESSSQEUENCE") == processSequence) {
+   
+                            DevExpress.ui.dialog.alert('@LabelText.PROCESSINDEXEXISTED', 'error', globalNotificationErrorTime);
+                            isValidation = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (isValidation) {
+                if (processSequence == null) {
+                    processSequence = 0;
+                }
+
+                if (partNumberRow.length > 0) {
+                    parseJson.PARTNUMBER = partNumberRow[0].PARTNUMBER;
+                    parseJson.PROCESSCODE = processCode;
+                    parseJson.PROCESSSQEUENCE = processSequence;
+                    parseJson.USEYN = UseYN;
+                    ajaxOptions.data.values = JSON.stringify(parseJson);
+                }
+            }
+            else {
+                method.abort();
+            }
+
+            processGrid.repaint(); //Widget control reset.
+        }
+    }
+
+    function grdProcessList_HeaderCellTemplate(container, options) {
+        $('<div>')
+            .appendTo(container)
+            .dxCheckBox().text("S")
+    }
+
+    function grdProcessList_OnToolbarPreparing(e) {
+
+        e.toolbarOptions.items.unshift(
+        {
+            location: "before",
+            widget: "dxSelectBox",
+            options: {
+                width:250,
+                dataSource: new DevExpress.data.AspNet.createStore({
+                    key: "SYSID",
+                    loadUrl: '@Url.Action("getRouteGroupList", "MSTH002WebApi", new { httproute = "DefaultApi" })'
+                }),
+                displayExpr: "SYSCODENAME",
+                valueExpr: "SYSCODE",
+
+                placeholder: "@LabelText.ROUTEGROUPDATAPASTE",
+                onValueChanged: function (e) {
+                    
+
+                    var processGrid = $('#grdProcessList').dxDataGrid('instance');
+                    var processData = processGrid.getDataSource();
+
+                    if ($('#grdPartNumberList').dxDataGrid('instance').getSelectedRowsData().length > 0) {
+                        var partNumberGrid = $('#grdPartNumberList').dxDataGrid('instance');
+                        var partNumberData = partNumberGrid.getSelectedRowsData();
+
+                        var param = $.param({ ROUTEGROUPCODE: e.value.toString(), PARTNUMBER: partNumberData[0].PARTNUMBER });
+                        var isExists = false;
+
+                        $.ajax({
+
+                            url: '@Url.Action("getRouteGroupProcessList", "MSTH002WebApi", new { httproute = "DefaultApi" })',
+                            type: 'get',
+                            data: param,
+                            success: function (data) {
+                                //입력된 데이터가 있는지 확인.
+                                for (var i = 0; i < processData.totalCount(); i++) {
+                                    if (processGrid.cellValue(i, "CHKUSEYN") == true) {
+                                        isExists = true;
+                                        break;
+                                    }
+                                }
+
+                                @*//입력된 데이터가 있으면 라우터 그룹 값 덮어쓰기 묻기
+                                if (isExists) {
+
+                                    if (!DevExpress.ui.dialog.confirm('@LabelText.SETPROCESSINDEX')) {
+                                        processGrid.repaint();
+                                        return;
+                                    }
+                                }*@
+                                if (isExists || $('#grdProcessList').dxDataGrid('instance').hasEditData()) {
+                                    var result = DevExpress.ui.dialog.confirm('@LabelText.SETPROCESSINDEX');
+
+                                    console.log(result);
+                                    result.done(function (dialogResult) {
+                                        if (!dialogResult) {
+                                            return;
+                                        }
+                                        else {
+                                            var arrayStore = new DevExpress.data.ArrayStore({
+                                                data: data
+                                            });
+                                            processGrid.beginUpdate();
+                                            for (var i = 0; i < arrayStore._array.length; i++) {
+                                                for (var j = 0; j < processData._items.length; j++) {
+                                                    if (processData._items[j].PROCESSID == arrayStore._array[i].PROCESSID) {
+                                                        if (arrayStore._array[i].PROCESSSQEUENCE == null && arrayStore._array[i].PROCESSSQEUENCE <= 0) {
+                                                            processGrid.cellValue(j, "CHKUSEYN", false);
+                                                        }
+                                                        else {
+                                                            processGrid.cellValue(j, "CHKUSEYN", true);
+                                                        }
+                                                        processGrid.cellValue(j, "PROCESSSQEUENCE", arrayStore._array[i].PROCESSSQEUENCE);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            processGrid.endUpdate();
+                                            processGrid.refresh();
+                                        }
+                                    });
+                                }
+                                else {
+                                    var arrayStore = new DevExpress.data.ArrayStore({
+                                        data: data
+                                    });
+                                    processGrid.beginUpdate();
+                                    for (var i = 0; i < arrayStore._array.length; i++) {
+                                        for (var j = 0; j < processData._items.length; j++) {
+                                            if (processData._items[j].PROCESSID == arrayStore._array[i].PROCESSID) {
+                                                if (arrayStore._array[i].PROCESSSQEUENCE == null && arrayStore._array[i].PROCESSSQEUENCE <= 0) {
+                                                    processGrid.cellValue(j, "CHKUSEYN", false);
+                                                }
+                                                else {
+                                                    processGrid.cellValue(j, "CHKUSEYN", true);
+                                                }
+                                                processGrid.cellValue(j, "PROCESSSQEUENCE", arrayStore._array[i].PROCESSSQEUENCE);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    processGrid.endUpdate();
+                                    processGrid.refresh();
+                                }
+                            },
+                            error: function (e) {
+                                showError(this, e);
+                            }
+                        });
+                    }
+                    else {
+                        DevExpress.ui.dialog.alert('제품을 선택해주세요.', 'error', globalNotificationErrorTime);
+                        processGrid.repaint();
+                    }
+                }
+            }
+        });
+    }
+
+    function grdProcessList_OnEditorPreparing(e) {
+        if (e.parentType == 'dataRow') {
+            var field = e.dataField;
+            var rowIndex = e.row.rowIndex;
+            var onValueChanged = e.editorOptions.onValueChanged;
+            e.editorOptions.onValueChanged = function (args) {
+                onValueChanged.apply(this, arguments);
+
+                var grid = $("#grdProcessList").dxDataGrid('instance');
+                var data = grid.getDataSource();
+                var maxValue = 0;
+
+                //공정순서 입력 시 자동 체크
+                if (field == 'PROCESSSQEUENCE') {
+                    if (args.value != null && args.value > 0) {
+                        grid.cellValue(rowIndex, "CHKUSEYN", true)
+                    }
+                    else {
+                        grid.cellValue(rowIndex, "CHKUSEYN", false)
+                    }
+                }
+                else if (field = "CHKUSEYN") {
+                    if (args.value) {
+                        //체크 시 공정 순서 자동 입력
+                        if (grid.cellValue(rowIndex, "PROCESSSQEUENCE") == null && grid.cellValue(rowIndex, "PROCESSSQEUENCE") <= 0) {
+                            for (var i = 0; i < data._items.length; i++) {
+                                if (grid.cellValue(i, "PROCESSSQEUENCE") != null && grid.cellValue(i, "PROCESSSQEUENCE") > 0) {
+                                    if (maxValue < grid.cellValue(i, "PROCESSSQEUENCE")) {
+                                        maxValue = grid.cellValue(i, "PROCESSSQEUENCE");
+                                    }
+                                }
+                            }
+                            grid.cellValue(rowIndex, "PROCESSSQEUENCE", maxValue + 1);
+                        }
+                    }
+                    else {
+                        // 체크 해제 시 하위 공정 순서 (항목 값 - 1) 처리.
+                        for (var i = 0; i < data._items.length; i++) {
+                            if (grid.cellValue(i, "PROCESSSQEUENCE") != null && grid.cellValue(i, "PROCESSSQEUENCE") > 0) {
+                                if (grid.cellValue(rowIndex, "PROCESSSQEUENCE") < grid.cellValue(i, "PROCESSSQEUENCE")) {
+                                    grid.cellValue(i, "PROCESSSQEUENCE", grid.cellValue(i, "PROCESSSQEUENCE") - 1);
+                                }
+                            }
+                        }
+
+                        grid.cellValue(rowIndex, "PROCESSSQEUENCE", null);
+                    }
+                }
+            }
+        }
+    }
+</script>

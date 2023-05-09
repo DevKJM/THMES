@@ -1,0 +1,423 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTA
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<style>
+
+.options {
+    padding: 5px;
+    margin-bottom: 5px;
+    background: #f5f5f5;
+}
+
+.options .caption {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.option {
+    margin-top: 5px;
+    display: inline-block;
+    margin-bottom: 5px;
+    padding-left: 15px;
+}
+
+.option > span {
+    width: 80px;
+    display: inline-block;
+}
+
+.option > .dx-widget {
+    display: inline-block;
+    vertical-align: middle;
+    width: 100%;
+}
+</style>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="options">
+                <div class="option">
+                        @(Html.DevExtreme().DropDownBox()
+                                .ValueExpr("SERIALNUMBER")
+                                .DisplayExpr("SERIALNUMBER")
+                                .DataSource(d => d.WebApi()
+                                    .Controller("SYSA001WebApi")
+                                    .LoadAction("getLotList")
+                                    .Key("SERIALNUMBER")
+                                )
+                                .Placeholder("LOT 목록")
+                                .ShowClearButton(true)
+                                .Width(300)
+                                .ContentTemplate(new TemplateName("EmbeddedDataGridSingle"))
+                            )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+
+            @(Html.DevExtreme()
+                .ScrollView()
+                .Height(700)
+                .Direction(ScrollDirection.Both)
+                .ScrollByThumb(true)
+                .ScrollByContent(true)
+                .Content(@<text><div id="allQ" /></text>)
+            )
+        </div>
+    </div>
+</div>
+
+
+@using(Html.DevExtreme().NamedTemplate("EmbeddedDataGridSingle")) {
+    @(Html.DevExtreme().DataGrid()
+        .ID("embedded-datagrid")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns => {
+            columns.Add().DataField("SERIALNUMBER");
+            columns.Add().DataField("LOTNUMBER");
+        })
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .ShowRowLines(true)
+        .RowAlternationEnabled(true)
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var keys = selectedItems.selectedRowKeys;
+                component.option("value", keys);
+            }
+        </text>)
+    )
+}
+
+<script>
+
+
+    var svgWidth = 2018;
+    var svgHeight = 2018;
+
+    var viewBoxWidth = 3048;
+    var viewBoxHeight = 3048;
+
+    var rootPosX;
+    var rootPosY;
+
+    //공정
+    var processHeaderStartPosX;
+    var processHeaderStartPosY = 0;
+
+    var processHeaderWidth = 250;
+    var processHeaderHeight = 35;
+    var processHeaderStyle = 'fill:rgb(245, 245, 245);stroke-width:1;stroke:rgb(200, 200, 200);';
+    var processHeaderMargin = 40;
+    var processHeaderCount = 0;
+
+    //일자
+    var dateHeaderStartPosX;
+    var dateHeaderStartPosY = 50;
+
+    var dateHeaderWidth = 250;
+    var dateHeaderHeight = 35;
+    var dateHeaderStyle = 'fill:rgb(245, 245, 245);stroke-width:1;stroke:rgb(200, 200, 200);';
+    var dateHeaderMargin = 20;
+    var dateHeaderCount = 0;
+
+    
+    //데이터
+    var tableBodyStyle = 'fill:rgb(245, 245, 245);stroke-width:1;stroke:rgb(200, 200, 200);';
+    var tableItemTopMaring = 20;
+    var tableItemTopPadding = 20;
+    var tableItemBottomPadding = 0;
+    var tableItemHeight = 30;
+    var tableItemWidth = 250;
+
+    var tableLocationPath = [];
+    var processEdge = [];
+    
+    var dateTableYIndex = 0;
+    var circleR = 5;
+
+    $(function () {
+
+        var drawProcess = '';
+
+        $.ajax({
+            url: '@Url.Action("getLotData", "SYSA001WebApi", new { httproute = "DefaultApi" })',
+            type: 'GET',
+            success: function (data) {
+                console.log(data);
+                
+                var q = data;
+                
+                var lotList = data;
+
+                for (var processIndex = 0; lotList.LOTDATA.length > processIndex; processIndex++) {
+
+                    drawProcess = drawProcess + addProcess(processIndex,
+                                                            lotList.LOTDATA[processIndex].SOURCECODE,
+                                                            lotList.LOTDATA[processIndex].SOURCENAME,
+                                                            lotList.LOTDATA[processIndex].SOURCEARRAY.length,
+                                                            lotList.LOTDATA[processIndex].SOURCEARRAY);
+                }
+
+                drawProcess = drawProcess + addAnchor();
+                drawProcess = drawProcess + addAnchorToAnchor(lotList.LINEDATA);
+
+                var all =
+                    "<svg xmlns='http://www.w3.org/2000/svg' id='svgLotTracking' width='" + svgWidth + "' height='" + svgHeight + "' viewBox='0 0 " + viewBoxWidth + " " + viewBoxHeight +"'>" +
+                    "<defs>" +
+                    "<pattern id='smallGrid' width='10' height='10' patternUnits='userSpaceOnUse'>" +
+                    "<path d='M 10 0 L 0 0 0 10' fill='none' stroke='rgb(225, 225, 225)' stroke-width='0.5'/>" +
+                    "</pattern>" +
+                    "<pattern id='grid' width='100' height='100' patternUnits='userSpaceOnUse'>" +
+                    "<rect width='100' height='100' fill='url(#smallGrid)'/>" +
+                    "<path d='M 100 0 L 0 0 0 100' fill='none' stroke='rgb(215, 215, 215)' stroke-width='1'/>" +
+                    "</pattern>" +
+                    "<marker id='head' orient='auto' markerWidth='2' markerHeight='4' " +
+                    "        refX='0.1' refY='2'> " +
+                    "  <path d='M0,0 V4 L2,2 Z' fill='red' /> " +
+                    "</marker> " +
+                    "</defs>" +
+                    "<rect width='100%' height='100%' fill='url(#grid)' />" +
+                    drawProcess
+                    "</svg>";
+
+                $('#allQ').append(all);
+            },
+            error: function (e) {
+
+            }
+        })
+
+
+
+        /*
+        var q = '{'+
+                '       "LOTDATA": ['+
+                '           {'+
+                '               "SOURCENAME": "원자재 입하",' +
+                '               "SOURCECODE": "INBOND_IN",'+
+                '               "SOURCEARRAY": [{'+
+                '                               "SOURCEDATE": "2019-07-14",'+
+                '                               "SOURCETABLE": [{"RELID" : "INBOND_IN_1", "수입검사 시퀀스": "1", "검사일자": "2019-07-14", "업체": "외주 1(0002)", "자재 구분": "원자재 (M)", "품번": "M91840-2T030", "입고일자": "2019-07-14", "검사결과": "양품 (OK)", "입하수량": "100" },'+
+                '                                       {"RELID" : "INBOND_IN_2", "수입검사 시퀀스":"2","검사일자":"2019-07-14","업체":"외주 1(0002)","자재 구분":"원자재 (M)","품번":"M91840-2T030","입고일자":"2019-07-14","검사결과":"양품 (OK)","입하수량":"100"}]'+
+                '                           }, {'+
+                '                               "SOURCEDATE": "2019-07-15",'+
+                '                                   "SOURCETABLE": [{"RELID" : "INBOND_IN_3", "수입검사 시퀀스": "3", "검사일자": "2019-07-15", "업체": "외주 1(0002)", "자재 구분": "원자재 (M)", "품번": "M91840-2T030", "입고일자": "2019-07-14", "검사결과": "양품 (OK)", "입하수량": "100" },'+
+                '                                           { "RELID" : "INBOND_IN_4", "수입검사 시퀀스":"4","검사일자":"2019-07-15","업체":"외주 1(0002)","자재 구분":"원자재 (M)","품번":"M91840-2T030","입고일자":"2019-07-14","검사결과":"양품 (OK)","입하수량":"100"}]'+
+                '                           }, {'+
+                '                               "SOURCEDATE": "2019-07-16",'+
+                '                                   "SOURCETABLE": [{"RELID" : "INBOND_IN_5", "수입검사 시퀀스": "5", "검사일자": "2019-07-16", "업체": "외주 1(0002)", "자재 구분": "원자재 (M)", "품번": "M91840-2T030", "입고일자": "2019-07-14", "검사결과": "양품 (OK)", "입하수량": "100" },'+
+                '                                           { "RELID" : "INBOND_IN_6", "수입검사 시퀀스":"6","검사일자":"2019-07-16","업체":"외주 1(0002)","자재 구분":"원자재 (M)","품번":"M91840-2T030","입고일자":"2019-07-14","검사결과":"양품 (OK)","입하수량":"100"}]'+
+                '                           }]'+
+                '           },'+
+                '           {'+
+            '                   "SOURCENAME": "원자재 입고",' +
+                '               "SOURCECODE": "MATSTOCK_IN",'+
+                '               "SOURCEARRAY": [{'+
+                '                                   "SOURCEDATE": "2019-07-18",'+
+                '                                   "SOURCETABLE": [{ "RELID" : "MATSTOCK_IN_1", "자재 이력 시퀀스": "1", "작업 일자": "2019-07-18", "시리얼 번호": "M19071800006", "로트 번호": "190718", "자재 구분": "원자재 (M)", "품번": "M91840-2T030", "창고 위치": "자재 창고 (WH01)", "이동 유형": "창고 입고(WHIN)", "수량": "100" },'+
+                '                                                   {"RELID" : "MATSTOCK_IN_2", "자재 이력 시퀀스": "2", "작업 일자": "2019-07-18", "시리얼 번호": "M19071800007", "로트 번호": "190718", "자재 구분":"원자재 (M)", "품번": "M91840-2T030", "창고 위치": "자재 창고 (WH01)", "이동 유형": "창고 입고(WHIN)", "수량": "100" }]'+
+                '                               }]'+
+                '           },'+
+                '           {'+
+            '                   "SOURCENAME": "원자재 출고",' +
+                '               "SOURCECODE": "MATSTOCK_IN",'+
+                '               "SOURCEARRAY": [{'+
+                '                                   "SOURCEDATE": "2019-07-18",'+
+                '                                   "SOURCETABLE": [{ "RELID" : "MATSTOCK_IN_1", "자재 이력 시퀀스": "1", "작업 일자": "2019-07-18", "시리얼 번호": "M19071800006", "로트 번호": "190718", "자재 구분": "원자재 (M)", "품번": "M91840-2T030", "창고 위치": "자재 창고 (WH01)", "이동 유형": "창고 입고(WHIN)", "수량": "100" },'+
+                '                                                   {"RELID" : "MATSTOCK_IN_2", "자재 이력 시퀀스": "2", "작업 일자": "2019-07-18", "시리얼 번호": "M19071800007", "로트 번호": "190718", "자재 구분":"원자재 (M)", "품번": "M91840-2T030", "창고 위치": "자재 창고 (WH01)", "이동 유형": "창고 입고(WHIN)", "수량": "100" }]'+
+                '                               }]'+
+                '           },' +
+                '           {'+
+                '               "SOURCENAME": "원자재 투입",' +
+                '               "SOURCECODE": "MATSTOCK_IN",'+
+                '               "SOURCEARRAY": [{'+
+                '                                   "SOURCEDATE": "2019-07-18",'+
+                '                                   "SOURCETABLE": [{ "RELID" : "MATSTOCK_IN_1", "자재 이력 시퀀스": "1", "작업 일자": "2019-07-18", "시리얼 번호": "M19071800006", "로트 번호": "190718", "자재 구분": "원자재 (M)", "품번": "M91840-2T030", "창고 위치": "자재 창고 (WH01)", "이동 유형": "창고 입고(WHIN)", "수량": "100" },'+
+                '                                                   {"RELID" : "MATSTOCK_IN_2", "자재 이력 시퀀스": "2", "작업 일자": "2019-07-18", "시리얼 번호": "M19071800007", "로트 번호": "190718", "자재 구분":"원자재 (M)", "품번": "M91840-2T030", "창고 위치": "자재 창고 (WH01)", "이동 유형": "창고 입고(WHIN)", "수량": "100" }]'+
+                '                               }]'+
+                '           },' +
+                '           {'+
+                '               "SOURCENAME": "원자재 완료",' +
+                '               "SOURCECODE": "MATSTOCK_IN",'+
+                '               "SOURCEARRAY": [{'+
+                '                                   "SOURCEDATE": "2019-07-18",'+
+                '                                   "SOURCETABLE": [{ "RELID" : "MATSTOCK_IN_1", "자재 이력 시퀀스": "1", "작업 일자": "2019-07-18", "시리얼 번호": "M19071800006", "로트 번호": "190718", "자재 구분": "원자재 (M)", "품번": "M91840-2T030", "창고 위치": "자재 창고 (WH01)", "이동 유형": "창고 입고(WHIN)", "수량": "100" },'+
+                '                                                   {"RELID" : "MATSTOCK_IN_2", "자재 이력 시퀀스": "2", "작업 일자": "2019-07-18", "시리얼 번호": "M19071800007", "로트 번호": "190718", "자재 구분":"원자재 (M)", "품번": "M91840-2T030", "창고 위치": "자재 창고 (WH01)", "이동 유형": "창고 입고(WHIN)", "수량": "100" }]'+
+                '                               }]'+
+                '           }],' +
+
+
+                '       "LINEDATA": [{"FROM":"INBOND_IN_1", "TO":"MATSTOCK_IN_1"},{"FROM":"INBOND_IN_2", "TO":"MATSTOCK_IN_2"},{"FROM":"INBOND_IN_3", "TO":"MATSTOCK_IN_2"}' +
+                ']'+
+                ''+
+                '}';
+        */
+
+        
+    });
+
+    function addProcess(index, code, caption, size, sourceArray) {
+        var processWidth = (processHeaderWidth * size) + ((size - 1) * dateHeaderMargin);
+        var captionPosX = (processWidth / 2);
+        var translateX = (dateHeaderCount * dateHeaderWidth)
+                            + (dateHeaderMargin * (dateHeaderCount - processHeaderCount))
+                            + (processHeaderCount * processHeaderMargin);
+
+        if (index != 0) {
+            processEdge.push(translateX - (processHeaderMargin / 2) );
+        }
+
+        var rowGroup = "<g id='rowGroup'  fill='black' transform='translate(" + translateX  + ", " + processHeaderStartPosY + ")' role='table'>" +
+            "<rect x='10' y='10' width='" + processWidth + "' height='" + processHeaderHeight + "' style='"+ processHeaderStyle + "' />" +
+            "<text x='30' y='32' font-size='18px' text-anchor='middle' role='row'>" +
+            "<tspan  role='columnheader' x='" + captionPosX + "'>" + caption + "</tspan>" +
+            "</text>" +
+            "</g>";
+
+        dateTableYIndex = 0;
+
+        for (var sourceIndex = 0; sourceArray.length > sourceIndex; sourceIndex++) {
+            rowGroup = rowGroup + addDate(sourceArray[sourceIndex], code);
+        }
+
+        processHeaderCount = processHeaderCount + 1;
+
+        return rowGroup;
+    }
+
+    function addDate(data, code) {
+        var captionPosX = (dateHeaderWidth / 2);
+        var dateStartPosX = (dateHeaderCount * dateHeaderWidth)
+                            + (dateHeaderMargin * (dateHeaderCount - processHeaderCount))
+                            + (processHeaderCount * processHeaderMargin);
+
+        var rowGroup = "<g id='rowGroup'  fill='black' transform='translate(" + dateStartPosX + ", " + dateHeaderStartPosY + ")' role='table'>" +
+            "<rect x='10' y='10' width='" + dateHeaderWidth + "' height='" + dateHeaderHeight + "' style='"+ dateHeaderStyle + "' />" +
+            "<text x='30' y='32' font-size='18px' text-anchor='middle' role='row'>" +
+            "<tspan  role='columnheader' x='" + captionPosX + "'>" + data.SOURCEDATE + "</tspan>" +
+            "</text>" +
+            "</g>";
+
+        for (var sourceIndex = 0; data.SOURCETABLE.length > sourceIndex; sourceIndex++) {
+            rowGroup = rowGroup + addTable(data.SOURCETABLE[sourceIndex], dateStartPosX, code);
+            dateTableYIndex = dateTableYIndex + 1;
+        }
+        
+        dateHeaderCount = dateHeaderCount + 1;
+        return rowGroup;
+    }
+
+    function addTable(table, startPosX, code) {
+        var dataNameList  = Object.keys(table.SOURCENAMETABLE);
+        var dataValueList = Object.keys(table.SOURCEVALUETABLE);
+        var tableHeight = ((dataNameList.length * tableItemHeight) + tableItemTopPadding + tableItemBottomPadding);
+
+        var startPosY = ((dateTableYIndex * tableHeight) + 100 + (dateTableYIndex == 0 ? 0 : (dateTableYIndex * tableItemTopMaring)));
+        var rowGroupHeader =
+            "<g id='rowGroup' fill='black' transform='translate(" + startPosX + ", " + startPosY + ")' role='table'> " +
+            "    <rect x='10' y='10' width='" + tableItemWidth +"' height='" + tableHeight  + "' style='" + tableBodyStyle + "' /> ";
+
+        var rowGroupBody = '';
+        var itemHeight = tableItemTopPadding;
+
+        for (var dataNameIndex = 0; dataNameList.length > dataNameIndex; dataNameIndex++) {
+            rowGroupBody = rowGroupBody +
+                "    <text x='30' y='" + itemHeight + "' font-size='15px' text-anchor='middle' role='row' style='padding-top:3px;'> " +
+                "    <tspan role='rowheader' x='30' dy='1.5em' font-weight='bold'  text-anchor='start'>" + table.SOURCENAMETABLE[dataNameList[dataNameIndex]] + "</tspan> " +
+                "    <tspan role='cell' x='180'>" + table.SOURCEVALUETABLE[dataValueList[dataNameIndex]] + "</tspan> " +
+                "    </text> ";
+
+            itemHeight = itemHeight + tableItemHeight;
+        }
+
+        var rowGroupFooter ="</g> ";
+        var drawLineData = new Object();
+
+        if (code == "INBOND_IN") {
+            drawLineData.CODE = table.RELID;
+        } else if(code == "MATSTOCK_IN") {
+            drawLineData.CODE = table.RELID;
+        }
+        
+        drawLineData.X = startPosX;
+        drawLineData.Y = startPosY;
+        drawLineData.Width = tableItemWidth;
+        drawLineData.Height = tableHeight;
+        tableLocationPath.push(drawLineData);
+
+        return rowGroupHeader + rowGroupBody + rowGroupFooter;
+    }
+
+    function addAnchor() {
+        var anchor = '';
+
+        for (var drawIndex = 0; tableLocationPath.length > drawIndex; drawIndex++) {
+            anchor = anchor + "<circle cx='" + (tableLocationPath[drawIndex].X + (circleR * 2)) + "' cy='" + (tableLocationPath[drawIndex].Y + (tableLocationPath[drawIndex].Height / 2)) + "' r='" + circleR + "' stroke='black' stroke-width='1' fill='white' />";
+            anchor = anchor + "<circle cx='" + (tableLocationPath[drawIndex].X + (tableLocationPath[drawIndex].Width) + (circleR * 2)) + "' cy='" + (tableLocationPath[drawIndex].Y + (tableLocationPath[drawIndex].Height / 2)) + "' r='" + circleR + "' stroke='black' stroke-width='1' fill='white' />";
+        }
+
+        return anchor;
+    }
+    
+    function addAnchorToAnchor(data) {
+        var circle = '';
+
+        if (data != undefined) {
+            for (var anchorDataIndex = 0; data.length > anchorDataIndex; anchorDataIndex++) {
+                circle = circle + addLine(data[anchorDataIndex].FROM, data[anchorDataIndex].TO );
+            }
+        }
+
+        return circle;
+    }
+
+    function addLine(from, to) {
+        var fromX;
+        var fromY;
+        var toX;
+        var toY;
+        var circle;
+
+        var fromTable = tableLocationPath.find(function(element) {
+          return element.CODE == from;
+        });
+
+        var toTable = tableLocationPath.find(function(element) {
+          return element.CODE == to;
+        });
+
+        fromX = (fromTable.X + fromTable.Width + (circleR * 3));
+        fromY = (fromTable.Y + (fromTable.Height / 2));
+        toX = (toTable.X);
+        toY = (toTable.Y + (toTable.Height / 2));
+
+        //체크 To.Y가 공정 엣지 넘는지
+        var overEdge = processEdge.find(function(element) {
+          return element < toX;
+        });
+
+        if (overEdge != undefined) {
+            circle = "<polyline points='" + fromX + " " + fromY + ", " + overEdge + " " + fromY + ", " + overEdge + " " + toY + ", " + toX + " " + toY + "' style='fill:transparent;stroke:red;stroke-width:2' marker-end='url(#head)' />"
+        } else {
+            circle = "<polyline points='" + fromX + " " + fromY + ", " + toX + " " + toY + " ' style='fill:transparent;stroke:red;stroke-width:2' marker-end='url(#head)' />"
+        }        
+        return circle;
+    }
+</script>

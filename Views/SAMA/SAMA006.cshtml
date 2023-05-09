@@ -1,0 +1,238 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+
+    var inspresult = new[] { "양품", "불량" };
+    var matType = new[] { "구분1", "구분2" };
+
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        <div class="col-lg-4 col-sm-12">
+            <div id="form-container">
+                <div class="dx-fieldset-header"><i class="fa fa-angle-right"> 수입 검사 입력 정보</i></div>
+                @(Html.DevExtreme().Form<InbondInspectionHistory>()
+                    .ID("form")
+                    .ColCount(1)
+                    .Items(items => {
+
+                        items.AddSimple()
+                            .Editor(e => e
+                                .TextBox()
+                            ).Name("ScanBarcode");
+
+                        items.AddSimpleFor(m => m.VENDORCODE)
+                            .Editor(e => e
+                                .DropDownBox().ValueExpr("VENDORCODE")
+                                .DisplayExpr("VENDORNAME")
+                                .DataSource(d => d.WebApi().Controller("MSTI001WebApi").Key("VENDORCODE"))
+                                .Placeholder("Select a value...")
+                                .ShowClearButton(true)
+                                .OnValueChanged("gridBox_valueChanged")
+                                .ContentTemplate(new TemplateName("EmbeddedVendorDataGridSingle"))
+                                .OnOpened(@<text>
+                                function (e) {
+                                        e.component.content().parent().width(500);
+
+                                        var trans = e.component.content().parent().css('transform');
+                                        var matrix = trans.replace(/[^0-9\-.,]/g, '').split(',');
+                                        var vLeft = 500 - (window.innerWidth - matrix[4]);
+                                        if (vLeft > 0) {
+                                            e.component.content().parent().css('left', -(vLeft + 5));
+                                        }
+                                    }
+                                </text>)
+                            );
+                        @*
+                        items.AddSimpleFor(m => m.PRODUCTTYPE)
+                            .Editor(e => e
+                                .RadioGroup()
+                                                    .Layout(Orientation.Horizontal)
+                                                    
+                            );
+                            *@
+                        items.AddSimpleFor(m => m.PARTNUMBER)
+                            .Editor(e => e
+                                .DropDownBox()
+                                .ValueExpr("MATERIALCODE")
+                                .DisplayExpr("MATERIALNAME")
+                                .DataSource(d => d.WebApi().Controller("MSTD002WebApi").Key("MATERIALCODE"))
+                                .Placeholder("Select a value...")
+                                .ShowClearButton(true)
+                                .OnValueChanged("gridBox1_valueChanged")
+                                .ContentTemplate(new TemplateName("EmbeddedMaterialDataGridSingle"))
+                                .OnOpened(@<text>
+                                function (e) {
+                                        e.component.content().parent().width(600);
+
+                                        var trans = e.component.content().parent().css('transform');
+                                        var matrix = trans.replace(/[^0-9\-.,]/g, '').split(',');
+                                        var vLeft = 600 - (window.innerWidth - matrix[4]);
+                                        if (vLeft > 0) {
+                                            e.component.content().parent().css('left', -(vLeft + 5));
+                                        }
+                                    }
+                                </text>)
+                            );
+
+                        items.AddSimpleFor(m => m.RECEIVINGQUANTITY)
+                            .Editor(e => e
+                                .NumberBox()
+                                    .ShowSpinButtons(true)
+                                    .ShowClearButton(true)
+                            );
+                        @*
+                        items.AddSimpleFor(m => m.INSPECTIONRESULT)
+                            .Editor(e => e
+                                .RadioGroup()
+                                                    .Layout(Orientation.Horizontal)
+                                                    
+                            );
+                        *@
+                        items.AddSimpleFor(m => m.MEMO)
+                            .Editor(e => e
+                                .TextArea()
+                                    .Value("불량품 입고 됨.")
+                                    .StylingMode(EditorStylingMode.Filled)
+                                    .Height(90)
+                            );
+                    })
+                    .OnContentReady(@<text>
+                        function(e) {
+                            e.component.validate();
+                        }
+                    </text>)
+                    .FormData(Model)
+                )
+            </div>
+
+            <div class="buttongroups-container">
+            @(Html.DevExtreme().Button().Text("저장").StylingMode(ButtonStylingMode.Contained).Width("49%").Type(ButtonType.Success))
+            @(Html.DevExtreme().Button().Text("취소").StylingMode(ButtonStylingMode.Contained).Width("49%").Type(ButtonType.Normal))
+            </div>
+
+        </div>
+        <div class="col-lg-8 col-sm-12 mt-2 mt-md-2">
+            <div class="dx-fieldset-header"><i class="fa fa-angle-right"> 당일 수입 검사 목록</i></div>
+             @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                .ID("grdPartNumberMaster")
+                .DataSource(d => d.WebApi().Controller("MSTD001WebApi").Key("PARTNUMBERID"))
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.PRODUCTTYPE);
+                })
+                .ColumnMinWidth(50)
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .ColumnAutoWidth(true)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+                .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .Scrolling(s=>s.ScrollByThumb(true).ScrollByContent(true))
+                .Selection(s=>s.SelectAllMode(SelectAllMode.AllPages).ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick).Mode( SelectionMode.Multiple))
+            )
+        </div>
+    </div>
+</div>
+
+@using(Html.DevExtreme().NamedTemplate("EmbeddedMaterialDataGridSingle")) {
+    @(Html.DevExtreme().DataGrid<MaterialMaster>()
+        .ID("embedded-material-datagrid")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns => {
+            columns.AddFor(m => m.MATERIALCODE);
+            columns.AddFor(m => m.MATERIALTYPE);
+            columns.AddFor(m => m.MATERIALNAME);
+        })
+        .ColumnAutoWidth(true)
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var keys = selectedItems.selectedRowKeys;
+                component.option("value", keys);
+                if(typeof keys !== 'undefined' && keys.length > 0){
+                    component.close();
+                }
+            }
+        </text>)
+    )
+}
+
+@using(Html.DevExtreme().NamedTemplate("EmbeddedVendorDataGridSingle")) {
+    @(Html.DevExtreme().DataGrid<VendorMaster>()
+        .ID("embedded-vendor-datagrid")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns => {
+            columns.AddFor(m => m.VENDORNAME);
+            columns.AddFor(m => m.TELEPHONE);
+            columns.AddFor(m => m.ADDRESS);
+        })
+        .ColumnAutoWidth(true)
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var keys = selectedItems.selectedRowKeys;
+                component.option("value", keys);
+                if(typeof keys !== 'undefined' && keys.length > 0){
+                    component.close();
+                }
+            }
+        </text>)
+    )
+}
+<script>
+
+    function gridBox1_valueChanged(e) {
+        var $dataGrid = $("#embedded-material-datagrid");
+
+        if ($dataGrid.length) {
+            var dataGrid = $dataGrid.dxDataGrid("instance");
+            var selectedRows = dataGrid.getSelectedRowsData();
+
+            if (typeof selectedRows !== 'undefined' && selectedRows.length > 0) {
+                $('#matDesc').text(selectedRows[0].MATERIALCODE + ' / ' + selectedRows[0].MATERIALTYPE);
+            }
+
+            dataGrid.selectRows(e.value, false);            
+        }
+    }
+
+    function gridBox_valueChanged(e) {
+        /*
+        var $dataGrid = $("#embedded-material-datagrid");
+
+        if ($dataGrid.length) {
+            var dataGrid = $dataGrid.dxDataGrid("instance");
+            dataGrid.selectRows(e.value, false);            
+        }
+
+        
+        */
+    }
+
+    function SetLabelText(e) {
+        $('#form').dxForm('instance').updateData('ScanBarcode', e);
+    }
+</script>

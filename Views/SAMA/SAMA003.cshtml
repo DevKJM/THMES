@@ -1,0 +1,240 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTA
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-primary" role="alert">
+              레이아웃 테스트
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xl-6">
+            @(Html.DevExtreme().DataGrid<PlantMaster>()
+              .ID("grdPlantMaster")
+              .DataSource(d => d.WebApi().Controller("MSTA001WebApi").Key("PLANTID"))
+              .Columns(columns =>
+              {
+                  columns.AddFor(m => m.PLANTID);
+                  columns.AddFor(m => m.PLANTCODE);
+                  columns.AddFor(m => m.PLANTNAME);
+                  columns.AddFor(m => m.USEYN).Lookup(c => c.DataSource(new JS("USE_YN"))
+                                                            .DisplayExpr("NAME")
+                                                            .ValueExpr("CODE"));
+                  columns.AddFor(m => m.CREATEDATE).AllowEditing(false);
+              })
+              .Height(600)
+              .ColumnMinWidth(50)
+                      .RemoteOperations(true)
+                      .FilterPanel(f => f.Visible(true))
+                      .ColumnAutoWidth(true)
+                      .FilterRow(f => f.Visible(true))
+                      .Paging(p=>p.PageSize(25).Enabled(true))
+                      .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+                      .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+                      .SearchPanel(searchPanel => searchPanel
+                          .Visible(true)
+                          .Width(180)
+                          .Placeholder("Search...")
+                      )
+                      .FilterRow(filterRow => filterRow
+                          .Visible(true)
+                          .ApplyFilter(GridApplyFilterMode.Auto)
+                      )
+                      .ShowBorders(true)
+                      .AllowColumnResizing(true)
+                      .Editing(e =>
+                            e.Mode(GridEditMode.Batch)
+                            .AllowUpdating(true)
+                            .AllowAdding(true)
+                            .AllowDeleting(true)
+                        )
+                      .RowAlternationEnabled(true)
+                      .Export(e=>e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                      .FilterRow(f => f.Visible(true))
+                )
+        </div>
+        <div class="col-xl-6">
+            <div class="row mt-2 mt-xl-0">
+                <div class="col-12">
+                    @(Html.DevExtreme().DataGrid<PlantMaster>()
+                      .ID("grdPlantMaster2")
+                      .DataSource(d => d.WebApi().Controller("MSTA001WebApi").Key("PLANTID"))
+                      .Columns(columns =>
+                      {
+                          columns.AddFor(m => m.PLANTID);
+                          columns.AddFor(m => m.PLANTCODE);
+                          columns.AddFor(m => m.PLANTNAME);
+                          columns.AddFor(m => m.CREATEDATE).AllowEditing(false);
+                      })
+                      .ColumnMinWidth(50)
+                      .RemoteOperations(true)
+                      .FilterPanel(f => f.Visible(true))
+                      .ColumnAutoWidth(true)
+                      .FilterRow(f => f.Visible(true))
+                      .Paging(p=>p.PageSize(25).Enabled(true))
+                      .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+                      .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+                      .SearchPanel(searchPanel => searchPanel
+                          .Visible(true)
+                          .Width(180)
+                          .Placeholder("Search...")
+                      )
+                      .FilterRow(filterRow => filterRow
+                          .Visible(true)
+                          .ApplyFilter(GridApplyFilterMode.Auto)
+                      )
+                      .ShowBorders(true)
+                      .AllowColumnResizing(true)
+                      .Editing(e => 
+                            e.Mode(GridEditMode.Batch)
+                            .AllowUpdating(true)
+                            .AllowAdding(true)
+                            .AllowDeleting(true)
+                        )
+                      .RowAlternationEnabled(true)
+                      .Export(e=>e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                      .FilterRow(f => f.Visible(true))
+                    )
+                </div>
+                
+            </div>
+            <div class="row mt-2">
+                <div class="col-12">
+                    @(Html.DevExtreme().DataGrid<PlantMaster>()
+                      .ID("grdPlantMaster3")
+                      .DataSource(d => d.WebApi().Controller("MSTA001WebApi").Key("PLANTID"))
+                      .Columns(columns =>
+                      {
+                          columns.AddFor(m => m.PLANTID);
+                          columns.AddFor(m => m.PLANTCODE);
+                          columns.AddFor(m => m.PLANTNAME);
+                          columns.AddFor(m => m.CREATEDATE).AllowEditing(false);
+                      })
+                      .ColumnMinWidth(50)
+                      .RemoteOperations(true)
+                      .FilterPanel(f => f.Visible(true))
+                      .ColumnAutoWidth(true)
+                      .FilterRow(f => f.Visible(true))
+                      .Paging(p=>p.PageSize(25).Enabled(true))
+                      .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+                      .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+                      .SearchPanel(searchPanel => searchPanel
+                          .Visible(true)
+                          .Width(180)
+                          .Placeholder("Search...")
+                      )
+                      .FilterRow(filterRow => filterRow
+                          .Visible(true)
+                          .ApplyFilter(GridApplyFilterMode.Auto)
+                      )
+                      .ShowBorders(true)
+                      .AllowColumnResizing(true)
+                      .Editing(e => 
+                            e.Mode(GridEditMode.Batch)
+                            .AllowUpdating(true)
+                            .AllowAdding(true)
+                            .AllowDeleting(true)
+                        )
+                      .RowAlternationEnabled(true)
+                      .Export(e=>e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                      .FilterRow(f => f.Visible(true))
+                    )
+
+                    <div class="row mt-2">
+                        <div class="col-xl-6">
+                            @(Html.DevExtreme().DataGrid<PlantMaster>()
+                              .ID("grdPlantMaster4")
+                              .DataSource(d => d.WebApi().Controller("MSTA001WebApi").Key("PLANTID"))
+                              .Columns(columns =>
+                              {
+                                  columns.AddFor(m => m.PLANTID);
+                                  columns.AddFor(m => m.PLANTCODE);
+                                  columns.AddFor(m => m.PLANTNAME);
+                                  columns.AddFor(m => m.CREATEDATE).AllowEditing(false);
+                              })
+                              .ColumnMinWidth(50)
+                              .RemoteOperations(true)
+                              .FilterPanel(f => f.Visible(true))
+                              .ColumnAutoWidth(true)
+                              .FilterRow(f => f.Visible(true))
+                              .Paging(p=>p.PageSize(25).Enabled(true))
+                              .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+                              .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+                              .SearchPanel(searchPanel => searchPanel
+                                  .Visible(true)
+                                  .Width(180)
+                                  .Placeholder("Search...")
+                              )
+                              .FilterRow(filterRow => filterRow
+                                  .Visible(true)
+                                  .ApplyFilter(GridApplyFilterMode.Auto)
+                              )
+                              .ShowBorders(true)
+                              .AllowColumnResizing(true)
+                              .Editing(e => 
+                                    e.Mode(GridEditMode.Batch)
+                                    .AllowUpdating(true)
+                                    .AllowAdding(true)
+                                    .AllowDeleting(true)
+                                )
+                              .RowAlternationEnabled(true)
+                              .Export(e=>e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                              .FilterRow(f => f.Visible(true))
+                            )
+                        </div>
+                        <div class="col-xl-6 mt-2 mt-xl-0">
+                            @(Html.DevExtreme().DataGrid<PlantMaster>()
+                              .ID("grdPlantMaster5")
+                              .DataSource(d => d.WebApi().Controller("MSTA001WebApi").Key("PLANTID"))
+                              .Columns(columns =>
+                              {
+                                  columns.AddFor(m => m.PLANTID);
+                                  columns.AddFor(m => m.PLANTCODE);
+                                  columns.AddFor(m => m.PLANTNAME);
+                                  columns.AddFor(m => m.CREATEDATE).AllowEditing(false);
+                              })
+                              .ColumnMinWidth(50)
+                              .RemoteOperations(true)
+                              .FilterPanel(f => f.Visible(true))
+                              .ColumnAutoWidth(true)
+                              .FilterRow(f => f.Visible(true))
+                              .Paging(p=>p.PageSize(25).Enabled(true))
+                              .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+                              .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+                              .SearchPanel(searchPanel => searchPanel
+                                  .Visible(true)
+                                  .Width(180)
+                                  .Placeholder("Search...")
+                              )
+                              .FilterRow(filterRow => filterRow
+                                  .Visible(true)
+                                  .ApplyFilter(GridApplyFilterMode.Auto)
+                              )
+                              .ShowBorders(true)
+                              .AllowColumnResizing(true)
+                              .Editing(e => 
+                                    e.Mode(GridEditMode.Batch)
+                                    .AllowUpdating(true)
+                                    .AllowAdding(true)
+                                    .AllowDeleting(true)
+                                )
+                              .RowAlternationEnabled(true)
+                              .Export(e=>e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                              .FilterRow(f => f.Visible(true))
+                            )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

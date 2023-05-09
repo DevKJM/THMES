@@ -1,0 +1,101 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<RPTA006_LIST>
+                  ()
+                  .ID("grdProductStock")
+                  .DataSource(d => d.WebApi().Controller("RPTA006WebApi"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.PARTNUMBER)
+                          .SortOrder(SortOrder.Asc).SortIndex(2) ;
+                      columns.AddFor(m => m.PRODUCTNAME);
+                      columns.AddFor(m => m.PRODUCTTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("PRODUCTTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          ).SortOrder(SortOrder.Desc).SortIndex(0);
+                      columns.AddFor(m => m.MATERIALTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("MATERIALTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.UNITCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("UNITCODE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.SAFETYINVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(3));
+                      columns.AddFor(m => m.INVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(3)).SortOrder(SortOrder.Desc).SortIndex(1);
+                      //.SortOrder(SortOrder.Asc).SortIndex(2);;
+                  })
+                  //.Summary(s => s.GroupItems(items =>
+                  //{
+                  //    items.AddFor(m => m.INVENTQUANTITY)
+                  //        .SummaryType(SummaryType.Sum)
+                  //        .Column("INVENTQUANTITY")
+                  //        .ValueFormat(Format.FixedPoint)
+                  //        .DisplayFormat("{0}")
+                  //        .ShowInGroupFooter(false)
+                  //        .AlignByColumn(true);
+                  //}))
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowAdding(false)
+                          .AllowUpdating(false)
+                          .AllowDeleting(false)
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e=>e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  .OnInitialized("grdProductStock_OnInitialized")
+                  .Option("KEY_FIELD", new object[]
+                  {
+                      "PLANTCODE", "PARTNUMBER", "PRODUCTNAME", "PRODUCTTYPE", "MATERIALTYPE", "UNITCODE",
+                      "INVENTQUANTITY", "SAFETYINVENTQUANTITY"
+                  })
+                  //.Option("USE_REQUIRED_HEADER", true)
+                  )
+        </div>
+    </div>
+</div>
+<script>
+    function grdProductStock_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

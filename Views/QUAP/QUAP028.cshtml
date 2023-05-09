@@ -1,0 +1,150 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAK;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+@*x산포도*@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().Form()
+                .ID("formInfo")
+                .ColCount(8)
+                .ScrollingEnabled(false)
+                .Items(items =>
+                {
+                    items.AddSimple()
+                    .Editor(e => e
+                        .DateBox()
+                        .ReadOnly(false)
+                        .Type(DateBoxType.Date)
+                        .DisplayFormat(Format.MonthAndYear)
+                        .Value(new JS("new Date()"))
+                        .Width("100%")
+                        .CalendarOptions(c => c.MaxZoomLevel(CalendarZoomLevel.Year))
+                        .OnValueChanged("function(e) { var w = $('#SPEC').dxSelectBox('getDataSource'); w.reload(); $('#SPEC').dxSelectBox('instance').option('value', null); } ")
+                    )
+                    .Name("SEARCHDATE")
+                    .Label(T => T.Text("년월"))
+                    .ColSpan(2);
+
+                        
+                    items.AddSimple()
+                    .Editor(e => e
+                        .SelectBox()
+                        .ElementAttr("id", "SPEC")
+                        .ValueExpr("SPECCODE")
+                        .DisplayExpr("SPECNAME")
+                        .DataSource(d => d.WebApi().Controller("QUAP028WebApi")
+                            .Key("SPECCODE")
+                            .LoadAction("SPEC_LIST")
+                            .OnBeforeSend("SPEC_OnBeforeSend")
+                        )
+                        .Placeholder("Select a value...")
+                    )
+                    .Name("SPEC")
+                    .Label(T => T.Text(LabelText.SPEC))
+                    .ColSpan(2);
+
+
+                    items.AddSimple().Visible(false)
+                    .Editor(e => e.TextBox().ReadOnly(true))
+                    .Name("PARTNUMBER")
+                    .Label(T => T.Text(LabelText.PARTNUMBER))
+                    .ColSpan(2);
+
+                    items.AddButton().ColSpan(1)
+                    .HorizontalAlignment(HorizontalAlignment.Left)
+                    .ButtonOptions(b => b.Text("조회")
+                        .Icon("check")
+                        .ID("btnSearch")
+                        .Width("100%")
+                        .StylingMode(ButtonStylingMode.Contained)
+                        .Type(ButtonType.Default)
+                        .OnClick("btnSearch_OnClick")
+                    );
+
+                })
+            )
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+             <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @string.Format("{0}", "X 산포도") </i></span></h4>
+            @(Html.DevExtreme().Chart()
+                .ID("chtQUAP028B")
+                .Palette(VizPalette.GreenMist)    
+                .DataSource(d => d.WebApi().Controller("QUAP028WebApi")
+                    .OnBeforeSend("QUAP028_OnBeforeSend")
+                    .LoadAction("getData")
+                    )
+                .CommonSeriesSettings(s => s.ArgumentField("INSPDATE").Type(SeriesType.Scatter).IgnoreEmptyPoints(true))
+                .Series(s =>
+                {
+                    s.Add().ValueField("INSPECTVALUE").Name("도막두께").Point(p => p.Visible(true).Size(7));
+                })
+                .ArgumentAxis(x=>x.Label(l=>l.Format(Format.ShortDateShortTime)).ArgumentType(ChartDataType.DateTime))
+                .ValueAxis(v => v.Add()
+                      .ValueType(ChartDataType.Numeric)                      
+                      .Label(l=>l.Format(Format.Decimal))
+                      .ValueMarginsEnabled(true)
+                      .Type(AxisScaleType.Discrete)
+                      .Grid(g=>g.Visible(true))
+                      )
+                .Tooltip(t => t.Enabled(true).CustomizeTooltip("chtQUAP028_CustomizeTooltip"))
+                .Legend(l => l.Visible(false))
+                .AdaptiveLayout(l => l.Width(450))
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function SPEC_OnBeforeSend(method, ajaxOptions)
+    {
+        if (method == 'load') {
+            var form = $('#formInfo').dxForm('instance');
+            var searchdate = form.getEditor('SEARCHDATE').option('value');            
+            
+            ajaxOptions.data.searchdate = searchdate.toUTCString();
+        }
+    }
+    
+    function QUAP028_OnBeforeSend(method, ajaxOptions)
+    {
+        if (method == 'load') {
+            var form = $('#formInfo').dxForm('instance');
+            var searchdate = form.getEditor('SEARCHDATE').option('value');            
+            var spec = form.getEditor('SPEC').option('value');
+
+            ajaxOptions.data.searchdate = searchdate.toUTCString();
+            ajaxOptions.data.spec = spec;            
+        }
+    }
+
+    function btnSearch_OnClick(e) {
+        var form = $('#formInfo').dxForm('instance');
+        var spec = form.getEditor('SPEC').option('value');
+
+        if (spec == null) {
+            DevExpress.ui.notify('규격을 선택해주세요.', 'error', globalNotificationErrorTime);
+            return;
+        } 
+
+        $("#chtQUAP028B").dxChart("instance").refresh();
+    }
+
+    function chtQUAP028_CustomizeTooltip(e) {
+        return {
+            html: e.seriesName + "<div>"
+                + Globalize.numberFormatter()(e.originalValue) + "</div>"
+        };
+    }
+
+</script>

@@ -1,0 +1,36 @@
+﻿@using JSMES.WebUI.Alpha.App_GlobalResources
+@model JSMES.WebUI.Alpha.ViewModels.TowLoginViewMode
+
+@using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="sidebar-title">
+        <!--<form class="m-t" role="form" action="#">-->
+            @if (ViewData.ModelState[""] != null && ViewData.ModelState[""].Errors.Count > 0)
+            {
+                @Html.ValidationSummary(true, "", new { @class = "alert alert-warning" })
+            }
+
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.TextBoxFor(m => m.loginViewModel.UserName, new { placeholder = @LabelText.USERID, @class = "form-control", @autofocus = "autofocus", @autocomplete = "username" })
+                        @Html.ValidationMessageFor(m => m.loginViewModel.UserName, "", new { @style = "margin-top:10px;color:red;" })
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-lg-12">
+                        @Html.PasswordFor(m => m.loginViewModel.Password, new { placeholder = @LabelText.PASSWORD, @class = "form-control", @onkeypress = "caps_lock(event)", @autocomplete = "current-password" })
+                        @Html.ValidationMessageFor(m => m.loginViewModel.Password, "", new { @style = "margin-top:15px;color:red;" })
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.CheckBoxFor(m => m.loginViewModel.RememberMe) @LabelText.REMEBER_ID
+            </div>
+            <button type="submit" class="btn btn-primary block full-width m-b">@LabelText.LOGIN</button>
+        <!--</form>-->
+    </div>
+}

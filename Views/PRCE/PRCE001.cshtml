@@ -1,0 +1,200 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCE;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        <div class="col-lg-12 col-sm-12">
+            <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @LabelText.REISSUE_LABEL</i></span></h4>
+            @(Html.DevExtreme().DataGrid<PRCE001A_LIST>()
+                    .ID("grdReissue")
+                    .DataSource(d => d.WebApi().Controller("PRCE001WebApi").Key("PRODHISSEQ").OnBeforeSend("grdReissue_OnBeforeSend"))
+                    //.OnRowClick("grdWorkorder_OnRowClick")
+                    .Columns(columns =>
+                    {
+                        columns.AddFor(m => m.PRODHISSEQ).Visible(false);//.SortOrder(SortOrder.Desc);//.SortIndex(0);
+                        columns.AddFor(m => m.TRANSCODE)
+                            .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("TRANSCODE")
+                            .LoadAction("TRANSACTION_LIST")
+                            .LoadParams(new { Culture = new JS("function() { return locale; }") }))
+                            .DisplayExpr("TRANSNAME")
+                            .ValueExpr("TRANSCODE")
+                        );
+                        columns.AddFor(m => m.SERIALNUMBER);
+                        columns.AddFor(m => m.LOTNUMBER);
+                        columns.AddFor(m => m.PARTNUMBER);
+                        columns.AddFor(m => m.PRODUCTNAME);
+                        columns.AddFor(m => m.PROCESSCODE)
+                            .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("PROCESSCODE")
+                            .LoadAction("PROCESS_LIST")
+                            .LoadParams(new { Culture = new JS("function() { return locale; }") }))
+                            .DisplayExpr("PROCESSNAME")
+                            .ValueExpr("PROCESSCODE")
+                        );
+                        columns.AddFor(m => m.EQUIPMENTCODE)
+                            .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("EQUIPMENTCODE")
+                            .LoadAction("EQUIPMENT_LIST")
+                            .LoadParams(new { Culture = new JS("function() { return locale; }") }))
+                            .DisplayExpr("EQUIPMENTNAME")
+                            .ValueExpr("EQUIPMENTCODE")
+                        );
+                        columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                        columns.AddFor(m => m.WORKER)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("EMPCODE")
+                            .LoadAction("HR_LIST")
+                            .LoadParams(new { Culture = new JS("function() { return locale; }") }))
+                            .DisplayExpr("EMPNAME")
+                            .ValueExpr("EMPCODE")
+                        );
+                    })
+                    .ColumnMinWidth(50)
+                    .FilterPanel(f => f.Visible(true))
+                    .SearchPanel(c => c.Visible(true))
+                    .RemoteOperations(true)
+                    .ColumnAutoWidth(true)
+                    .Paging(p => p.PageSize(25).Enabled(true))
+                    .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                    .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                    .AllowColumnResizing(true)
+                    .RowAlternationEnabled(true)
+                    .Editing(e =>
+                        e.Mode(GridEditMode.Batch)
+                            .AllowUpdating(new JS("iudAuth()"))
+                    )
+                    .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                    .Selection(s => s.SelectAllMode(SelectAllMode.AllPages).ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick).Mode(SelectionMode.Multiple))
+            )
+        </div>
+        @*<div class="col-lg-5 col-sm-12 mt-2 mt-md-2">
+            @(Html.DevExtreme().Form<PRCE001A_LIST>()
+                    .ID("form")
+                    .ScrollingEnabled(false)
+                    .Items(items =>
+                    {
+                        items.AddSimple().Template(@<text>
+                            <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @LabelText.BARCODESCAN</i></span></h4>
+                            @(Html.DevExtreme().TextBox()
+                                    .ID("txtBarcode")
+                                    .Placeholder("바코드를 스캔하세요.")
+                                    .OnEnterKey("txtBarcode_onEnterKey")
+                            )
+                        </text>);
+
+                        items.AddSimple().Template(@<text>
+                        @(Html.DevExtreme().Button()
+                            .ID("btnReissue")
+                            .Text(@LabelText.REISSUE_LABEL)
+                            .Icon("fa fa-reply")
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .Width("100%")
+                            .Type(ButtonType.Success)
+                            .OnClick("btnReissue_OnClick")
+                        )
+                    </text>);
+                    })
+                )
+        </div>*@
+    </div>
+</div>
+
+<script>
+
+    function grdReissue_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            ajaxOptions.data.PROCESSCODE = globalProcessCode;
+            ajaxOptions.data.EQUIPMENTCODE = globalEquipmentCode;
+        }
+    }
+
+    function txtBarcode_onEnterKey(e) {
+        var barcode = e.component._options.value;
+        //작업지시 선택 확인
+        if (barcode == null || barcode == "") {
+            DevExpress.ui.notify('바코드를 입력해주세요.', 'error', globalNotificationErrorTime);
+            return;
+        }
+
+        if (checkSerialExist(barcode)) {
+            DevExpress.ui.notify('이미 등록된 바코드입니다.', 'error', globalNotificationErrorTime);
+            $('#txtBarcode').dxTextBox('instance').reset();
+            $('#txtBarcode').dxTextBox('instance').focus();
+            return;
+        }
+
+        var gridWO = $("#grdWorkorder").dxDataGrid('instance');
+        var dataWO = gridWO.getSelectedRowsData();
+        var gridBOM = $("#grdBOM").dxDataGrid('instance');
+
+        //작업지시 선택 확인
+        if (dataWO.length <= 0) {
+            DevExpress.ui.notify('작업지시를 선택해주세요.', 'error', globalNotificationErrorTime);
+            $('#txtBarcode').dxTextBox('instance').reset();
+            $('#txtBarcode').dxTextBox('instance').focus();
+            return;
+        }
+
+        //BOM 정보 확인
+        if (gridBOM.totalCount() <= 0) {
+            DevExpress.ui.notify('BOM 정보가 없습니다.', 'error', globalNotificationErrorTime);
+            $('#txtBarcode').dxTextBox('instance').reset();
+            $('#txtBarcode').dxTextBox('instance').focus();
+            return;
+        }
+
+        var serialNumberList = "";
+        if (scanSerialnumberList.length > 0) {
+            scanSerialnumberList.forEach(function (e) {
+                serialNumberList += e.SERIALNUMBER + ",";
+            })
+        }
+
+        var param = $.param({ serialNumber: barcode, orderNumber: dataWO[0].ORDERNUMBER, orderSequence: dataWO[0].ORDERSEQUENCE, processCode: globalProcessCode, equipmentCode: globalEquipmentCode, serialList: serialNumberList});
+
+            $.ajax({
+            url: '@Url.Action("CheckValidation", "PRCB001WebApi", new { httproute = "DefaultApi", })' + "?" + param,
+            type: 'GET',
+            success: function (data) {
+                console.log("OK");
+
+                $("#grdBOM").dxDataGrid('instance').addRow();
+                $("#grdBOM").dxDataGrid('instance').cellValue(0, 'PARTNUMBER', data.data[0].PARTNUMBER);
+                $("#grdBOM").dxDataGrid('instance').cellValue(0, 'PRODUCTNAME', data.data[0].PRODUCTNAME);
+                $("#grdBOM").dxDataGrid('instance').cellValue(0, 'SERIALNUMBER', data.data[0].SERIALNUMBER);
+                $("#grdBOM").dxDataGrid('instance').cellValue(0, 'LOTNUMBER', data.data[0].LOTNUMBER);
+                $("#grdBOM").dxDataGrid('instance').cellValue(0, 'USAGE', data.data[0].USAGE);
+                $("#grdBOM").dxDataGrid('instance').cellValue(0, 'ORDERQUANTITY', data.data[0].ORDERQUANTITY);
+                $("#grdBOM").dxDataGrid('instance').cellValue(0, 'QUANTITY', data.data[0].QUANTITY);
+
+                scanSerialnumberList.push({
+                    SERIALNUMBER: data.data[0].SERIALNUMBER,
+                    LOTNUMBER: data.data[0].LOTNUMBER,
+                    ORDERNUMBER: dataWO[0].ORDERNUMBER,
+                    ORDERSEQUENCE: dataWO[0].ORDERSEQUENCE
+                })
+
+                $('#txtBarcode').dxTextBox('instance').reset();
+                $('#txtBarcode').dxTextBox('instance').focus();
+
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+
+    function btnReissue_OnClick(e) {
+
+    }
+</script>
+

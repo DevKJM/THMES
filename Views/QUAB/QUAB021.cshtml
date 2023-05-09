@@ -1,0 +1,1262 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAB;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Infrastructure.Enums
+@using JSMES.WebUI.Alpha.ViewModels.COM
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            <div id="tabs" class="animated">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs ">
+                        <li>
+                            <a class="nav-link active" data-toggle="tab" href="#tab-side-1">
+                                <i class="fa fa-calendar"> 수입 검사</i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" data-toggle="tab" href="#tab-side-2" onclick="TodayInbondList()">
+                                <i class="fa fa-wrench"> 당일 수입 검사 목록</i>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content onlyHeader">
+                    <div id="tab-side-1" class="tab-pane active">
+                    <div id="form-container" style="margin-top: 15px;">
+                        @using (Html.BeginForm())
+                        {
+                            @(Html.DevExtreme().Form<QUAB021_LIST>()
+                                  .ID("formInfo")
+                                  .ColCount(10)
+                                  .OnContentReady("formInfo_OnContentReady")
+                                  .ScrollingEnabled(false)
+                                  .Items(items =>
+                                  {
+                                      items.AddSimpleFor(m => m.VENDORCODE)
+                                          .Editor(e => e
+                                              .DropDownBox().ValueExpr("VENDORCODE")
+                                              .DisplayExpr("VENDORNAME")
+                                              .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("VENDOR_PURCHASE_LIST").Key("VENDORCODE"))
+                                              .Placeholder("Select a value...")
+                                              .ShowClearButton(true)
+                                              .ContentTemplate(new TemplateName("EmbeddedVendorDataGridSingle"))
+                                          ).ColSpan(2);
+
+                                      //items.AddSimple()
+                                      //    .Editor(e => e
+                                      //        .NumberBox()
+                                      //        .ReadOnly(false)
+                                      //        .ShowSpinButtons(false)
+                                      //        .ShowClearButton(false)
+                                      //        .FocusStateEnabled(false)
+                                      //        .Format(f => f.Type(Format.FixedPoint))
+                                      //    )
+                                      //    .Name("TOTALSAMPLECOUNT")
+                                      //    .Label(T => T.Text(LabelText.TOTALSAMPLECOUNT))
+                                      //    .ColSpan(1);
+
+                                      items.AddSimpleFor(m => m.PRODUCTTYPE)
+                                          .Editor(e => e
+                                              .RadioGroup()
+                                              //.ItemTemplate(new JS("radioGroupItemTemplate"))
+                                              .Layout(Orientation.Horizontal)
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE")
+                                              .DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                  .LoadAction("MATERIALTYPE_LIST")
+                                                  .Key("SYSCODE"))
+                                              .Value("M01")
+                                              .OnValueChanged("form_PRODUCTTYPE_OnValueChanged")
+                                          ).ColSpan(2);
+
+                                      items.AddSimple()
+                                          .Editor(e => e
+                                              .DropDownBox()
+                                              .ValueExpr("MATERIALCODE")
+                                              .DisplayExpr("MATERIALNAME")
+                                              .DataSource(d => d.WebApi().Controller("QUAB021WebApi")
+                                                  .LoadAction("MATERIAL_LIST")
+                                                  .LoadParams(new
+                                                  {
+                                                      PARTTYPE = new JS("function() { return $('#formInfo').dxForm('instance').option('formData.PRODUCTTYPE'); }")
+                                                  })
+                                                  .Key("MATERIALCODE")
+                                              )
+                                              .DropDownOptions(c => c.Width(500))
+                                              //.OnValueChanged("itemPart_valueChanged")
+                                              .Placeholder("Select a value...")
+                                              .ShowClearButton(true)
+                                              .ContentTemplate(new TemplateName("EmbeddedPartDataGridSingle"))
+                                          )
+                                          .ValidationRules(r => r
+                                              .AddRequired()
+                                              .Message("Partnumber is required")
+                                          )
+                                          .Name("PRODUCTNAME")
+                                          .Label(T => T.Text(LabelText.PRODUCTNAME))
+                                          .ColSpan(3);
+
+                                      items.AddSimple()
+                                          .Editor(e => e.TextBox().ReadOnly(true))
+                                          .Name("PARTNUMBER")
+                                          .Label(T => T.Text(LabelText.PARTNUMBER))
+                                          .ColSpan(2);
+
+                                      items.AddSimple()
+                                          .Editor(e => e
+                                              .DateBox()
+                                              .Type(DateBoxType.Date)
+                                              .Value(DateTime.Today)
+                                              .ReadOnly(false)
+                                              .Width("100%")
+                                          //.ReadOnly(true)
+                                          )
+                                          .Name("INSPECTDATE")
+                                          .Label(T => T.Text(LabelText.INSPECTDATE))
+                                          .ColSpan(1);
+
+                                      //items.AddEmpty()
+                                      //    .ColSpan(1);
+
+
+                                      items.AddSimpleFor(m => m.RECEIVINGQUANTITY)
+                                          .Editor(e => e
+                                              .NumberBox()
+                                              .ShowSpinButtons(true)
+                                              .ShowClearButton(true)
+                                              //.Min(1)
+                                              .ShowClearButton(false)
+                                              .Format("#,##0.###")//.Format(f => f.Type(Format.FixedPoint).Precision(3))
+                                          ).ColSpan(1);
+
+                                      items.AddSimpleFor(m => m.BOXPERQUANTITY)
+                                          .Editor(e => e
+                                              .NumberBox()
+                                              .ShowSpinButtons(true)
+                                              .ShowClearButton(true)
+                                              //.Min(1)
+                                              .Format("#,##0.###")//.Format(f => f.Type(Format.FixedPoint).Precision(3))
+                                              .Option("readOnly", true)
+                                          ).ColSpan(1);
+
+                                      items.AddSimpleFor(m => m.UNITCODE)
+                                          .Editor(e => e
+                                              .DropDownBox()
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE")
+                                              .DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                  .LoadAction("UNITCODE_LIST")
+                                                  .Key("SYSCODE"))
+                                              .Option("readOnly", true)
+                                          ).ColSpan(1);
+
+                                      items.AddSimple()
+                                          .Editor(e => e.TagBox()
+                                              .Placeholder(LabelText.ANSWERPLEASESELECTHR)
+                                              .DataSource(d => d.WebApi().Controller("COMA002WebApi")
+                                                  .Key("EMPNAME")
+                                                  .LoadAction("EMP_LIST")
+                                              )
+                                              .DisplayExpr("EMPNAME")
+                                              .ValueExpr("EMPNAME")
+                                              //.SearchEnabled(true)
+                                              //.Multiline(true)
+                                              .HideSelectedItems(true)
+                                          //.ShowSelectionControls(true)
+                                          //.ApplyValueMode(EditorApplyValueMode.UseButtons)
+                                          )
+                                          //.Editor(e => e.TextBox().ReadOnly(true))
+                                          .ValidationRules(r => r
+                                              .AddRequired()
+                                              .Message("Inspector is required")
+                                          )
+                                          .Name("INSPECTOR")
+                                          .Label(T => T.Text(LabelText.INSPECTOR))
+                                          .ColSpan(2);
+
+                                      items.AddSimpleFor(m => m.INSPECTIONRESULT)
+                                          .Editor(e => e
+                                              .RadioGroup()
+                                              .Layout(Orientation.Horizontal)
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE")
+                                              .DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                  .LoadAction("INSPECTIONRESULT_INPUT_LIST")
+                                                  .Key("SYSCODE"))
+                                              .Value("NG")
+                                              .Option("readOnly", true)
+                                          ).ColSpan(2);
+
+                                      items.AddSimpleFor(m => m.MEMO)
+                                          .Editor(e => e
+                                              .TextArea()
+                                              .StylingMode(EditorStylingMode.Underlined)
+                                              .Height(35)
+                                          ).ColSpan(3);
+                                  })
+                                  )
+                        }
+                    </div>
+                    @(Html.DevExtreme().DataGrid<QUAB021B_LIST>()
+                          .ID("grdSampleInspection")
+                          .DataSource(d => d.WebApi()
+                              .Controller("QUAB021WebApi")
+                              .Key("INSPECTCODE")
+                              .LoadAction("getSampleInspection")
+                              .OnBeforeSend("grdSampleInspection_onBeforeSend")
+                          )
+                          .Columns(columns =>
+                          {
+                              columns.AddFor(m => m.DISPLAYSEQUENCE).AllowEditing(false).Visible(false);
+                              columns.AddFor(m => m.INSPECTCODE).AllowEditing(false).Width(150)
+                                  .Lookup(l => l.DataSource(d => d.WebApi()
+                                      .Controller("QUAB021WebApi")
+                                      .LoadAction("getInspectItem")
+                                      .Key("INSPECTCODE")
+                                      )
+                                      .ValueExpr("INSPECTCODE")
+                                      .DisplayExpr("INSPECTNAME")
+                                      .AllowClearing(true)
+                                  );
+                              columns.AddFor(m => m.SPEC).AllowEditing(false).Width(200);//.CalculateCellValue("function(rowdata){ return rowdata.LSL + ' ~ ' + rowdata.USL;}");
+                              columns.AddFor(m => m.INSPECTUNIT).AllowEditing(false).Width(80)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                          .LoadAction("INSPECTUNIT_LIST")
+                                      )
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  );
+                              columns.AddFor(m => m.DATATYPE).Visible(false);
+                              columns.AddFor(m => m.SPECCLASS).Visible(false);
+                              columns.AddFor(m => m.USL).Visible(false);
+                              columns.AddFor(m => m.LSL).Visible(false);
+                              columns.AddFor(m => m.CSL).Visible(false);
+                              columns.AddFor(m => m.UCL).Visible(false);
+                              columns.AddFor(m => m.LCL).Visible(false);
+                              columns.AddFor(m => m.RESULT).AllowEditing(false).Visible(false);
+                              columns.AddFor(m => m.SAMPLE1).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("1").Width(170);
+                              columns.AddFor(m => m.RESULT1).AllowSorting(false).Width(80).AllowEditing(false);
+                              columns.AddFor(m => m.SAMPLE2).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("2").Width(170);
+                              columns.AddFor(m => m.RESULT2).AllowSorting(false).Width(80).AllowEditing(false);
+                              columns.AddFor(m => m.SAMPLE3).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("3").Width(170);
+                              columns.AddFor(m => m.RESULT3).AllowSorting(false).Width(80).AllowEditing(false);
+                              columns.AddFor(m => m.SAMPLE4).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("4").Width(170);
+                              columns.AddFor(m => m.RESULT4).AllowSorting(false).Width(80).AllowEditing(false);
+                              columns.AddFor(m => m.SAMPLE5).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("5").Width(170);
+                              columns.AddFor(m => m.RESULT5).AllowSorting(false).Width(80).AllowEditing(false);
+                              columns.AddFor(m => m.SAMPLE6).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("6").Width(170);
+                              columns.AddFor(m => m.RESULT6).AllowSorting(false).Width(80).AllowEditing(false);
+                              columns.AddFor(m => m.SAMPLE7).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("7").Width(170);
+                              columns.AddFor(m => m.RESULT7).AllowSorting(false).Width(80).AllowEditing(false);
+                              columns.AddFor(m => m.SAMPLE8).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("8").Width(170);
+                              columns.AddFor(m => m.RESULT8).AllowSorting(false).Width(80).AllowEditing(false);
+                              columns.AddFor(m => m.SAMPLE9).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("9").Width(170);
+                              columns.AddFor(m => m.RESULT9).AllowSorting(false).Width(80).AllowEditing(false);
+                              columns.AddFor(m => m.SAMPLE10).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("10").Width(170);
+                              columns.AddFor(m => m.RESULT10).AllowSorting(false).Width(80).AllowEditing(false);
+                              columns.AddFor(m => m.SAMPLE11).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("11").Width(170);
+                              columns.AddFor(m => m.RESULT11);
+                              columns.AddFor(m => m.SAMPLE12).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("12").Width(170);
+                              columns.AddFor(m => m.RESULT12);
+                              columns.AddFor(m => m.SAMPLE13).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("13").Width(170);
+                              columns.AddFor(m => m.RESULT13);
+                              columns.AddFor(m => m.SAMPLE14).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("14").Width(170);
+                              columns.AddFor(m => m.RESULT14);
+                              columns.AddFor(m => m.SAMPLE15).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("15").Width(170);
+                              columns.AddFor(m => m.RESULT15);
+                              columns.AddFor(m => m.SAMPLE16).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("16").Width(170);
+                              columns.AddFor(m => m.RESULT16);
+                              columns.AddFor(m => m.SAMPLE17).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("17").Width(170);
+                              columns.AddFor(m => m.RESULT17);
+                              columns.AddFor(m => m.SAMPLE18).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("18").Width(170);
+                              columns.AddFor(m => m.RESULT18);
+                              columns.AddFor(m => m.SAMPLE19).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("19").Width(170);
+                              columns.AddFor(m => m.RESULT19);
+                              columns.AddFor(m => m.SAMPLE20).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("20").Width(170);
+                              columns.AddFor(m => m.RESULT20);
+                              columns.AddFor(m => m.SAMPLE21).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("21").Width(170);
+                              columns.AddFor(m => m.RESULT21);
+                              columns.AddFor(m => m.SAMPLE22).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("22").Width(170);
+                              columns.AddFor(m => m.RESULT22);
+                              columns.AddFor(m => m.SAMPLE23).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("23").Width(170);
+                              columns.AddFor(m => m.RESULT23);
+                              columns.AddFor(m => m.SAMPLE24).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("24").Width(170);
+                              columns.AddFor(m => m.RESULT24);
+                              columns.AddFor(m => m.SAMPLE25).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("25").Width(170);
+                              columns.AddFor(m => m.RESULT25);
+                              columns.AddFor(m => m.SAMPLE26).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("26").Width(170);
+                              columns.AddFor(m => m.RESULT26);
+                              columns.AddFor(m => m.SAMPLE27).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("27").Width(170);
+                              columns.AddFor(m => m.RESULT27);
+                              columns.AddFor(m => m.SAMPLE28).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("28").Width(170);
+                              columns.AddFor(m => m.RESULT28);
+                              columns.AddFor(m => m.SAMPLE29).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("29").Width(170);
+                              columns.AddFor(m => m.RESULT29);
+                              columns.AddFor(m => m.SAMPLE30).EditCellTemplate(new JS("edittest")).ShowEditorAlways(true).AllowSorting(false).Caption("30").Width(170);
+                              columns.AddFor(m => m.RESULT30);
+                              columns.AddFor(m => m.INSPECTVALUE1).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT1).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE2).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT2).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE3).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT3).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE4).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT4).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE5).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT5).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE6).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT6).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE7).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT7).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE8).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT8).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE9).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT9).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE10).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT10).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE11).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT11).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE12).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT12).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE13).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT13).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE14).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT14).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE15).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT15).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE16).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT16).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE17).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT17).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE18).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT18).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE19).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT19).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE20).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT20).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE21).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT21).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE22).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT22).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE23).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT23).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE24).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT24).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE25).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT25).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE26).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT26).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE27).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT27).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE28).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT28).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE29).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT29).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE30).Visible(false);
+                              columns.AddFor(m => m.INSPECTVALUE_TEXT30).Visible(false);
+                          })
+                          .Editing(e =>
+                              e.Mode(GridEditMode.Batch)
+                                  .AllowUpdating(true)
+                                  .AllowAdding(false)
+                          )
+                          .SearchPanel(c => c.Visible(false))
+                          .RemoteOperations(true)
+                          .ColumnAutoWidth(true)
+                          .ShowRowLines(true)
+                          .Paging(p => p.PageSize(25).Enabled(true))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .AllowColumnResizing(true)
+                          .RowAlternationEnabled(true)
+                          .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                          //.Selection(s => s.SelectAllMode(SelectAllMode.AllPages).ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick).Mode(SelectionMode.Single))
+                          .OnInitialized("grdSampleInspection_OnInitialized")
+                          //.OnCellClick("grdSampleInspection_OnCellClick")
+                          .OnToolbarPreparing("grdSampleInspection_OnToolbarPreparing")
+                          //.OnEditorPreparing("grdSampleInspection_OnEditorPrepared")
+                          .OnCellPrepared("grdSampleInspection_OnCellPrepared")
+                          )
+                    <div id="form-container" style="margin-top: 10px">
+                        @using (Html.BeginForm())
+                        {
+                            @(Html.DevExtreme().Form<QUAB021_LIST>()
+                                  .ID("formWO3")
+                                  .ColCount(4)
+                                  .ScrollingEnabled(false)
+                                  .Items(items =>
+                                  {
+                                      items.AddButton()
+                                          .Name("IMGVIEW")
+                                          .HorizontalAlignment(HorizontalAlignment.Left)
+                                          .ButtonOptions(b => b.Text("이미지확인")
+                                              .OnClick("imageView_OnButtonClick")
+                                              .StylingMode(ButtonStylingMode.Outlined)
+                                              .Type(ButtonType.Default)
+                                              .Width("100%")
+                                          ).ColSpan(1);
+
+                                      items.AddEmpty().ColSpan(1);
+
+                                      items.AddButton().ColSpan(1)
+                                          .HorizontalAlignment(HorizontalAlignment.Left)
+                                          .ButtonOptions(b => b.Text(LabelText.INSERTION)
+                                              .Icon("check")
+                                              .ID("btnSave")
+                                              //.Height("90%")
+                                              .Width("100%")
+                                              .StylingMode(ButtonStylingMode.Contained)
+                                              .Type(ButtonType.Success)
+                                              .OnClick("btnSave_OnClick")
+                                              .Disabled(new JS("!iudAuth()"))
+                                          );
+
+                                      items.AddButton().ColSpan(1)
+                                          .HorizontalAlignment(HorizontalAlignment.Left)
+                                          .ButtonOptions(b => b.Text(LabelText.REMOVE)
+                                              .Icon("refresh")
+                                              .ID("btnRemove")
+                                              .Width("100%")
+                                              .StylingMode(ButtonStylingMode.Contained)
+                                              .Type(ButtonType.Normal)
+                                              .OnClick("btnRemove_OnClick")
+                                              .Disabled(new JS("!iudAuth()"))
+                                          );
+                                  })
+                                  )
+                        }
+                    </div>
+                    </div>
+                        <div id="tab-side-2" class="tab-pane">
+                            <div id="form-container" style="margin-top: 15px;">
+                                @(Html.DevExtreme().DataGrid<QUAB021D_LIST>()
+                                      .ID("grdTodayInbondList")
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("QUAB021WebApi")
+                                          .LoadAction("TodayInbondList")
+                                          .Key("INSPECTIONSEQUENCE")
+                                      )
+                                      .FilterRow(f => f.Visible(true))
+                                      .ShowRowLines(true)
+                                      .Columns(columns =>
+                                      {
+                                          columns.AddFor(m => m.INSPECTIONSEQUENCE).SortOrder(SortOrder.Desc).Visible(false);
+                                          columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortTime)).Caption(LabelText.FROMUPDATETIME);
+                                          columns.AddFor(m => m.CANCELYN).Lookup(l => l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                              .LoadAction("CANCEL_LIST")
+                                              .Key("SYSCODE"))
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE")
+                                              ).Width(150);
+                                          columns.AddFor(m => m.INSPECTIONRESULT).Lookup(l => l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                              .LoadAction("INSPECTIONRESULT_LIST")
+                                              .Key("SYSCODE"))
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE")
+                                              );
+
+                                          columns.AddFor(m => m.VENDORCODE).Lookup(l => l.DataSource(d => d.WebApi().Controller("MSTI001WebApi").Key("VENDORCODE"))
+                                              .DisplayExpr("VENDORNAME")
+                                              .ValueExpr("VENDORCODE")
+                                              );
+                                          columns.AddFor(m => m.PRODUCTTYPE).Lookup(l => l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                              .LoadAction("MATERIALTYPE_LIST")
+                                              .Key("SYSCODE"))
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE"));
+                                          columns.AddFor(m => m.PARTNUMBER);
+                                          columns.AddFor(m => m.PRODUCTNAME).Lookup(l => l.DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                              .LoadAction("PART_LIST")
+                                              .LoadParams(new
+                                              {
+                                                  PARTTYPE = new JS("function() { return '' }")
+                                              })
+                                              .Key("PARTCODE"))
+                                              .DisplayExpr("PARTNAME")
+                                              .ValueExpr("PARTCODE")
+                                              );
+                                          columns.AddFor(m => m.RECEIVINGQUANTITY).Format("#,##0.###")//.Format(f => f.Type(Format.FixedPoint).Precision(3))
+                                              .Width(100);
+                                          columns.AddFor(m => m.BOXPERQUANTITY).Format("#,##0.###")//.Format(f => f.Type(Format.FixedPoint).Precision(3))
+                                              .Width(100);
+                                          columns.AddFor(m => m.UNITCODE)
+                                              .Lookup(lookup => lookup
+                                                  .DataSource(d => d.WebApi()
+                                                      .Controller("COMA003WebApi").Key("SYSCODE")
+                                                      .LoadAction("UNITCODE_LIST"))
+                                                  .DisplayExpr("SYSCODENAME")
+                                                  .ValueExpr("SYSCODE")
+                                              );
+                                          columns.AddFor(m => m.MEMO);
+                                          columns.AddFor(m => m.CREATEUSER).Width(100);
+                                      })
+                                      .ColumnHidingEnabled(true)
+                                      .SearchPanel(c => c.Visible(true))
+                                      .RemoteOperations(true)
+                                      .Paging(p => p.PageSize(25).Enabled(true))
+                                      .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                      .AllowColumnResizing(true)
+                                      .RowAlternationEnabled(true)
+                                      .OnToolbarPreparing("grdTodayInbondList_OnToolbarPreparing")
+                                      //.OnInitialized("grdTodayInbondList_OnInitialized")
+                                      .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                                      .Selection(s => s.SelectAllMode(SelectAllMode.AllPages)
+                                          .ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick)
+                                          .Mode(SelectionMode.Multiple))
+                                      .Option("CANCEL_FIELD", new string[] { "CANCELYN" })
+                                      )
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPartDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<MaterialMaster>()
+                                                                                        .ID("embedded-part-datagrid")
+                                                                                        .DataSource(new JS(@"component.option(""dataSource"")"))
+                                                                                        .Columns(columns =>
+                                                                                        {
+
+                                                                                            columns.AddFor(m => m.MATERIALCODE);
+                                                                                            columns.AddFor(m => m.MATERIALNAME);
+                                                                                            columns.AddFor(m => m.BOXPERQUANTITY).Format("#,##0.###");//.Format(f => f.Type(Format.FixedPoint).Precision(3));
+                                                                            columns.AddFor(m => m.UNITCODE)
+                                                                                                .Lookup(lookup => lookup
+                                                                                                    .DataSource(d => d.WebApi()
+                                                                                                        .Controller("COMA003WebApi").Key("SYSCODE")
+                                                                                                        .LoadAction("UNITCODE_LIST"))
+                                                                                                    .DisplayExpr("SYSCODENAME")
+                                                                                                    .ValueExpr("SYSCODE")
+                                                                                                );
+                                                                                        })
+                                                                                        .ColumnAutoWidth(true)
+                                                                                        .HoverStateEnabled(true)
+                                                                                        .Paging(p => p.PageSize(10))
+                                                                                        .FilterRow(f => f.Visible(true))
+                                                                                        .Height(345)
+                                                                                        .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Infinite))
+                                                                                        .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                                                                                        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                                                                                        .OnSelectionChanged(@<text>
+                                                                                            function(selectedItems) {
+                                                                                            var haskey;
+                                                                                            var keys = selectedItems.selectedRowKeys;
+                                                                                            console.log(selectedItems);
+
+                                                                                            if(typeof keys !== undefined && keys.length > 0)
+                                                                                            {
+                                                                                            haskey = true;
+                                                                                            }
+
+                                                                                            if (haskey != undefined)
+                                                                                            component.option("value", haskey ? keys[0] : null);
+
+                                                                                            if(typeof keys !== 'undefined' && keys.length > 0){
+                                                                                            $('#formInfo').dxForm('instance').updateData('PARTNUMBER', keys[0]);
+                                                                                            $('#formInfo').dxForm('instance').updateData('BOXPERQUANTITY', selectedItems.selectedRowsData[0].BOXPERQUANTITY);
+                                                                                            $('#formInfo').dxForm('instance').updateData('UNITCODE', selectedItems.selectedRowsData[0].UNITCODE);
+                                                                                            $('#grdSampleInspection').dxDataGrid('instance').refresh();
+                                                                                            $('#grdSampleInspection').dxDataGrid('instance').cancelEditData();
+                                                                                            component.close();
+                                                                                            }
+                                                                                            }
+                                                                                        </text>)
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedVendorDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<VendorMaster>()
+                                                                                        .ID("embedded-vendor-datagrid")
+                                                                                        .DataSource(new JS(@"component.option(""dataSource"")"))
+                                                                                        .Columns(columns =>
+                                                                                        {
+                                                                                            columns.AddFor(m => m.VENDORNAME);
+                                                                                            columns.AddFor(m => m.TELEPHONE);
+                                                                                            columns.AddFor(m => m.ADDRESS);
+                                                                                        })
+                                                                                        .ColumnAutoWidth(true)
+                                                                                        .HoverStateEnabled(true)
+                                                                                        .Paging(p => p.PageSize(10))
+                                                                                        .FilterRow(f => f.Visible(true))
+                                                                                        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                                                                                        .Height(345)
+                                                                                        .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                                                                                        .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                                                                                        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                                                                                        .OnSelectionChanged(@<text>
+                                                                                            function(selectedItems) {
+                                                                                            var keys = selectedItems.selectedRowKeys;
+                                                                                            var haskey;
+                                                                                            if(typeof keys != 'undefined' && keys.length > 0)
+                                                                                            {
+                                                                                            haskey = true;
+                                                                                            }
+
+                                                                                            if (haskey != undefined)
+                                                                                            component.option("value", haskey ? keys[0] : null);
+                                                                                            if(typeof keys != 'undefined' && keys.length > 0){
+                                                                                            component.close();
+                                                                                            }
+                                                                                            }
+                                                                                        </text>)
+    )
+}
+@(Html.DevExtreme().LoadPanel()
+                                      .ID("loadPanel")
+                                      .ShadingColor("rgba(0,0,0,0.4)")
+                                      .Message(LabelText.WAITMESSAGE)
+                                      .Visible(false)
+                                      .ShowIndicator(true)
+                                      .ShowPane(true)
+                                      .Shading(true)
+                                      .CloseOnOutsideClick(false)
+)
+
+@*이미지 뷰 팝업 _ FORM*@
+@(Html.DevExtreme().Popup()
+                                          .ID("GALLERYVIEW_POPUP")
+                                          .ElementAttr("class", "popup")
+                                          .ShowTitle(true)
+                                          .DragEnabled(true)
+                                          .ContentTemplate(new TemplateName("EmbeddedGalleryView"))
+                                          .FullScreen(false)
+                                          .Animation(a => a.Show(s => s.Direction(Direction.Top).Type(AnimationType.SlideIn)))
+                                          .ShowCloseButton(true)
+                                          .Width(1000)
+                                          .Height(600)
+                                          .Title("IMAGE VIEW")
+)
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedGalleryView"))
+{
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                @(Html.DevExtreme().Gallery()
+                                                                                              .ID("galleryView")
+                                                                                              .Height((550))
+                                                                                              .ShowNavButtons(true)
+                                                                                              .ShowIndicator(true)
+                        //.DataSource(d => d.WebApi().
+                        //    Controller("MSTL023WebApi").
+                        //    LoadAction("getPhoto").
+                        //    OnBeforeSend("galleryView_OnBeforeSend"))
+
+                )
+            </div>
+        </div>
+    </div>
+}
+
+<div id="layerPopup" class="image-container" style="display: none">
+    <button type="btnViewClose">닫기</button>
+    <img id="viewImg" />
+</div>
+<style>
+    .image-container {
+        background-color: white;
+        border: 4px solid #ddd;
+        position: absolute;
+        left: 100px;
+        top: 100px;
+        width: 500px;
+        height: 500px;
+        padding: 0.5em;
+        z-index: 9999999;
+
+        /*overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;*/
+    }
+    .image-container img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    #layerPopup button {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        z-index: 9999999;
+    }  
+</style>
+@*<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>*@
+<script>
+
+    $(function () {
+        $("#layerPopup").hide();
+
+        $("#layerPopup button").click(function(){
+            $("#layerPopup").hide();
+        });
+    });
+    $(function () {
+        $("#layerPopup").draggable();
+    } );
+    function imageView_OnButtonClick(e) {
+        var part = $('#formInfo').dxForm('instance').getEditor('PARTNUMBER').option('value')
+        var proc = "-";
+        var insptype = "I";
+
+        var param = $.param({ partnumber: part, processcode: proc, inspecttype: insptype });
+
+        $.ajax({
+            url: '@Url.Action("getInspectSpecImg", "QUAB021WebApi", new { httproute = "DefaultApi", })' + "?" + param,
+            type: 'GET',
+            success: function (data) {
+                if (data.data.length > 0) {
+                    var FileGUID = data.data[0]['INSPECTIMAGEID'];
+
+                    //$('#GALLERYVIEW_POPUP').dxPopup('instance').show();
+                    GetPhoto(FileGUID);
+                } else {
+                    DevExpress.ui.dialog.alert("조회된 이미지가 없습니다.", "warning");
+                    return;
+                }
+
+                //$("#grdInspectSpec").dxDataGrid({
+                //    dataSource: data
+                //});
+                ////$("#grdInspectSpec").dxDataGrid("instance").refresh();//option('dataSource', []);
+                //$("#grdInspectSpec").dxDataGrid('instance').cancelEditData();
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+
+
+    }
+
+    function GetPhoto(guid) {
+        var result = "";
+
+        var CheckMAKER = $.param({
+
+            FolderID: guid,
+            rootURL: rootURL
+
+        });
+
+        $.ajax({
+            url: '@Url.Action("getPhoto", "QUAB021WebApi", new { httproute = "DefaultApi" })',
+            async: false,
+            data: CheckMAKER,
+            type: 'GET',
+            success: function (data) {
+                if (data.length > 0) {
+                    $("#layerPopup").show();
+
+                    $("#viewImg").attr("src", data[0]);
+                    //$("#galleryView").dxGallery({
+                    //    dataSource: data,
+                    //    height: 500,
+                    //    showNavButtons: true,
+                    //    showIndicator: true})
+                } else {
+                    DevExpress.ui.dialog.alert("조회된 이미지가 없습니다.", "warning");
+                }
+
+                return result;
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+        return result;
+    }
+
+    var sampleCount;
+
+    var priorities = [{
+        "CODE": "OK",
+        "NAME": "양품"
+    }, {
+        "CODE": "NG",
+        "NAME": "불량"
+    }];
+
+    function grdTodayInbondList_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function formInfo_OnContentReady(e) {
+        $.ajax({
+            url: '@Url.Action("getSampleCount", "QUAB021WebApi", new { httproute = "DefaultApi", })',
+            type: 'GET',
+            async: false,
+            success: function (data) {
+                console.log("OK");
+                console.log(data);
+                var cnt = data.data[0].CNT;
+                var maxcnt = data.data[0].MAXCNT;
+                if (isNaN(cnt) == false)
+                    sampleCount = Number(cnt) > Number(maxcnt) ? Number(maxcnt) : Number(cnt);
+                else
+                    sampleCount = Number(maxcnt);
+
+                $('#formInfo').dxForm('instance').updateData('TOTALSAMPLECOUNT', sampleCount);
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+        console.log(sampleCount);
+    }
+
+    function grdSampleInspection_OnToolbarPreparing(e) {
+        var toolbarItems = e.toolbarOptions.items;
+        $.each(toolbarItems,
+            function (_, item) {
+                if (item.name === "saveButton" || item.name == "revetButton" || item.name == "addRowButton") {
+                    // Change the item options here
+                    item.visible = false;
+                }
+            });
+    }
+
+    function form_PRODUCTTYPE_OnValueChanged(e) {
+        //var partNumberEditor = $('#formInfo').dxForm('instance').getEditor('PRODUCTNAME');
+        $('#formInfo').dxForm('instance').getEditor('PRODUCTNAME').reset();
+        $('#formInfo').dxForm('instance').getEditor('PARTNUMBER').reset();
+        $('#formInfo').dxForm('instance').getEditor('BOXPERQUANTITY').option('value', 0);
+        $('#grdSampleInspection').dxDataGrid('instance').cancelEditData();
+        $('#grdSampleInspection').dxDataGrid('instance').refresh();
+        if ($('#embedded-part-datagrid').dxDataGrid('instance') != undefined) {
+            $('#embedded-part-datagrid').dxDataGrid('instance').clearFilter();
+            $('#embedded-part-datagrid').dxDataGrid('instance').refresh();
+        }
+    }
+
+    function grdSampleInspection_onBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            if ($('#formInfo').dxForm('instance').getEditor('PARTNUMBER').option('value') != null
+                //&& $('#formInfo').dxForm('instance').getEditor('PROCESS').option('value') != null
+            )
+            {
+                ajaxOptions.data.partnumber = $('#formInfo').dxForm('instance').getEditor('PARTNUMBER').option('value');
+                //ajaxOptions.data.processCode = globalProcessCode;
+            }
+            else {
+                ajaxOptions.data.partnumber = "";
+                //ajaxOptions.data.processCode = "";
+            }
+        }
+    }
+
+
+    function grdSampleInspection_OnInitialized(e) {
+        initDateColumnHeader();
+    }
+
+    function edittest(cellElement, cellInfo) {
+
+        if (cellInfo.row.data.DATATYPE == "B") {
+            $("<div />").dxRadioGroup({
+                items: priorities,
+                valueExpr: "CODE",
+                displayExpr: "NAME",
+                layout: "horizontal",
+                //disabled: !(cellInfo.columnIndex == 3 + displaySeq),
+                value: cellInfo.value,
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    if (cellInfo.value == "OK")
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT' + cellInfo.column.caption, 'OK');
+                    else
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT' + cellInfo.column.caption, 'NG');
+
+                    setResult();
+                }
+            }).appendTo(cellElement);
+        }
+        if (cellInfo.row.data.DATATYPE == "N") {
+            $("<div />").dxNumberBox({
+                format: "#,##0.000",
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3 + displaySeq),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                    var lsl = cellInfo.data.LSL;
+                    var usl = cellInfo.data.USL;
+                    var specclass = cellInfo.data.SPECCLASS;
+                    var result = false;;
+
+                    if (specclass == "B") {
+                        if (lsl <= cellInfo.value && cellInfo.value <= usl)
+                            result = true;
+                    } else if (specclass == "L") {
+                        if (lsl <= cellInfo.value)
+                            result = true;
+                    } else if (specclass == "U") {
+                        if (cellInfo.value <= usl)
+                            result = true;
+                    }
+                    if (result)
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT' + cellInfo.column.caption, 'OK');
+                    else
+                        cellInfo.component.cellValue(cellInfo.rowIndex, 'RESULT' + cellInfo.column.caption, 'NG');
+
+                    setResult();
+                }
+            }).appendTo(cellElement);
+        }
+        if (cellInfo.row.data.DATATYPE == "S") {
+            $("<div />").dxTextBox({
+                value: cellInfo.value,
+                //disabled: !(cellInfo.columnIndex == 3 + displaySeq),
+                onValueChanged: function (e) {
+                    cellInfo.setValue(e.value);
+                }
+            }).appendTo(cellElement);
+        }
+    }
+
+    function setResult() {
+        var grd = $("#grdSampleInspection").dxDataGrid("instance");
+        var cnt = grd.totalCount();
+
+        var totResult = true;
+
+        for (var Index = 0; Index < cnt; Index++) {
+            totResult = true;
+            for (var col = 1; col <= sampleCount; col++) {
+                var result = grd.cellValue(Index, 'RESULT' + col.toString());
+                if (result != 'OK') {
+                    totResult = false;
+                    break;
+                }
+            }
+            if (totResult) {
+                $('#formInfo').dxForm('instance').getEditor('INSPECTIONRESULT').option('value', 'OK');
+                //grd.cellValue(Index, 'RESULT', 'OK');
+            } else {
+                $('#formInfo').dxForm('instance').getEditor('INSPECTIONRESULT').option('value', 'NG');
+                break;
+                //grd.cellValue(Index, 'RESULT', 'NG');
+            }
+        }
+
+    }
+
+    function initDateColumnHeader() {
+        var grid = $('#grdSampleInspection').dxDataGrid('instance');
+        var columns = grid.option("columns");
+
+        //.EditCellTemplate(new JS("xx")).ShowEditorAlways(true);
+
+        for (var i = 30; i >= sampleCount; i--) {
+            var field = "SAMPLE" + (i + 1);
+            var field2 = "RESULT" + (i + 1);
+            grid.columnOption(field, 'visible', false);
+            grid.columnOption(field2, 'visible', false);
+        }
+
+        grid.option("columns", columns);
+        console.log(grid);
+    }
+
+    function btnSave_OnClick(e) {
+
+        var savefield = "SAMPLE" ;
+        var grid = $('#grdSampleInspection').dxDataGrid('instance');
+        var cnt = grid.totalCount();
+        // var inputchk = true;
+        //var okng = true;
+
+        if (cnt <= 0) {
+            DevExpress.ui.dialog.alert('조회된 검사 항목이 없습니다.', "warning");
+            return;
+        }
+
+        var vendorcode = $('#formInfo').dxForm('instance').getEditor('VENDORCODE').option('value');
+        var producttype = $('#formInfo').dxForm('instance').getEditor('PRODUCTTYPE').option('value');
+        var inspectionresult = $('#formInfo').dxForm('instance').getEditor('INSPECTIONRESULT').option('value');
+        var memo = $('#formInfo').dxForm('instance').getEditor('MEMO').option('value');
+        var unitcode = $('#formInfo').dxForm('instance').getEditor('UNITCODE').option('value');
+        var receivingquantity = $('#formInfo').dxForm('instance').getEditor('RECEIVINGQUANTITY').option('value');
+        var boxperquantity = $('#formInfo').dxForm('instance').getEditor('BOXPERQUANTITY').option('value');
+        var partnum = $('#formInfo').dxForm('instance').getEditor('PARTNUMBER').option('value');
+        var inspector = $('#formInfo').dxForm('instance').getEditor('INSPECTOR').option('value');
+        var inspdate = $('#formInfo').dxForm('instance').getEditor('INSPECTDATE').option('value');
+
+        var qty = 0;
+
+        if (unitcode == "U02")
+            qty = Math.round(receivingquantity * 1000);
+        else
+            qty = Math.round(receivingquantity);
+
+        if (qty <= 0) {
+            DevExpress.ui.notify('@LabelText.RECEIVING' + '@LabelText.ANSWERPLEASEINSERTQTY', 'error', globalNotificationSuccessTime);
+            return;
+        } else if (inspectionresult == "NG") {
+            DevExpress.ui.notify('불량은 입고하지 못합니다.', 'error', globalNotificationSuccessTime);
+            return;
+        } else if (inspector.length < 1) {
+            DevExpress.ui.notify('검사자를 입력하세요.', 'error', globalNotificationSuccessTime);
+            return;
+        }
+
+
+        var result = DevExpress.ui.dialog.confirm('@LabelText.QUESTIONINSERT', "Confirm changes");
+        result.done(function(dialogResult) {
+            if (!dialogResult) {
+                return;
+            } else {
+
+                $("#loadPanel").dxLoadPanel("instance").show();
+
+                var aJsonArray = new Array();
+                var aJson = new Object();
+                var data = new Object();
+
+                for (var Index = 0; Index < cnt; Index++) {
+
+                    for (var col = 1; col <= sampleCount; col++) {
+                        if (grid.cellValue(Index, "RESULT" + col.toString()) != null) {
+
+                            aJson = new Object();
+
+                            aJson.PLANTCODE = 'P001'
+                            aJson.INSPECTCODE = grid.cellValue(Index, "INSPECTCODE");
+                            aJson.PARTNUMBER = partnum;
+                            aJson.USL = grid.cellValue(Index, "USL");
+                            aJson.LSL = grid.cellValue(Index, "LSL");
+                            aJson.MEMO = grid.cellValue(Index, "DATATYPE");
+                            aJson.SPECCLASS = grid.cellValue(Index, "SPECCLASS");
+                            aJson.UCL = grid.cellValue(Index, "UCL");
+                            aJson.LCL = grid.cellValue(Index, "LCL");
+                            aJson.CSL = grid.cellValue(Index, "CSL");
+                            aJson.INSPECTVALUE_TEXT = grid.cellValue(Index, savefield + col.toString());
+                            aJson.INSPECTRESULT = grid.cellValue(Index, "RESULT" + col.toString());
+                            aJson.INSPECTORDER = col;
+                            aJson.INSPECTOR = inspector.toString();
+
+                            aJsonArray.push(aJson);
+                        }
+                    }
+
+                }
+                data.sample = JSON.stringify(aJsonArray);
+
+                //aJsonArray = new Array();
+                aJson = new Object();
+
+                aJson.INSPECTOR = inspector;
+                aJson.INSPECTDATE = inspdate;
+                aJson.PARTNUMBER = partnum;
+                aJson.VENDORCODE = vendorcode;
+                aJson.PRODUCTTYPE = producttype;
+                aJson.MEMO = memo;
+                if (unitcode == "U02") {
+                    aJson.RECEIVINGQUANTITY = Math.round(receivingquantity * 1000);
+                    aJson.BOXPERQUANTITY = Math.round(boxperquantity * 1000);
+                } else {
+                    aJson.RECEIVINGQUANTITY = Math.round(receivingquantity);
+                    aJson.BOXPERQUANTITY = Math.round(boxperquantity);
+                }
+                aJson.INSPECTIONRESULT = inspectionresult;
+                //aJson.CREATEUSER = inspector.toString();
+                //aJsonArray.push(aJson);
+                data.data = JSON.stringify(aJson);
+
+
+                //data.TOTALSAMPLECOUNT = maxsample;
+                //data.CURRENTSAMPLECOUNT = displaySeq;
+                //if (okng)
+                //    data.INSPECTRESULT = "OK";
+                //else
+                //    data.INSPECTRESULT = "NG";
+
+                $.ajax({
+                    url: '@Url.Action("post", "QUAB021WebApi", new {httproute = "DefaultApi"})',
+                    type: 'POST',
+                    data: data,
+                    success: function () {
+                        setRefresh();
+                        $("#loadPanel").dxLoadPanel("instance").hide();
+                        DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+
+                        @*setRefresh();
+                        $("#grdWorkorder").dxDataGrid('instance').refresh();
+                        $("#grdWorkorder").dxDataGrid('instance').clearSelection();*@
+                    },
+                    error: function (ex) {
+                        $("#loadPanel").dxLoadPanel("instance").hide();
+                        console.log(data);
+                        showError(this, ex);
+                        //console.log("error");
+                    }
+                });
+            }
+        });
+    }
+
+    function btnRemove_OnClick(e) {
+        setRefresh();
+    }
+
+    function setRefresh() {
+
+        var form = $('#formInfo').dxForm('instance');
+        form.beginUpdate();
+
+        form.updateData("INSPECTDATE", new Date());
+        form.updateData("VENDORCODE", null);
+        form.updateData("PRODUCTTYPE", "M01");
+        form.updateData("UNITCODE", null);
+        form.updateData("PARTNUMBER", null);
+        form.updateData("RECEIVINGQUANTITY", 0);
+        form.updateData("PRODUCTNAME", null);
+        form.updateData("BOXPERQUANTITY", 0);
+        form.updateData("INSPECTOR", null);
+        form.updateData("INSPECTIONRESULT", "NG");
+        form.updateData("MEMO", null);
+        //form.updateData("WAREHOUSE", null);
+
+        if ($('#embedded-vendor-datagrid').dxDataGrid('instance') != undefined) {
+            $('#embedded-vendor-datagrid').dxDataGrid('instance').clearSelection();
+        }
+
+        if ($('#embedded-part-datagrid').dxDataGrid('instance') != undefined) {
+            $('#embedded-part-datagrid').dxDataGrid('instance').clearFilter();
+            $('#embedded-part-datagrid').dxDataGrid('instance').clearSelection();
+        }
+
+        var validate = form.validate();
+
+        if (validate.brokenRules.length > 0) {
+            validate.brokenRules.forEach(function (e) {
+                e.validator.reset();
+            });
+        }
+        
+        if ($("#grdSampleInspection").dxDataGrid('instance') != undefined) {
+            $("#grdSampleInspection").dxDataGrid("instance").cancelEditData();
+            $("#grdSampleInspection").dxDataGrid("instance").refresh();
+        }
+
+        form.endUpdate();
+
+        //$("#grdMaterialHistory").dxDataGrid('instance').refresh();
+    }
+
+    function grdTodayInbondList_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    icon: "fa fa-reply",
+                    stylingMode: "outlined",
+                    text: "@LabelText.INBONDINSPECTCANCEL",
+                    type: "danger",
+                    disabled: !iudAuth(),
+                    onClick: function() {
+                        var grid = $("#grdTodayInbondList").dxDataGrid('instance');
+
+                        if (grid.getSelectedRowKeys().length > 0) {
+                            var rowData = grid.getSelectedRowsData();
+                            if (rowData.length > 0) {
+                                var result = DevExpress.ui.dialog.confirm("@LabelText.QUESTIONINBONDINSPECTCANCEL",
+                                    "@LabelText.PROCESS_ACCEPT");
+
+                                result.done(function(dialogResult) {
+                                    if (!dialogResult) {
+                                        grid.refresh();
+                                        return;
+                                    } else {
+                                        var aJsonArray = new Array();
+
+                                        grid.getSelectedRowsData().forEach(function(e) {
+                                            var aJson = new Object();
+                                            aJson.INSPECTIONSEQUENCE = e.INSPECTIONSEQUENCE;
+                                            aJson.CANCELYN = e.CANCELYN;
+                                            aJson.INSPECTDATE = e.INSPECTDATE;
+                                            aJson.VENDORCODE = e.VENDORCODE;
+                                            aJson.PRODUCTTYPE = e.PRODUCTTYPE;
+                                            aJson.PARTNUMBER = e.PARTNUMBER;
+                                            aJson.RECEIVINGDATE = e.RECEIVINGDATE;
+                                            aJson.INSPECTIONRESULT = e.INSPECTIONRESULT;
+                                            aJson.BOXPERQUANTITY = e.BOXPERQUANTITY;
+                                            aJson.MEM = e.MEM;
+                                            aJson.RECEIVINGQUANTITY = e.RECEIVINGQUANTITY;
+                                            aJsonArray.push(aJson);
+                                        });
+
+                                        var data = new Object();
+                                        data.values = JSON.stringify(aJsonArray);
+
+                                        $.ajax({
+                                            url:
+                                                '@Url.Action("InspectionCancel", "QUAB001WebApi", new { httproute = "DefaultApi", })',
+                                            type: 'POST',
+                                            data: data,
+                                            success: function() {
+                                                grid.refresh();
+                                                DevExpress.ui.notify('@LabelText.ANSWERCANCEL',
+                                                    'success',
+                                                    globalNotificationSuccessTime);
+                                            },
+
+                                            error: function(e) {
+                                                grid.refresh();
+                                                showError(this, e);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        } else {
+                            DevExpress.ui.notify('@LabelText.ANSWERNOTSELECTEDINBONDINSP',
+                                'error',
+                                globalNotificationErrorTime);
+                        }
+                    }
+                }
+            });
+    }
+
+    function grdSampleInspection_OnCellPrepared(e) {
+        if (e.rowType == 'header' && (e.column.dataField.indexOf('SAMPLE') !== -1 || e.column.dataField.indexOf('RESULT') !== -1)) {
+            e.cellElement.css("text-align", "center");
+        }
+        if (e.rowType == 'data' && e.column.dataField.indexOf('RESULT') !== -1) {
+            e.cellElement.css("color", e.data[e.column.dataField] == "OK" ? "" : "red");
+            e.cellElement.css("font-size", 22);
+            e.cellElement.css("text-align", "center");
+        }
+    }
+
+    function TodayInbondList() {
+        $("#grdTodayInbondList").dxDataGrid('instance').refresh();
+    }
+</script>
+<style>
+    .dx-gallery-item-image {
+        height: 100%;
+    }
+</style>

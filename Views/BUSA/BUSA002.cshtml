@@ -1,0 +1,169 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.BUS.BUSA;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 mt-2">
+                @(Html.DevExtreme().DataGrid<BUSA002_LIST>()
+                        .ID("grdWorkplan")
+                        .DataSource(d => d.WebApi()
+                            .Controller("BUSA002WebApi")
+                            .Key("PARTNUMBER")
+                            .OnBeforeSend("grdWorkplan_OnBeforeSend")
+                        )
+                        .Columns(columns =>
+                        {
+                            columns.AddFor(m => m.PARTNUMBER).Fixed(true).AllowEditing(false);
+                            columns.AddFor(m => m.PRODUCTNAME).Fixed(true).AllowEditing(false);
+                        })
+                        .RemoteOperations(true)
+                        .FilterPanel(f => f.Visible(true))
+                        .ColumnAutoWidth(true)
+                        .Paging(p => p.PageSize(25).Enabled(true))
+                        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                        .SearchPanel(searchPanel => searchPanel
+                            .Visible(true)
+                            .Width(180)
+                            .Placeholder("Search...")
+                        )
+                        .FilterRow(filterRow => filterRow
+                            .Visible(true)
+                            .ApplyFilter(GridApplyFilterMode.Auto)
+                        )
+                        .FilterPanel(f => f.Visible(false))
+                        .ShowBorders(true)
+                        .AllowColumnResizing(true)
+                        .Editing(e => {
+                            e.Mode(GridEditMode.Batch);
+                            e.AllowUpdating(new JS("iudAuth()"));
+                            e.SelectTextOnEditStart(new JS("iudAuth()"));
+                            e.StartEditAction(GridStartEditAction.Click);
+                        })
+                        .ShowRowLines(true)
+                        .RowAlternationEnabled(true)
+                        .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                        .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                        .OnToolbarPreparing("grdWorkplan_OnToolbarPreparing")
+                    )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(function () {
+        $('#searchDate').dxDateBox('instance').option('value', new Date());
+        initDateColumnHeader();
+    });
+
+    function initDateColumnHeader() {
+        var currentDate = $('#searchDate').dxDateBox('instance').option('value');
+
+        gridInstance = $('#grdWorkplan').dxDataGrid('instance');
+        var state = gridInstance.state();
+        var columns = gridInstance.option("columns");
+
+        for (dayIndex = 0; dayIndex < 12; dayIndex++) {
+            
+            var caption = (currentDate).addDays(dayIndex);
+            var day =  {
+                dataField: "DAY" + (dayIndex + 1), 
+                caption: Globalize.dateFormatter({ date: "short" })(caption),
+                format: {
+                    type: "fixedPoint"
+                    //precision: 2
+                }
+            }
+
+            columns.push(day);
+        }
+
+        //summary 추가
+        var colSum =  {
+            caption: '@LabelText.TOTAL',
+            format: {
+                type: "fixedPoint"
+                //precision: 2
+            },
+            dataType: "number",
+            calculateDisplayValue: function (e) {
+                return e.DAY1 + e.DAY2 + e.DAY3 + e.DAY4 + e.DAY5 + e.DAY6 + e.DAY7 + e.DAY8 + e.DAY9 + e.DAY10 + e.DAY11 + e.DAY12;
+            },
+            fixed: true,
+            fixedPosition:"right",
+            cssClass : "dx-grandtotal"
+        }
+
+        columns.push(colSum);
+
+        gridInstance.option("columns", columns);
+        gridInstance.state(state);
+    }
+    
+    function grdWorkplan_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                widget: "dxDateBox",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '@LabelText.STANDARDDATE' +"</div> ",
+                location: "before",
+                options: {
+                    elementAttr: { "id": "searchDate" },
+                    onValueChanged: function (e) {
+                        if (e.previousValue != undefined) {
+                            var grid = $('#grdWorkplan').dxDataGrid('instance');
+
+                            grid.refresh();
+
+                            grid.beginUpdate();
+                            var currentDate = $('#searchDate').dxDateBox('instance').option('value');
+                            
+                            for (dayIndex = 0; dayIndex < 12; dayIndex++) {
+                                grid.columnOption('DAY' + (dayIndex + 1), 'caption', Globalize.dateFormatter({ date: "short" })((currentDate).addDays(dayIndex)));
+                            }
+                            grid.endUpdate();
+                        }
+                    }
+                },
+            }
+        )
+    }
+
+    function grdWorkplan_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+            var StandardNumber;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                StandardNumber = 12;
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.StandardNumber = StandardNumber == null ? 14 : StandardNumber;
+        } else if (method == "update") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+            var StandardNumber;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                StandardNumber = 12;
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.StandardNumber = StandardNumber == null ? 14 : StandardNumber;
+        }
+    }
+
+</script>

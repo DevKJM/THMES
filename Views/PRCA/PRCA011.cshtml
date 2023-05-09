@@ -1,0 +1,1385 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCA;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Infrastructure.Enums;
+@using ButtonType = DevExtreme.AspNet.Mvc.ButtonType
+@using JSMES.WebUI.Alpha.ViewModels.POD.PODB;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<script type="text/javascript">
+
+</script>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-4" id="inputField">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.WORK@LabelText.ORDER @LabelText.INSERTION</i></span></h4>
+            @(Html.DevExtreme().Form<PRCA011B_LIST>()
+                                                      .ID("form")
+                                                      .ColCount(2)
+                                                      .Items(items =>
+                                                      {
+                                                          items.AddButton()
+                                                              .ButtonOptions(b => b.ID("btnShippingPlan")
+                                                                  //.Icon("check")
+                                                                  .Text(@LabelText.SHIPPINGPLANLIST)
+                                                                  .Type(ButtonType.Success)
+                                                                  .StylingMode(ButtonStylingMode.Outlined)
+                                                                  .OnClick("btnShippingPlan_OnClick")
+                                                                  .Width("100%")
+                                                                  .Disabled(new JS("!iudAuth()"))
+                                                                  .FocusStateEnabled(false)
+                                                                  .HoverStateEnabled(true)
+                                                              ).ColSpan(2);
+
+                                                          items.AddSimpleFor(m => m.ORDERDATE)
+                                                      .Editor(e => e
+                                                          .DateBox()
+                                                          .Type(DateBoxType.Date)
+                                                          .Value(DateTime.Today)
+                                                      //.ReadOnly(true)
+                                                      )
+                                                      .ColSpan(2);
+
+                                                          items.AddSimpleFor(m => m.HIGHPRIORITYFLAG)
+                                                      .Editor(e => e
+                                                          .RadioGroup()
+                                                          .Layout(Orientation.Horizontal)
+                                                          .DisplayExpr("NAME")
+                                                          .ValueExpr("CODE")
+                                                          .DataSource(new JS("USE_YN"))
+                                                          .Value(HIGHPRIORITYFLAG.N.ToString())
+                                                      ).ColSpan(2);
+
+                                                          items.AddSimpleFor(m => m.ORDERNUMBER)
+                                                      .Editor(e => e
+                                                          .TextBox()
+                                                          .Disabled(true)
+                                                          .ID("ORDERNUMBER")
+                                                      )
+                                                      .Visible(false)
+                                                      .ColSpan(2);
+
+                                                          items.AddSimpleFor(m => m.SHIFTCODE)
+                                                      .Editor(e => e
+                                                          .RadioGroup()
+                                                          .Layout(Orientation.Horizontal)
+                                                          .DataSource(d => d.WebApi().Key("SYSCODE")
+                                                              .Controller("COMA003WebApi")
+                                                              .LoadAction("SHIFT_LIST"))
+                                                          .DisplayExpr("SYSCODENAME")
+                                                          .ValueExpr("SYSCODE")
+                                                          .Value(SHIFTCODE.A.ToString())
+                                                      ).ColSpan(2);
+
+
+                                                          items.AddSimpleFor(m => m.PARTNUMBER)
+                                                          .Editor(e => e
+                                                              .TextBox()
+                                                              .ReadOnly(true)
+                                                          )
+                                                          .ColSpan(2);
+
+
+
+                                                          items.AddSimpleFor(m => m.PRODUCTNAME)
+                                                      .Editor(e => e
+                                                          .DropDownBox()
+                                                          //.Height(50)
+                                                          .DataSource(d => d.WebApi()
+                                                              .Controller("PRCA011WebApi")
+                                                              .Key("PARTNUMBER")
+                                                              .LoadAction("getEQUIPMENTPARTNUMBERMASTER_LIST")
+                                                              .LoadParams(new
+                                                              {
+                                                                  EQUIPMENTCODE = new JS("function() { return $('#form').dxForm('instance').option('formData.EQUIPMENTCODE'); }")
+                                                              })
+                                                          )
+                                                          .DropDownOptions(c => c.Width(750))
+                                                          .ValueExpr("PARTNUMBER")
+                                                          .DisplayExpr("PRODUCTNAME")//new JS("function(e) { return '('+e.PARTNUMBER+') ' + e.PRODUCTNAME; } "))
+                                                          .Placeholder("Select a value...")
+                                                          .ContentTemplate(new TemplateName("EmbeddedPartNumberDataGridSingle"))
+                                                          .OnValueChanged("itemPart_valueChanged")
+                                                          .ID("PART")
+                                                      )
+                                                      .ValidationRules(r => r
+                                                          .AddRequired()
+                                                          .Message("Partnumber is required")
+                                                      )
+                                                      .ColSpan(2);
+
+
+                                                          items.AddSimpleFor(m => m.CUSTOMERPARTNUMBER)
+                                                              .Editor(e => e
+                                                                  .TextBox()
+                                                                  .ReadOnly(true)
+                                                              )
+                                                              .ColSpan(2);
+
+                                                          items.AddSimpleFor(m => m.UDNF1)
+                                                              .Editor(e => e
+                                                                  .TextBox()
+                                                                  .ReadOnly(true)
+                                                              )
+                                                              .ColSpan(1);
+
+                                                          items.AddSimpleFor(m => m.UDNF2)
+                                                              .Editor(e => e
+                                                                  .TextBox()
+                                                                  .ReadOnly(true)
+                                                              )
+                                                              .ColSpan(1);
+
+                                                          items.AddSimpleFor(m => m.UDNF3)
+                                                              .Editor(e => e
+                                                                  .TextBox()
+                                                                  .ReadOnly(true)
+                                                              )
+                                                              .ColSpan(1);
+
+                                                          items.AddSimpleFor(m => m.UDNF4)
+                                                              .Editor(e => e
+                                                                  .TextBox()
+                                                                  .ReadOnly(true)
+                                                              )
+                                                              .ColSpan(1);
+
+                                                          items.AddSimpleFor(m => m.UDNF5)
+                                                              .Editor(e => e
+                                                                  .TextBox()
+                                                                  .ReadOnly(true)
+                                                              )
+                                                              .ColSpan(1);
+
+
+                                                          items.AddSimpleFor(m => m.BOXPERQUANTITY)
+                                                              .Editor(e => e
+                                                                  .TextBox()
+                                                                  .ReadOnly(true)
+                                                              )
+                                                              .ColSpan(1);
+
+                                                          items.AddSimpleFor(m => m.EQUIPMENTCODE)
+                                                              .Editor(e => e
+                                                                  .DropDownBox()
+                                                                  .DataSource(d => d.WebApi().Controller("PRCA011WebApi").Key("EQUIPMENTCODE").LoadAction("getEQUIPMENTPARTNUMBERMASTER1_LIST")
+                                                                      .LoadParams(new
+                                                                      {
+                                                                          PARTNUMBER = new JS("function() { return $('#form').dxForm('instance').option('formData.PARTNUMBER'); }")
+                                                                      })
+                                                                  )
+                                                                  .DropDownOptions(o => o.Width(400))
+                                                                  .ValueExpr("EQUIPMENTCODE")
+                                                                  .DisplayExpr("EQUIPMENTNAME")//new JS("function(e) { return '('+e.PARTNUMBER+') ' + e.PRODUCTNAME; } "))
+                                                                  .Placeholder("Select a value...")
+                                                                  .ContentTemplate(new TemplateName("EmbeddedEquipmentDataGridSingle"))
+                                                                  .OnValueChanged("EQUIPMENTC_OnValueChanged")
+                                                                  .ID("EQUIPMENTC")
+                                                              )
+                                                              .ValidationRules(r => r
+                                                                  .AddRequired()
+                                                                  .Message("EQUIPMENT is required")
+                                                              )
+                                                              .ColSpan(2);
+
+                                                          items.AddSimpleFor(m => m.ORDERQUANTITY)
+                                                      .Editor(e => e
+                                                          .NumberBox()
+                                                          .ShowSpinButtons(true)
+                                                          .Min(1)
+                                                          .Format(f => f.Type(Format.FixedPoint).Precision(0))
+                                                          .ID("QTY")
+                                                      )
+                                                      .ValidationRules(r => r
+                                                          .AddRequired()
+                                                          .Message("OrderQuantity is required")
+                                                      )
+                                                      .ColSpan(2);
+
+
+                                                          items.AddButton()
+                                                      .ButtonOptions(b => b.ID("btnSave")
+                                                          .Icon("check")
+                                                          .Text(LabelText.INSERTION)
+                                                          .Type(ButtonType.Success)
+                                                          .StylingMode(ButtonStylingMode.Contained)
+                                                          .OnClick("btnSave_OnClick")
+                                                          .Width("100%")
+                                                          .Disabled(new JS("!iudAuth()"))
+                                                          .FocusStateEnabled(false)
+                                                          .HoverStateEnabled(true)
+                                                      ).ColSpan(1);
+
+                                                          items.AddButton()
+                                                  .ButtonOptions(b => b.ID("btnClear")
+                                                      .Icon("refresh")
+                                                      .Text(LabelText.REFRESH)
+                                                      .Type(ButtonType.Default)
+                                                      .StylingMode(ButtonStylingMode.Contained)
+                                                      .OnClick("btnClear_OnClick")
+                                                      .Width("100%")
+                                                      .Disabled(new JS("!iudAuth()"))
+                                                      .FocusStateEnabled(false)
+                                                      .HoverStateEnabled(true)
+                                                  ).ColSpan(1);
+                                                      })
+            )
+
+        </div>
+        <div class="col-lg-8" id="searchField">
+            <div class="row mt-2 mt-xl-0">
+                <div class="col-12">
+                    <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.WORK@LabelText.ORDER</i></span></h4>
+                    @(Html.DevExtreme().DataGrid<PRCA011A_LIST>()
+                                  .ID("grdWorkorder")
+                                  .DataSource(d => d.WebApi()
+                                      .Controller("PRCA011WebApi")
+                                      .LoadAction("get_master")
+                                      .Key("ORDERNUMBER")
+                                      .OnBeforeSend("grdWorkorder_OnBeforeSend")
+                                  )
+                                  .Columns(columns =>
+                                  {
+                                      columns.AddFor(m => m.HIGHPRIORITYFLAG)
+                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                              .Controller("COMA003WebApi")
+                                              .Key("SYSCODE")
+                                              .LoadAction("HIGHPRIORITYFLAG_LIST")
+                                              )
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE")
+                                          );
+                                      columns.AddFor(m => m.ORDERDATE)
+                                          .Format(f => f.Type(Format.ShortDate))
+                                          //.AllowFiltering(false)
+                                          //.SelectedFilterOperation(FilterOperations.Equal)
+                                          //.FilterValue(new JS("new Date()"))
+                                          .AllowEditing(false);
+                                      columns.AddFor(m => m.ORDERNUMBER).AllowEditing(false).SortOrder(SortOrder.Asc);
+                                      columns.AddFor(m => m.SHIFTCODE)
+                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                              .Controller("COMA003WebApi").Key("SYSCODE")
+                                              .LoadAction("SHIFT_LIST"))
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE")
+                                          );
+                                      columns.AddFor(m => m.PROCESSCODE).AllowEditing(false)
+                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                              .Controller("COMA001WebApi").Key("PROCESSCODE")
+                                              .LoadAction("PROCESS_LIST"))
+                                              .DisplayExpr("PROCESSNAME")
+                                              .ValueExpr("PROCESSCODE")
+                                          );
+                                      columns.AddFor(m => m.PROCESSGROUP).AllowEditing(false).Visible(false);
+                                      columns.AddFor(m => m.PARTNUMBER).AllowEditing(false);
+                                      columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false);
+                                      columns.AddFor(m => m.ORDERQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                      columns.AddFor(m => m.WORKER).AllowEditing(false);
+                                          //columns.AddFor(m => m.LABELYN).AllowEditing(false)
+                                          //    .Lookup(lookup => lookup.DataSource(new JS("USE_YN"))
+                                          //        .DisplayExpr("NAME")
+                                          //        .ValueExpr("CODE"));
+                                          columns.AddFor(m => m.LABELYN).AllowEditing(false).Alignment(HorizontalAlignment.Center);
+                                      columns.AddFor(m => m.ADDPRINTYN).AllowEditing(false).Alignment(HorizontalAlignment.Center);
+                                      columns.AddFor(m => m.ROUTESEQ).AllowEditing(false).Visible(false);
+                                      columns.AddFor(m => m.IsADDPRINTING).AllowEditing(false).Visible(false);
+                                      columns.AddFor(m => m.TOTALLABELCOUNT).AllowEditing(false).Visible(false);
+                                      columns.AddFor(m => m.NONELABELCOUNT).AllowEditing(false).Visible(false);
+                                      columns.AddFor(m => m.LABELCOUNT).AllowEditing(false).Visible(false);
+                                  })
+                                  //.StateStoring(s => s.Enabled(true).StorageKey("PRCA001_grdWorkorder").Type(StateStoringType.LocalStorage))
+                                  //.StateStoring(s => s.Enabled(true).StorageKey("PRCA001_grdWorkorder").Type(StateStoringType.Custom)
+                                  //    .CustomLoad("grdWorkorder_customLoad").CustomSave("grdWorkorder_customSave"))
+                                  .RemoteOperations(true)
+                                  .FilterPanel(f => f.Visible(false))
+                                  .ColumnAutoWidth(true)
+                                  .Paging(p => p.PageSize(10).Enabled(true))
+                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                  .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                                  .SearchPanel(searchPanel => searchPanel
+                                      .Visible(true)
+                                      .Width(180)
+                                      .Placeholder("Search...")
+                                  )
+                                  .FilterRow(filterRow => filterRow
+                                      .Visible(true)
+                                      .ApplyFilter(GridApplyFilterMode.Auto)
+                                  )
+                                  .Editing(e =>
+                                      e.Mode(GridEditMode.Batch)
+                                  )
+                                  .ShowBorders(true)
+                                  .AllowColumnResizing(true)
+                                  .RowAlternationEnabled(true)
+                                  .Selection(s => s.Mode(SelectionMode.Single))
+                                  .OnInitialized("grdWorkorder_OnInitialized")
+                                  .OnToolbarPreparing("grdWorkorder_OnToolbarPreparing")
+                                  .OnSelectionChanged("grdWorkorder_OnSelectionChanged")
+                                  .OnCellPrepared("grdWorkorder_OnCellPrepared")
+                                  .Export(e => e.Enabled(true))
+                                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + @LabelText.WORK + @LabelText.ORDER + "') ;}")
+                                  .ShowRowLines(true)
+                    )
+                </div>
+            </div>
+    </div>
+</div>
+
+
+
+@*설비 드롭박스*@
+@using (Html.DevExtreme().NamedTemplate("EmbeddedEquipmentDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PRCA011I_LIST>()
+                                          .ID("grdEquipment")
+                                          .DataSource(new JS(@"component.option(""dataSource"")"))
+                                          .Columns(columns =>
+                                          {
+                                              columns.AddFor(m => m.EQUIPMENTCODE).Width(100).Visible(false);
+                                              columns.AddFor(m => m.EQUIPMENTNAME);
+                                              columns.AddFor(m => m.UNIONSORT).SortOrder(SortOrder.Asc).SortIndex(0).Visible(false);
+                                              columns.AddFor(m => m.EQUIPMENTTYPE).SortOrder(SortOrder.Asc).SortIndex(1).Visible(false);
+                                          })
+                                          //.StateStoring(s => s.Enabled(true).StorageKey("PRCA001_grdPartList").Type(StateStoringType.LocalStorage))
+                                          .ColumnAutoWidth(true)
+                                          .HoverStateEnabled(true)
+                                          .Paging(p => p.PageSize(10))
+                                          .FilterRow(f => f.Visible(true))
+                                          .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                                          .Height(345)
+                                          //.Width(800)
+                                          .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                                          .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                                          .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                                          .OnSelectionChanged(@<text>
+                                            function(selectedItems) {
+                                            var haskey;
+                                            var keys = selectedItems.selectedRowKeys;
+                                            if(typeof keys !== 'undefined' && keys.length > 0)
+                                            {
+                                            haskey = true;
+                                            }
+
+                                            component.option("value", haskey ? keys[0] : null);
+                                            component.option("subvalue", selectedItems.selectedRowsData);
+                                            if(typeof keys !== 'undefined' && keys.length > 0){
+                                            component.close();
+                                            }
+                                            }
+                                        </text>)
+    )
+}
+
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPartNumberDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                                          .ID("grdPartList")
+                                          .DataSource(new JS(@"component.option(""dataSource"")"))
+                                          .Columns(columns =>
+                                          {
+
+                              columns.AddFor(m => m.BOXPERQUANTITY).Visible(false);
+                                              columns.AddFor(m => m.PARTNUMBER).Width(100);
+                                              columns.AddFor(m => m.PRODUCTNAME);
+                                              columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+                                              columns.AddFor(m => m.UDNF1);
+                                              columns.AddFor(m => m.UDNF2);
+                                              columns.AddFor(m => m.UDNF3);
+                                              columns.AddFor(m => m.UDNF4);
+                                              columns.AddFor(m => m.UDNF5);
+                                              columns.AddFor(m => m.BOXPERQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                          })
+                                          //.StateStoring(s => s.Enabled(true).StorageKey("PRCA001_grdPartList").Type(StateStoringType.LocalStorage))
+                                          .ColumnAutoWidth(true)
+                                          .HoverStateEnabled(true)
+                                          .Paging(p => p.PageSize(10))
+                                          .FilterRow(f => f.Visible(true))
+                                          .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                                          .Height(345)
+                                          //.Width(800)
+                                          .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                                          .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                                          .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                                          .OnSelectionChanged(@<text>
+                                            function(selectedItems) {
+                                            var haskey;
+                                            var keys = selectedItems.selectedRowKeys;
+                                            if(typeof keys !== 'undefined' && keys.length > 0)
+                                            {
+                                            haskey = true;
+                                            }
+                                            
+                                            console.log(selectedItems);
+                                            console.log(keys);
+
+                                            component.option("value", haskey ? keys[0] : null);
+                                            component.option("subvalue", selectedItems.selectedRowsData);
+                                            if(typeof keys !== 'undefined' && keys.length > 0){
+                                            component.close();
+                                            }
+                                            }
+                                        </text>)
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedProcessDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PRCA011D_LIST>()
+                                                          .ID("grdRouteProcessList")
+                                                          .DataSource(new JS(@"component.option(""dataSource"")"))
+                                                          .Columns(columns =>
+                                                          {
+                                                              columns.AddFor(m => m.PROCESSSQEUENCE);
+                                                              columns.AddFor(m => m.PROCESSCODE);
+                                                              columns.AddFor(m => m.PROCESSNAME);
+                                                              columns.AddFor(m => m.PARTNUMBER).Visible(false);
+                                                          })
+                                                          //.StateStoring(s => s.Enabled(true).StorageKey("PRCA001_grdRouteProcessList").Type(StateStoringType.LocalStorage))
+                                                          .ColumnAutoWidth(true)
+                                                          .HoverStateEnabled(true)
+                                                          .Paging(p => p.PageSize(10))
+                                                          .FilterRow(f => f.Visible(true))
+                                                          .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                                                          .Height(345)
+                                                          .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                                                          .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                                                          .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                                                          .OnSelectionChanged(@<text>
+                                                            function(selectedItems) {
+
+                                                            var haskey;
+                                                            var keys = selectedItems.selectedRowKeys;
+                                                            if(typeof keys !== 'undefined' && keys.length > 0)
+                                                            {
+                                                            haskey = true;
+                                                            }
+
+                                                            component.option("value", haskey ? keys[0] : null);
+                                                            if(typeof keys !== 'undefined' && keys.length > 0){
+                                                            component.close();
+                                                            }
+                                                            }
+                                                        </text>)
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("grdWorkorder-details"))
+{
+    @(Html.DevExtreme().DataGrid<PRCA011B_LIST>()
+                                                          .ID(new JS("'grdWorkorder-details-' + data.ORDERNUMBER"))
+                                                          .ElementAttr("class", "detail-grid")
+                                                          .ShowBorders(true)
+                                                          .ColumnAutoWidth(true)
+                                                          .FilterPanel(f => f.Visible(false))
+                                                          .RowAlternationEnabled(true)
+                                                          .DataSource(d => d.WebApi()
+                                                              .Controller("PRCA001WebApi")
+                                                              .LoadAction("get_detail")
+                                                              .Key("WOSEQUENCE")
+                                                              .LoadParams(new
+                                                              {
+                                                                  ordernumber = new JS("function() { return data.ORDERNUMBER; }")
+                                                              })
+                                                        )
+                                                          //.StateStoring(s => s.Enabled(true).StorageKey("PRCA001_grdWorkorder-details").Type(StateStoringType.LocalStorage))
+                                                          .Paging(p => p.PageSize(10))
+                                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                          .Columns(columns =>
+                                                          {
+                                                              columns.AddFor(m => m.WOSEQUENCE).Visible(false);
+                                                              columns.AddFor(m => m.STATE).AllowEditing(false)
+                                                                  .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                                      .Controller("COMA003WebApi").Key("SYSCODE")
+                                                                      .LoadAction("STATE_LIST"))
+                                                                      .DisplayExpr("SYSCODENAME")
+                                                                      .ValueExpr("SYSCODE")
+                                                                  );
+                                                              columns.AddFor(m => m.ORDERSEQUENCE).Visible(false);
+                                                              columns.AddFor(m => m.EQUIPMENTCODE)
+                                                                  .Lookup(lookup => lookup
+                                                                      .DataSource("getEqp")
+                                                                      .DisplayExpr("EQUIPMENTNAME")
+                                                                      .ValueExpr("EQUIPMENTCODE"));
+                                                              columns.AddFor(m => m.WORKCENTERCODE).Visible(false);
+                                                              columns.AddFor(m => m.ORDERQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                                              columns.AddFor(m => m.WORKER).AllowEditing(false);
+                                                              columns.AddFor(m => m.LABELYN).Visible(false);
+                                                          })
+                                                          .Selection(s => s.Mode(SelectionMode.Single))
+                                                          .OnRowUpdated("function(e){ $('#grdWorkorder').dxDataGrid('instance').refresh(); }")
+                                                          .OnRowRemoved("function(e){ $('#grdWorkorder').dxDataGrid('instance').refresh(); }")
+                                                          .OnCellClick("grdWorkorder_datail_OnCellClick")
+                                                          .Editing(e =>
+                                                              e.Mode(GridEditMode.Batch)
+                                                                  .AllowUpdating(new JS("allowDeleting"))
+                                                                  .AllowDeleting(new JS("allowDeleting"))
+                                                        )
+    )
+}
+
+
+@*출하계획 선택 팝업창 _ FORM*@
+@(Html.DevExtreme().Popup()
+                                      .ID("PLAN_POPUP")
+                                      .ElementAttr("class", "popup")
+                                      .ShowCloseButton(true)
+                                      .ShowTitle(true)
+                                      .DragEnabled(true)
+                                      .ContentTemplate(new TemplateName("AA"))
+                                      .Width(1100)
+                                      .Height(650)
+                                      .Title(@LabelText.SHIPPINGPLANLIST + @LabelText.SELECT)
+                                      .ToolbarItems(t =>
+                                      {
+                                          t.Add().Widget(w => w.Button().Text(LabelText.SELECTION)
+                                                  .Width(150)
+                                                  .OnClick("btnPLAN_POPUP_SELECTION_OnClick")
+                                                  .Icon("check")
+                                                  .Type(ButtonType.Success).StylingMode(ButtonStylingMode.Contained))
+                                                  .Location(ToolbarItemLocation.Center).Toolbar(Toolbar.Bottom);
+                                          t.Add().Widget(w => w.Button().Text(LabelText.CANCEL)
+                                                  .OnClick("btnPLAN_POPUP_CANCEL_OnClick")
+                                                  .Icon("refresh")
+                                                  .Type(ButtonType.Normal)
+                                                  .Width(150).StylingMode(ButtonStylingMode.Contained))
+                                                  .Location(ToolbarItemLocation.Center).Toolbar(Toolbar.Bottom);
+                                      })
+    //.OnHidden("EMPUSER_POPUP_onHidden")
+)
+
+@*출하계획 선택 GRID*@
+@using (Html.DevExtreme().NamedTemplate("AA"))
+{
+    @(Html.DevExtreme().Form<PRCA011G_LIST>()
+                      .ID("popFormShippingPlan")
+                      .ColCount(4)
+                      .ScrollingEnabled(false)
+                      .Items(items =>
+                      {
+                          items.AddSimple()
+                              .ColSpan(4)
+                              .Template(@<text>
+                                @( Html.DevExtreme().DataGrid<PRCA011G_LIST>()
+                                   .ID("grdShippingplan")
+                                   .DataSource(d => d.WebApi().Controller("PRCA011WebApi")
+                                       .LoadAction("getShippingPlanList")
+                                       .Key("SHIPPINGPLANID")
+                                       .OnBeforeSend("grdShippingplan_OnBeforeSend")
+                                   )
+                                   .Columns(columns =>
+                                   {
+                                        columns.AddFor(m => m.SHIPPINGPLANID).Visible(false);
+                                         columns.AddFor(m => m.PLANDATE).Width(100).SortOrder(SortOrder.Desc);
+                                       columns.AddFor(m => m.VENDORCODE)
+                                           .Lookup(lookup => lookup
+                                               .DataSource(d => d.WebApi()
+                                                   .Controller("COMA001WebApi")
+                                                   .LoadAction("VENDOR_LIST")
+                                                   .Key("VENDORCODE")
+                                               )
+                                               .DisplayExpr("VENDORNAME")
+                                               .ValueExpr("VENDORCODE")
+                                           );
+                                       columns.AddFor(m => m.CUSTOMERPARTNUMBER).AllowEditing(false);
+                                       columns.AddFor(m => m.PLANQUANTITY).Width(100).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                        columns.AddFor(m => m.PARTNUMBER)
+                                                     .Lookup(l => l.DataSource(d => d.WebApi()
+                                                         .Controller("COMA001WebApi")
+                                                         .LoadAction("PARTNUM_LIST")
+                                                         .Key("PARTNUMBER"))
+                                                         .ValueExpr("PARTNUMBER")
+                                                         .DisplayExpr("PARTNUMBER")
+                                                         .AllowClearing(true)
+                                                     )
+                                                     .EditCellTemplate(new TemplateName("ddlPartNumberList"));
+                                                 columns.AddFor(m => m.PRODUCTNAME)
+                                                 .Lookup(l => l.DataSource(d => d.WebApi()
+                                                     .Controller("COMA001WebApi")
+                                                     .LoadAction("PARTNUM_LIST")
+                                                     .Key("PARTNUMBER"))
+                                                     .ValueExpr("PARTNUMBER")
+                                                     .DisplayExpr("PRODUCTNAME")
+                                                     .AllowClearing(true)
+                                                 )
+                                                 .CalculateCellValue("function(rowdata){ return rowdata.PARTNUMBER;}")
+                                                 .AllowEditing(false);
+
+                                      
+
+       
+                                     })
+                           .HeaderFilter(h => h.Visible(false))
+                           .FilterPanel(f => f.Visible(true))
+                           .FilterRow(filterRow => filterRow
+                               .Visible(true)
+                               .ApplyFilter(GridApplyFilterMode.Auto)
+                           )
+                           .ColumnHidingEnabled(true)
+                           .SearchPanel(s => s.Visible(true))
+                           .ColumnResizingMode(ColumnResizingMode.Widget)
+                           .AllowColumnResizing(true)
+                           .RowAlternationEnabled(true)
+                           .ShowBorders(false)
+                           .ShowColumnLines(false)
+                           .ShowRowLines(false)
+                           .ColumnAutoWidth(true)
+                           .AllowColumnReordering(true)
+                           .Scrolling(scrolling => scrolling.Mode(GridScrollingMode.Infinite))
+                           .RemoteOperations(true)
+                           .Height(550)
+                           .Selection(s => s.Mode(SelectionMode.Single)) 
+                           .Paging(p => p.PageSize(25).Enabled(true))
+                           .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                            .OnToolbarPreparing("grdShippingplan_OnToolbarPreparing")
+                                )</text>);
+                }
+      ))
+}
+
+<script>
+
+    var datailGrid;
+    var plandate;
+
+    $(function () {
+        //$('#searchDate').dxDateBox('instance').option('value', new Date());
+
+        console.log(iudAuth());
+        
+        var iudAuthFlag = iudAuth();
+        
+        if (iudAuthFlag == false) {
+            $("#inputField").hide();
+            $("#searchField").removeClass("col-lg-8");
+            $("#searchField").addClass("col-lg-12");
+        }
+
+        $('#searchDate1').dxDateBox('instance').option('value', new Date());
+    });
+
+    function grdWorkorder_datail_OnCellClick(e) {
+        if (e.rowType == "data" && e.column.dataField == "WORKER") {
+
+            if (e.row.data.STATE == '@STATE.W01' && e.row.data.LABELYN == "N") {
+                datailGrid = e.component;
+                $("#HR_POPUP").dxPopup("instance").show();
+
+                if (e.value != null) {
+                    var arrayWorker = e.value.split(',');
+
+                    for (var i = 0; i < arrayWorker.length; i++) {
+                        $('#grdHR').dxDataGrid('instance').selectRows([arrayWorker[i]], true);
+                    }
+                }
+            }
+        }
+    }
+
+    // 마스터 그리드 (작업지시) 클릭시 하위그리드 오픈
+    function grdWorkorder_OnRowClick(e) {
+        if (e.rowType == "data") {
+            if (e.component.isRowExpanded(e.key)) {
+                e.component.collapseRow(e.key);
+            } else {
+                e.component.expandRow(e.key);
+                $('#grdWorkorder-details-' + e.key).dxDataGrid('instance').cancelEditData();
+                $('#grdWorkorder-details-' + e.key).dxDataGrid('instance').clearSelection();
+            }
+        }
+    }
+
+    // 디테일 그리드 삭제버튼 표기 조건 (W01:대기 / N:라벨 미발행시)
+    var allowDeleting = function(e) {
+        if (e.row.data.STATE == '@STATE.W01' && e.row.data.LABELYN == "N")
+            return true;
+        else
+            return false;
+    }
+
+    // 공정별 설비 조회 _ 캐스캐이딩
+    function getEqp(options) {
+        return {
+            store: DevExpress.data.AspNet.createStore({
+                key: "EQUIPMENTCODE",
+                loadUrl: '@Url.Action("ProcessEquipAllList", "PRCA001WebApi", new { httproute = "DefaultApi" })'
+            }),
+            filter: options.data ? ["PROCESSCODE", "=", options.data.PROCESSCODE] : null
+        };
+    }
+
+    function grdWorkorder_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    // FORM 저장로직
+    function btnSave_OnClick(e) {
+        var orderno = $('#form').dxForm('instance').option('formData.ORDERNUMBER');
+        var orderdate = $('#form').dxForm('instance').option('formData.ORDERDATE');
+
+        if ($('#form').dxForm('instance').getEditor("EQUIPMENTCODE").option('value') == null || $('#form').dxForm('instance').getEditor("EQUIPMENTCODE").option('value') == "") {
+            DevExpress.ui.dialog.alert('설비를 선택해 주세요.', "warning");
+            return;
+        }
+
+        if ($('#form').dxForm('instance').getEditor("PRODUCTNAME").option('value') == null || $('#form').dxForm('instance').getEditor("PRODUCTNAME").option('value') == "") {
+            DevExpress.ui.dialog.alert('품번을 선택해 주세요.', "warning");
+            return;
+        }
+
+        if ($('#form').dxForm('instance').option('formData.ORDERQUANTITY') == null || $('#form').dxForm('instance').option('formData.ORDERQUANTITY') <= 0) {
+            DevExpress.ui.dialog.alert('@LabelText.ANSWERPLEASEINSERTORDERQTY', "warning");
+            return;
+        }
+
+            var result = DevExpress.ui.dialog.confirm('@LabelText.QUESTIONINSERT', "Confirm changes");
+            result.done(function(dialogResult) {
+                if (!dialogResult) {
+                    return;
+                } else {
+                    var aJsonArray = new Array();
+                    var aJson = new Object();
+
+                    aJson = new Object();
+                    aJson.STATE = '@STATE.W01';
+                    aJson.ORDERDATE = orderdate;
+                    aJson.HIGHPRIORITYFLAG =
+                        $('#form').dxForm('instance').option('formData.HIGHPRIORITYFLAG');
+                    aJson.ORDERNUMBER = orderno;
+                    aJson.SHIFTCODE = $('#form').dxForm('instance').option('formData.SHIFTCODE');
+                    aJson.PARTNUMBER = $('#form').dxForm('instance').option('formData.PRODUCTNAME');
+                    aJson.PROCESSCODE = '1001';
+                    aJson.EQUIPMENTCODE = $('#form').dxForm('instance').option('formData.EQUIPMENTCODE');
+                    aJson.ORDERQUANTITY = $('#form').dxForm('instance').option('formData.ORDERQUANTITY');
+                    aJson.ORDERSEQUENCE = 1;
+                    aJson.WORKER = null
+
+                    aJsonArray.push(aJson);
+
+                    var data = new Object();
+                    data.data = JSON.stringify(aJsonArray);
+                    data.ORDERDATE = orderdate;
+
+                    $.ajax({
+                        url: '@Url.Action("post_list", "PRCA011WebApi", new { httproute = "DefaultApi" })',
+                        type: 'POST',
+                        data: data,
+                        success: function() {
+                            setRefresh();
+                            $("#grdWorkorder").dxDataGrid('instance').refresh();
+                            $("#grdWorkorder").dxDataGrid('instance').clearSelection();
+                            DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+                        },
+                        error: function(e) {
+                            console.log(data);
+                            showError(this, e);
+                        }
+                    });
+                }
+            });
+
+    }
+
+    // 초기화 버튼 이벤트
+    function btnClear_OnClick(e) {
+
+        setRefresh();
+    }
+
+    function setRefresh() {
+
+        var form = $('#form').dxForm('instance');
+
+        form.beginUpdate();
+
+        form.updateData('ORDERDATE', new Date());
+        form.updateData('HIGHPRIORITYFLAG', 'N');
+        form.updateData('ORDERNUMBER', '');
+        form.updateData('SHIFTCODE', 'A');
+        form.updateData('ORDERQUANTITY', 0);
+        form.updateData('PARTNUMBER', '');
+        form.updateData('PRODUCTNAME', '');
+
+        form.option('formData.EQUIPMENTCODE', null);
+        form.option('formData.UDNF1', null);
+        form.option('formData.UDNF2', null);
+        form.option('formData.UDNF3', null);
+        form.option('formData.UDNF4', null);
+        form.option('formData.UDNF5', null);
+        form.option('formData.CUSTOMERPARTNUMBER', null);
+
+        var validate = form.validate();
+
+        if (validate.brokenRules.length > 0) {
+            validate.brokenRules.forEach(function (e) {
+                e.validator.reset();
+            });
+        }
+
+        form.endUpdate();
+
+        if ($("#grdPartList").dxDataGrid("instance") != undefined) {
+            $("#grdPartList").dxDataGrid("instance").clearSelection();
+        }
+
+        if ($("#grdEquipment").dxDataGrid("instance") != undefined) {
+            $("#grdEquipment").dxDataGrid("instance").clearSelection();
+        }
+
+
+
+        //$('#labelOutput').dxButton('instance').option('disabled', true);
+
+
+    }
+
+    //품번 정보를 가져온다.
+    function getPartNumberInfo(partNumber) {
+        var result = null;
+
+        var CheckProcessCode = $.param({
+
+            partNumber: partNumber
+
+        });
+
+        $.ajax({
+            url: '@Url.Action("getPartNumberInfo", "PRCA011WebApi", new { httproute = "DefaultApi" })',
+            //async: false,
+            data: CheckProcessCode,
+            type: 'GET',
+            success: function (data) {
+                if (data != null) {
+
+                    result = data;
+                    return result;
+                }
+
+                return result;
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+        return result;
+    }
+
+    // 품번 변경시 공정 / 설비 초기화
+    function itemPart_valueChanged(e) {
+        var form = $('#form').dxForm('instance');
+        var partnum = form.option('formData.PRODUCTNAME');
+
+        form.option('formData.PARTNUMBER', partnum);
+
+        if ($("#grdPartList").dxDataGrid("instance") != null && $("#grdPartList").dxDataGrid("instance").getSelectedRowsData().length > 0) {
+            var UDNF1 = $("#grdPartList").dxDataGrid("instance").getSelectedRowsData()[0].UDNF1;
+            var UDNF2 = $("#grdPartList").dxDataGrid("instance").getSelectedRowsData()[0].UDNF2;
+            var UDNF3 = $("#grdPartList").dxDataGrid("instance").getSelectedRowsData()[0].UDNF3;
+            var UDNF4 = $("#grdPartList").dxDataGrid("instance").getSelectedRowsData()[0].UDNF4;
+            var UDNF5 = $("#grdPartList").dxDataGrid("instance").getSelectedRowsData()[0].UDNF5;
+            var CUSTOMERPARTNUMBER = $("#grdPartList").dxDataGrid("instance").getSelectedRowsData()[0].CUSTOMERPARTNUMBER;
+            var BOXPERQUANTITY = $("#grdPartList").dxDataGrid("instance").getSelectedRowsData()[0].BOXPERQUANTITY;
+
+            form.option('formData.UDNF1', UDNF1);
+            form.option('formData.UDNF2', UDNF2);
+            form.option('formData.UDNF3', UDNF3);
+            form.option('formData.UDNF4', UDNF4);
+            form.option('formData.UDNF5', UDNF5);
+            form.option('formData.CUSTOMERPARTNUMBER', CUSTOMERPARTNUMBER);
+            form.option('formData.BOXPERQUANTITY', BOXPERQUANTITY);
+
+        } else if ($("#grdPartList").dxDataGrid("instance") == null || $("#grdPartList").dxDataGrid("instance").getSelectedRowsData().length <= 0) {
+
+            if (partnum == null || partnum == "") {
+                return;
+            }
+
+            //var PartNumberInfo = getPartNumberInfo(partnum);
+
+            //form.option('formData.UDNF1', PartNumberInfo.UDNF1);
+            //form.option('formData.UDNF2', PartNumberInfo.UDNF2);
+            //form.option('formData.UDNF3', PartNumberInfo.UDNF3);
+            //form.option('formData.UDNF4', PartNumberInfo.UDNF4);
+            //form.option('formData.UDNF5', PartNumberInfo.UDNF5);
+            //form.option('formData.CUSTOMERPARTNUMBER', PartNumberInfo.CUSTOMERPARTNUMBER);
+
+            var CheckProcessCode = $.param({
+
+                partNumber: partnum
+
+            });
+
+            $.ajax({
+                url: '@Url.Action("getPartNumberInfo", "PRCA011WebApi", new { httproute = "DefaultApi" })',
+                //async: false,
+                data: CheckProcessCode,
+                type: 'GET',
+                success: function (data) {
+                    if (data != null) {
+
+                        form.option('formData.UDNF1', data.UDNF1);
+                        form.option('formData.UDNF2', data.UDNF2);
+                        form.option('formData.UDNF3', data.UDNF3);
+                        form.option('formData.UDNF4', data.UDNF4);
+                        form.option('formData.UDNF5', data.UDNF5);
+                        form.option('formData.CUSTOMERPARTNUMBER', data.CUSTOMERPARTNUMBER);
+                        form.option('formData.BOXPERQUANTITY', data.BOXPERQUANTITY);
+
+                    }
+                },
+                error: function (e) {
+                    showError(this, e);
+                }
+            });
+
+
+
+        }
+
+        if ($("#grdEquipment").dxDataGrid("instance") !=null) {
+            $("#grdEquipment").dxDataGrid("instance").refresh();
+        }
+
+    }
+
+    // GRID 작업지시 선택시 라벨발행 버튼 disable 로직
+    function grdWorkorder_OnSelectionChanged(e)
+    {
+        var keys = e.selectedRowKeys;
+        //component.option("value", keys);
+        if (typeof keys != 'undefined' && keys.length > 0) {
+            var grid = $("#grdWorkorder").dxDataGrid('instance');
+            var index = grid.getRowIndexByKey(keys[0]);
+            var labelcheck = grid.cellValue(index, 'LABELYN');
+            var processcode = grid.cellValue(index, 'PROCESSCODE');
+            var processgroup = grid.cellValue(index, 'PROCESSGROUP');
+            var seq = grid.cellValue(index, 'ROUTESEQ');
+
+            var btnLabel = $('#labelOutput').dxButton('instance');
+
+            @*if (labelcheck == "Y" || processgroup == "@PROCESSGROUP.G03" || seq != 1) {
+                btnLabel.option('disabled', true);
+            } else {
+                btnLabel.option('disabled', false);
+            }*@
+        }
+    }
+
+    // 라벨발행 버튼 로직
+    function grdWorkorder_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    elementAttr: { "id": "labelOutput" },
+                    icon: "fa fa-reply",
+                    stylingMode: "outlined",
+                    text: "@LabelText.LABEL @LabelText.PUBLICATION",@*"@LabelText.INBONDINSPECTCANCEL",*@
+                    type: "info",
+                    onClick: function() {
+                        var grid = $("#grdWorkorder").dxDataGrid('instance');
+
+                        if (grid.getSelectedRowKeys().length > 0) {
+
+                            var SelectedRowKeys = grid.getSelectedRowKeys()[0];
+                            var index = grid.getRowIndexByKey(SelectedRowKeys);
+                            var labelcheck = grid.cellValue(index, 'IsADDPRINTING');
+
+                            if (labelcheck == false) {
+
+                                var rowData = grid.getSelectedRowsData();
+
+                                if (rowData.length > 0) {
+
+                                    if (rowData[0].LABELYN == "") {
+                                        DevExpress.ui.dialog.alert('이미 발행된 작업지시입니다.', "warning");
+                                        return;
+                                    }
+
+                                    var result = DevExpress.ui.dialog.confirm('@LabelText.QUESTIONPRINTLABEL');
+
+                                    result.done(function (dialogResult) {
+
+                                        if (!dialogResult) {
+
+                                            grid.refresh();
+                                            return;
+
+                                        } else {
+
+                                            var requests = [];
+
+                                            grid.getSelectedRowsData().forEach(function(e) {
+                                                var source = {};
+
+                                                source.ORDERNUMBER = e.ORDERNUMBER;
+                                                source.ORDERDATE = e.ORDERDATE;
+                                                source.PARTNUMBER = e.PARTNUMBER;
+                                                source.ORDERQUANTITY = e.ORDERQUANTITY;
+                                                source.PROCESSCODE = '1001';
+                                                source.EQUIPMENTCODE = e.EQUIPMENTCODE;
+                                                source.SHIFTCODE = e.SHIFTCODE;
+                                                source.WORKER = e.WORKER;
+
+                                                var data = {};
+                                                data.values = JSON.stringify(source);
+
+                                                requests.push($.ajax({
+                                                        url:
+                                                            '@Url.Action("post_label", "PRCA011WebApi", new { httproute = "DefaultApi" })',
+                                                        type: 'POST',
+                                                        data: data,
+                                                        success: function(wipList) {
+
+                                                            if (wipList[0].Success == false) {
+                                                                var msg = wipList[0].Msg + '<br><br>' + '고객사 품번' + ' : ' + wipList[0].CUSTOMERPARTNUMBER
+                                                                                         + '<br><br>' + '품번' + ' : ' + wipList[0].PARTNUMBER
+                                                                                         + '<br><br>' + '품명' + ' : ' + wipList[0].PRODUCTNAME;
+
+
+                                                                DevExpress.ui.dialog.alert(msg, "warning");
+                                                                return;
+                                                            }
+
+                                                            if (zebraBrowserSelected_device != null) {
+
+                                                                var offset = 0;
+
+                                                                wipList.forEach(function(e) {
+                                                                    setTimeout(function(){
+                                                                        console.log(e);
+                                                                        writeToSelectedPrinter(e.zplList);
+                                                                    }, 500 + offset);    
+                                                                    offset += 500;
+                                                                });
+                                                            }
+
+                                                            $("#grdWorkorder").dxDataGrid('instance').refresh();
+                                                            DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+
+                                                        },
+                                                        error: function(e) {
+                                                            console.log(data);
+                                                            showError(this, e);
+                                                        }
+                                                    })
+                                                );
+                                            });
+                                        }
+                                    });
+                                }
+                            } else {
+
+                                var result = DevExpress.ui.dialog.confirm('라벨을 추가발행 하시겠습니까?');
+
+                                result.done(function(dialogResult) {
+                                    if (!dialogResult) {
+                                        grid.refresh();
+                                        return;
+                                    } else {
+                                        var requests = [];
+
+                                        grid.getSelectedRowsData().forEach(function(e) {
+                                            var source = {};
+
+                                            source.ORDERNUMBER = e.ORDERNUMBER;
+                                            source.ORDERDATE = e.ORDERDATE;
+                                            source.PARTNUMBER = e.PARTNUMBER;
+                                            source.ORDERQUANTITY = e.ORDERQUANTITY;
+                                            source.PROCESSCODE = '1001';
+                                            source.EQUIPMENTCODE = e.EQUIPMENTCODE;
+                                            source.SHIFTCODE = e.SHIFTCODE;
+                                            source.WORKER = e.WORKER;
+                                            source.TOTALLABELCOUNT = e.TOTALLABELCOUNT;
+                                            source.NONELABELCOUNT = e.NONELABELCOUNT;
+                                            source.LABELCOUNT = e.LABELCOUNT;
+
+                                            var data = {};
+                                            data.values = JSON.stringify(source);
+
+                                            requests.push($.ajax({
+                                                    url:'@Url.Action("postAddProductPrint", "PRCA011WebApi", new { httproute = "DefaultApi" })',
+                                                    type: 'POST',
+                                                    data: data,
+                                                    success: function(wipList) {
+
+                                                        if (wipList[0].Success == false) {
+                                                            var msg = wipList[0].Msg + '<br><br>' + wipList[0].Msg2
+                                                                + '<br><br>' + '시리얼넘버' + ' : ' + wipList[0].SERIALNUMBER
+                                                                + '<br><br>' + '로트넘버' + ' : ' + wipList[0].LOTNUMBER;
+
+
+                                                            DevExpress.ui.dialog.alert(msg, "warning");
+                                                            return;
+                                                        }
+
+                                                        if (zebraBrowserSelected_device != null) {
+
+                                                            var offset = 0;
+
+                                                            wipList.forEach(function(e) {
+                                                                setTimeout(function(){
+                                                                    console.log(e);
+                                                                    writeToSelectedPrinter(e.zplList);
+                                                                }, 500 + offset);    
+                                                                offset += 500;
+                                                            });
+                                                        }
+
+                                                        $("#grdWorkorder").dxDataGrid('instance').refresh();
+                                                        DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+
+                                                    },
+                                                    error: function(e) {
+                                                        console.log(data);
+                                                        showError(this, e);
+                                                    }
+                                                })
+                                            );
+                                        });
+                                    }
+                                });
+                            }
+                        } else {
+                            DevExpress.ui.notify('@LabelText.ANSWERNOSELECTORDER', 'error', globalNotificationErrorTime);
+                        }
+                    }
+                }
+            },
+            {
+                widget: "dxDateBox",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '@LabelText.ORDERDATE' +"</div> ",
+                location: "before",
+                options: {
+                    elementAttr: { "id": "searchDate1" },
+                    onValueChanged: function (e) {
+                        if (e.previousValue != undefined) {
+                            var grid = $('#grdWorkorder').dxDataGrid('instance');
+
+                            grid.refresh();
+                        }
+                    }
+                },
+            },
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    icon: "fa fa-reply",
+                    stylingMode: "outlined",
+                    text: "@LabelText.WORKORDERCANCEL",
+                    disabled: !iudAuth(),
+                    type: "danger",
+                    onClick: function (e) {
+
+                        var result = DevExpress.ui.dialog.confirm('작업지시를 삭제 하시겠습니까?');
+
+                        result.done(function(dialogResult) {
+                            if (!dialogResult) {
+                                grid.refresh();
+                                return;
+                            } else {
+                                var grid = $("#grdWorkorder").dxDataGrid('instance');
+
+                                if (grid.getSelectedRowsData().length <= 0) {
+                                    return;
+                                }
+
+                                var ORDERNUMBER = $("#grdWorkorder").dxDataGrid('instance').getSelectedRowsData()[0].ORDERNUMBER
+                                var ORDERDATE = $("#grdWorkorder").dxDataGrid('instance').getSelectedRowsData()[0].ORDERDATE;
+
+                                var data = new Object();
+                                var WorkOrderCancelInfo = new Object();
+
+                                WorkOrderCancelInfo.ORDERNUMBER = ORDERNUMBER;
+                                WorkOrderCancelInfo.ORDERDATE = ORDERDATE;
+                                data.values = JSON.stringify(WorkOrderCancelInfo);
+
+                                $.ajax({
+                                    url: '@Url.Action("putWorkOrderCancel", "PRCA011WebApi", new { httproute = "DefaultApi" })',
+                                    async: false,
+                                    type: 'PUT',
+                                    data: data,
+                                    success: function (data) {
+
+                                        if (data == "") {
+                                            setRefresh();
+                                            $("#grdWorkorder").dxDataGrid('instance').refresh();
+                                            $("#grdWorkorder").dxDataGrid('instance').clearSelection();
+                                            DevExpress.ui.notify('삭제 완료 되었습니다.', 'success', globalNotificationSuccessTime);
+                                            return;
+                                        }
+                                        else if (data.length >= 1) {
+                                            if (data[0].IsEXISTORDERNUMBER == false) {
+                                                var msg = data[0].Msg + '<br><br>' + data[0].Msg2
+                                                DevExpress.ui.dialog.alert(msg, "warning");
+                                                return;
+                                            } else if (data[0].IsBEFOREORDERNUMBER == false) {
+                                                var msg = data[0].Msg + '<br><br>' + data[0].Msg2
+                                                DevExpress.ui.dialog.alert(msg, "warning");
+                                                return;
+                                            } else if (data[0].IsSTATEW01 == false) {
+                                                var msg = data[0].Msg + '<br><br>' + data[0].Msg2
+                                                DevExpress.ui.dialog.alert(msg, "warning");
+                                                return;
+                                            } else if (data[0].IsEXISTWIP == false) {
+                                                var msg = data[0].Msg + '<br><br>' + data[0].Msg2
+                                                DevExpress.ui.dialog.alert(msg, "warning");
+                                                return;
+                                            }
+                                        }
+                                    },
+                                    error: function (e) {
+                                        showError(this, e);
+                                    }
+                                })
+                            }
+                        });
+                    }
+                }
+            }
+        );
+    }
+
+    function grdWorkorder_customLoad() {
+        var state = localStorage.getItem(this.storageKey);
+        if (state) {
+            state = JSON.parse(state);
+            //for (var i = 0; i < state.columns.length; i++) {
+            //    if (state.columns[i].dataField == "ORDERDATE") {
+            //        state.columns[i].filterValue = new Date();
+            //    }
+            //}
+        }
+        return state;
+    }
+
+    function grdWorkorder_customSave(state) {
+        localStorage.setItem(this.storageKey, JSON.stringify(state));
+    }
+
+    function btnShippingPlan_OnClick(e) {
+        $("#PLAN_POPUP").dxPopup("instance").show();
+
+        $('#searchDate').dxDateBox('instance').option('value', new Date());
+    }
+
+    function EQUIPMENTC_OnValueChanged(e) {
+        var form = $('#form').dxForm('instance');
+        var EQUIPMENTCODE = form.option('formData.EQUIPMENTCODE');
+        form.option('formData.EQUIPMENTCODE', EQUIPMENTCODE);
+
+        //if ($("#grdPartList").dxDataGrid("instance") !=null) {
+        //    $("#grdPartList").dxDataGrid("instance").refresh();
+        //    //$('#grdPartList').dxDataGrid('instance').cancelEditData();
+
+        //    form.option('formData.UDNF1', null);
+        //    form.option('formData.UDNF2', null);
+        //    form.option('formData.UDNF3', null);
+        //    form.option('formData.UDNF4', null);
+        //    form.option('formData.UDNF5', null);
+        //    form.option('formData.CUSTOMERPARTNUMBER', null);
+        //}
+    }
+
+
+    function grdShippingplan_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                widget: "dxDateBox",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '@LabelText.STANDARDDATE' +"</div> ",
+                location: "before",
+                options: {
+                    elementAttr: {
+                        "id": "searchDate" ,
+                        "style" : "width:60%"
+                    },
+                    onValueChanged: function (e) {
+                        if (e.previousValue != undefined) {
+                            var grid = $('#grdShippingplan').dxDataGrid('instance');
+
+                            grid.refresh();
+
+
+                        }
+                    }
+                },
+            }
+        )
+    }
+
+    function grdShippingplan_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+        } 
+    }
+
+    function btnPLAN_POPUP_SELECTION_OnClick(e) {
+        var a = "";
+
+        if ($("#grdShippingplan").dxDataGrid("instance") != null && $("#grdShippingplan").dxDataGrid("instance").getSelectedRowsData().length > 0) {
+
+            setRefresh();
+
+            var PARTNUMBER = $("#grdShippingplan").dxDataGrid("instance").getSelectedRowsData()[0].PARTNUMBER;
+            var PLANQUANTITY = $("#grdShippingplan").dxDataGrid("instance").getSelectedRowsData()[0].PLANQUANTITY;
+
+            $('#form').dxForm('instance').option('formData.PRODUCTNAME', PARTNUMBER);
+            $('#form').dxForm('instance').option('formData.ORDERQUANTITY', PLANQUANTITY);
+
+
+        }
+
+        $("#PLAN_POPUP").dxPopup("instance").hide();
+    }
+
+    function btnPLAN_POPUP_CANCEL_OnClick(e) {
+        $("#PLAN_POPUP").dxPopup("instance").hide();
+    }
+
+    function grdWorkorder_OnCellPrepared(e) {
+        if (e.rowType == 'data' && e.column.dataField === "LABELYN") {
+            e.cellElement.css("color", e.data.LABELYN == "미발행" ? "blue" : "");
+            //e.cellElement.css("text-align", "center");
+        } 
+
+        if (e.rowType == 'data' && e.column.dataField === "ADDPRINTYN") {
+            e.cellElement.css("color", e.data.LABELYN == "/" ? "" : "blue");
+            //e.cellElement.css("text-align", "center");
+        } 
+    }
+
+    function grdWorkorder_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var dxDateBox = $('#searchDate1').dxDateBox('instance');
+            var selectDate;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.OrderDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+        }
+    }
+
+</script>
+

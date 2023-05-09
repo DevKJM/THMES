@@ -1,0 +1,1000 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAI;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAO;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Infrastructure.DBA;
+@using JSMES.WebUI.Alpha.Infrastructure.Enums;
+
+@{
+    ViewBag.Title = "Main";
+}
+<style>
+    table
+	    {mso-displayed-decimal-separator:"\.";
+	    mso-displayed-thousand-separator:"\,";}
+    .font529927
+	    {color:windowtext;
+	    font-size:8.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;}
+    .xl1529927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:general;
+	    vertical-align:middle;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6329927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6429927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:"\#\,\#\#0";
+	    text-align:center;
+	    vertical-align:middle;
+	    border:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6529927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6629927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6729927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6829927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6929927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7029927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:normal;}
+    .xl7129927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7229927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7329927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7429927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:none;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7529927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7629927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7729927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7829927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7929927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8029927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8129927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8229927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:none;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8329927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:none;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8429927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8529927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	
+	    text-align:center;
+	    vertical-align:middle;
+	    border:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    ruby
+	    {ruby-align:left;}
+    rt
+	    {color:windowtext;
+	    font-size:8.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-char-type:none;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-6">
+            <div id="form-container">
+                @using (Html.BeginForm())
+                {
+                    @(Html.DevExtreme().Form<QUAO001_DATA>()
+                        .ID("formInfo")
+                        .ColCount(4)
+                        .LabelLocation(FormLabelLocation.Top)
+                        .Items(items =>
+                        {
+                            items.AddSimple().Name("YEARANDMONTH").Label(l=>l.Text("작업 기간")).DataField("YEARANDMONTH")
+                                .Editor(e => e
+                                    .DateBox()
+                                    .Type(DateBoxType.Date)
+                                    .CalendarOptions(c=>c.MaxZoomLevel(CalendarZoomLevel.Year))
+                                    .DisplayFormat(Format.MonthAndYear)
+                                    .OnValueChanged("formInfo_YEARANDMONTH_OnValueChanged")
+                                    .Width("100%")
+                                )
+                                .ColSpan(2);
+
+                            items.AddSimpleFor(m=>m.WORKDATE)
+                                .Editor(e => e
+                                    .DateBox()
+                                    .Type(DateBoxType.Date)
+                                    .Width("100%")
+                                    .OnValueChanged("function(e) {  $('#workdate').text(Globalize.dateFormatter({dateTime:'short'})(e.value)); }")
+                                )
+                                .ColSpan(2);
+
+
+                            items.AddSimpleFor(m=>m.WORKER)
+                            .Editor(e => e.SelectBox()
+                                    .DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                        .Key("EMPCODE")
+                                        .LoadAction("HR_LIST")
+                                    )
+                                    .DisplayExpr("EMPNAME")
+                                    .ValueExpr("EMPCODE")
+                                    .Placeholder("Select a value...")
+                                    .OnSelectionChanged("function(e) { $('#worker').text(e.selectedItem.EMPNAME); }")
+                              ).ColSpan(2);
+
+                            items.AddEmpty().ColSpan(2);
+
+                            items.AddSimpleFor(m=>m.TOTAL_WORK_QUANTITY)
+                                .Editor(e => e.NumberBox().ReadOnly(true).Format(f=>f.Type(Format.FixedPoint)).OnValueChanged("function(e){ $('#TOTALWORKQUANTITY').text(e.component.option('text')); }"))
+                                .Label(T => T.Text("작업 수량 (EA)"))                                
+                                .ColSpan(2);
+                                                        
+                            items.AddSimpleFor(m=>m.TOTAL_DEFECT_QUANTITY)
+                                .Editor(e => e.NumberBox().ReadOnly(true).Format(f=>f.Type(Format.FixedPoint)).OnValueChanged("function(e) { $('#TOTALDEFECTQUANTITY').text(e.component.option('text')); } "))
+                                .Label(T => T.Text("불량 발생 수량 (EA)"))
+                                .ColSpan(2);
+
+                                items.AddSimple().ColSpan(1)
+                                        .Template(@<text>
+                                            @(Html.DevExtreme()
+                                                                .DataGrid<QUAO001A_LIST>()
+                                                                .ID("grdDefectList")
+                                                                .Columns(columns =>
+                                                                {
+                                                                    columns.AddFor(m => m.DEFECTCODE).AllowEditing(false)
+                                                                      .Lookup(lookup => lookup
+                                                                          .DataSource(d => d.WebApi()
+                                                                              .Controller("COMA001WebApi").Key("DEFECTCODE")
+                                                                              .LoadAction("DEFECTCODE_LIST")
+                                                                          )
+                                                                          .DisplayExpr("DEFECTNAME")
+                                                                          .ValueExpr("DEFECTCODE")
+                                                                      );
+                                                                    columns.AddFor(m => m.DEFECTQTY).AllowEditing(false);
+
+                                                                })
+                                                                .RemoteOperations(true)
+                                                                .Paging(p => p.PageSize(25).Enabled(false))
+                                                                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                .AllowColumnResizing(true)
+                                                                .RowAlternationEnabled(true)
+                                                                .NoDataText("")
+                                                                  .ShowRowLines(true)                                                              
+                                                                .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true)).ElementAttr("class", "dx-dxdatagrid-no-highlight-outline")
+                                            )
+                                        </text>).Label(d => d.Text("불량 유형별 수량 (EA)"));
+
+                            items.AddSimpleFor(m=>m.DEFECTCAUSE)
+                                .Editor(e => e.TextArea()
+                                            .Height(140)
+                                            .AutoResizeEnabled(true)
+                                            .OnValueChanged("function(e){  $('#DEFECTCAUSE').html(newlinetoBR(e.value)); }")
+                                )
+                                .ColSpan(3);
+
+
+                            items.AddSimpleFor(m=>m.MEASURES)
+                                .Editor(e => e.TextArea()
+                                        .Height(140)
+                                        .OnValueChanged("function(e){  $('#MEASURES').html(newlinetoBR(e.value)); }")
+                                        )
+                                .ColSpan(2);
+
+                            items.AddSimpleFor(m=>m.MEASURES_PLAN)
+                                .Editor(e => e.TextArea()
+                                            .OnValueChanged("function(e){  $('#MEASURES_PLAN').html(newlinetoBR(e.value)); }")
+                                            .Height(140)
+                                )
+                                .ColSpan(1);
+
+                            items.AddSimpleFor(m=>m.MEASURES_MEMO)
+                                .Editor(e => e.TextArea()
+                                            .OnValueChanged("function(e){  $('#MEASURES_MEMO').html(newlinetoBR(e.value)); }")
+                                            .Height(140)
+                                )
+                                .ColSpan(1);
+
+
+                            items.AddSimpleFor(m=>m.POSTEVALUATION)
+                                .Editor(e => e.TextArea()
+                                            .OnValueChanged("function(e){  $('#POSTEVALUATION').html(newlinetoBR(e.value)); }")
+                                            .Height(140)
+                                )
+                                .ColSpan(2);
+
+                            items.AddSimpleFor(m=>m.POSTEVALUATION_PLAN)
+                                .Editor(e => e.TextArea()
+                                            .OnValueChanged("function(e){  $('#POSTEVALUATION_PLAN').html(newlinetoBR(e.value)); }")
+                                            .Height(140)
+                                )
+                                .ColSpan(1);
+
+                            items.AddSimpleFor(m=>m.POSTEVALUATION_MEMO)
+                                .Editor(e => e.TextArea()
+                                            .OnValueChanged("function(e){  $('#POSTEVALUATION_MEMO').html(newlinetoBR(e.value)); }")
+                                            .Height(140)
+                                )
+                                .ColSpan(1);
+                            items.AddSimple().ColSpan(2).Template(@<text>
+                                @(Html.DevExtreme().Button().Text("등록 및 인쇄").Type(ButtonType.Success).Icon("print").OnClick("function(e) { postAndPrint(); }"))
+                                @(Html.DevExtreme().Button().Text("등록").Type(ButtonType.Normal).Icon("check").OnClick("function(e){ post(); }"))
+                            </text>);                                          
+                        })
+                    )
+                }
+            </div>           
+        </div>      
+        <div class="col-6">
+            <div class="row">
+                @(Html.DevExtreme().Button().Text("인쇄 하기").Icon("print").OnClick("function(e){ print(); }"))
+            </div>
+            <div class="row mt-2">                
+                <div id="printPage" align=center x:publishsource="Excel" style="overflow:scroll;">
+                    <table border=0 cellpadding=0 cellspacing=0 id="printPageMain" width=648 style='border-collapse:
+                     collapse;table-layout:fixed;width:493pt'>
+                        <col width=154 style='mso-width-source:userset;mso-width-alt:4928;width:112pt'>
+                        <col width=56 style='mso-width-source:userset;mso-width-alt:1792;width:40pt'>
+                        <col width=50 style='mso-width-source:userset;mso-width-alt:1600;width:36pt'>
+                        <col width=37 style='mso-width-source:userset;mso-width-alt:1184;width:26pt'>
+                        <col width=97 style='mso-width-source:userset;mso-width-alt:3104;width:71pt'>
+                        <col width=89 style='mso-width-source:userset;mso-width-alt:2848;width:63pt'>
+                        <col width=11 style='mso-width-source:userset;mso-width-alt:352;width:6pt'>
+                        <col width=6 style='mso-width-source:userset;mso-width-alt:192;width:3pt'>
+                        <col width=24 style='mso-width-source:userset;mso-width-alt:768;width:16pt'>
+                        <col width=16 style='mso-width-source:userset;mso-width-alt:512;width:10pt'>
+                        <col width=21 style='mso-width-source:userset;mso-width-alt:672;width:14pt'>
+                        <col width=39 style='mso-width-source:userset;mso-width-alt:1248;width:25pt'>
+                        <col width=30 style='mso-width-source:userset;mso-width-alt:960;width:21pt'>
+                        <col width=28 style='mso-width-source:userset;mso-width-alt:896;width:19pt'>
+                        <col width=53 style='mso-width-source:userset;mso-width-alt:1696;width:36pt'>
+                        <col width=45 style='mso-width-source:userset;mso-width-alt:1440;width:32pt'>
+                        <col width=48 style='mso-width-source:userset;mso-width-alt:1536;width:34pt'>
+                        <tr height=22 style='mso-height-source:userset;height:16.5pt'>
+                        <td colspan=6 rowspan=3 height=66 class=xl7629927 width=483 style='border-right:
+                        .5pt solid black;border-bottom:.5pt solid black;height:49.5pt;width:364pt'>월간
+                        품질 개선 대책</td>
+                        <td class=xl1529927 width=11 style='width:8pt'></td>
+                        <td class=xl1529927 width=6 style='width:5pt'></td>
+                        <td class=xl1529927 width=24 style='width:18pt'></td>
+                        <td colspan=2 rowspan=5 class=xl7029927 width=37 style='width:28pt'>결<br>
+                        <br>
+                        재</td>
+                        <td colspan=2 class=xl6329927 width=69 style='border-left:none;width:52pt'>작
+                        성</td>
+                        <td colspan=2 class=xl6529927 width=81 style='border-right:.5pt solid black;
+                        border-left:none;width:61pt'>검 토</td>
+                        <td colspan=2 class=xl6329927 width=93 style='border-left:none;width:70pt'>승인</td>
+                        </tr>
+                        <tr height=22 style='height:16.5pt'>
+                        <td height=22 class=xl1529927 style='height:16.5pt'></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td colspan=2 rowspan=3 class=xl6329927>　</td>
+                        <td colspan=2 rowspan=3 class=xl6929927 style='border-right:.5pt solid black;
+                        border-bottom:.5pt solid black'>　</td>
+                        <td colspan=2 rowspan=3 class=xl6329927>　</td>
+                        </tr>
+                        <tr height=22 style='height:16.5pt'>
+                        <td height=22 class=xl1529927 style='height:16.5pt'></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        </tr>
+                        <tr height=22 style='height:16.5pt'>
+                        <td height=22 class=xl1529927 style='height:16.5pt'></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        </tr>
+                        <tr height=22 style='height:16.5pt'>
+                        <td height=22 class=xl1529927 style='height:16.5pt'></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td colspan=6 class=xl6329927 style='border-left:none'>제 개정일자 : 1999년 06월 01일</td>
+                        </tr>
+                        <tr height=22 style='height:16.5pt'>
+                        <td height=22 class=xl1529927 style='height:16.5pt'></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        <td class=xl1529927></td>
+                        </tr>
+                        <tr height=36 style='mso-height-source:userset;height:27.0pt'>
+                        <td height=36 class=xl6329927 style='height:27.0pt'>작업 기간</td>
+                        <td colspan=4 class=xl6329927 style='border-left:none'><span id="workFromTo"></span></td>
+                        <td colspan=5 class=xl6329927 style='border-left:none'>작성일자</td>
+                        <td colspan=7 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'><span id="workdate"></span></td>
+                        </tr>
+                        <tr height=36 style='mso-height-source:userset;height:27.0pt'>
+                        <td height=36 class=xl6329927 style='height:27.0pt;border-top:none'>작업 수량
+                        (EA)</td>
+                        <td colspan=2 class=xl6429927 style='border-left:none'><span id="TOTALWORKQUANTITY"></span></td>
+                        <td colspan=2 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'>불량발생수량(EA)</td>
+                        <td colspan=3 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'><span id="TOTALDEFECTQUANTITY"></span></td>
+                        <td colspan=4 class=xl6329927 style='border-left:none'>작 성 자</td>
+                        <td colspan=5 class=xl6329927 style='border-left:none'><span id="worker"></span></td>
+                        </tr>
+                        <tr height=36 style='mso-height-source:userset;height:27.0pt'>
+                        <td colspan=2 rowspan=2 height=72 class=xl6329927 style='height:54.0pt'>발생
+                        유형별 수량 (EA)</td>
+                        <td colspan=2 class=xl6329927 style='border-left:none'><span id="DEF01_NAME"></span></td>
+                        <td class=xl6329927 style='border-top:none;border-left:none'><span id="DEF02_NAME"></span></td>
+                        <td colspan=3 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'><span id="DEF03_NAME"></span></td>
+                        <td colspan=4 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'><span id="DEF04_NAME"></span></td>
+                        <td colspan=3 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'><span id="DEF05_NAME"></span></td>
+                        <td colspan=2 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'><span id="DEF06_NAME"></span></td>
+                        </tr>
+                        <tr height=36 style='mso-height-source:userset;height:27.0pt'>
+                        <td colspan=2 height=36 class=xl6329927 style='height:27.0pt;border-left:
+                        none'><span id="DEF01_VALUE"></span></td>
+                        <td class=xl6329927 style='border-top:none;border-left:none'><span id="DEF02_VALUE"></span></td>
+                        <td colspan=3 class=xl6329927 style='border-left:none'><span id="DEF03_VALUE"></span></td>
+                        <td colspan=4 class=xl6329927 style='border-left:none'><span id="DEF04_VALUE"></span></td>
+                        <td colspan=3 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'><span id="DEF05_VALUE"></span></td>
+                        <td colspan=2 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'><span id="DEF06_VALUE"></span></td>
+                        </tr>
+                        <tr height=41 style='mso-height-source:userset;height:30.75pt'>
+                        <td colspan=17 height=41 class=xl6329927 style='height:30.75pt'>주요 불량 발생원인 / 작성자 의견</td>
+                        </tr>
+                        <tr height=109 style='mso-height-source:userset;height:81.75pt'>
+                        <td colspan=17 height=109 class=xl6329927 style='height:81.75pt;text-align:left;vertical-align:top;'><span id="DEFECTCAUSE"></span></td>
+                        </tr>
+                        <tr height=32 style='mso-height-source:userset;height:24.0pt'>
+                        <td colspan=8 height=32 class=xl6529927 style='border-right:.5pt solid black;
+                        height:24.0pt'>개 선 내용</td>
+                        <td colspan=6 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'>일 정 계 획</td>
+                        <td colspan=3 class=xl6529927 style='border-right:.5pt solid black;
+                        border-left:none'>비 고</td>
+                        </tr>
+                        <tr height=89 style='mso-height-source:userset;height:66.75pt'>
+                        <td colspan=8 height=89 class=xl8529927 style='height:66.75pt;text-align:left;vertical-align:top;'><span id="MEASURES"></span></td>
+                        <td colspan=6 class=xl6329927 style='border-left:none;text-align:left;vertical-align:top;'><span id="MEASURES_PLAN"></span></td>
+                        <td colspan=3 class=xl6329927 style='border-left:none;text-align:left;vertical-align:top;'><span id="MEASURES_MEMO"></span></td>
+                        </tr>
+                        <tr height=22 style='height:16.5pt'>
+                        <td colspan=8 height=22 class=xl6329927 style='height:16.5pt'>전월사후평가</td>
+                        <td colspan=6 class=xl6329927 style='border-left:none'>일정계획</td>
+                        <td colspan=3 class=xl6329927 style='border-left:none'>비고</td>
+                        </tr>
+                        <tr height=102 style='mso-height-source:userset;height:76.5pt'>
+                        <td colspan=8 height=102 class=xl6329927 style='height:76.5pt;text-align:left;vertical-align:top;'><span id="POSTEVALUATION"></span></td>
+                        <td colspan=6 class=xl6329927 style='border-left:none;text-align:left;vertical-align:top;'><span id="POSTEVALUATION_PLAN"></span></td>
+                        <td colspan=3 class=xl6329927 style='border-left:none;text-align:left;vertical-align:top;'><span id="POSTEVALUATION_MEMO"></span></td>
+                        </tr>
+                        <tr height=22 style='height:16.5pt'>
+                        <td colspan=17 height=22 class=xl6729927 style='height:16.5pt'>신 아 엠 피 씨</td>
+                        </tr>
+                        <![if supportMisalignedColumns]>
+                        <tr height=0 style='display:none'>
+                        <td width=154 style='width:116pt'></td>
+                        <td width=56 style='width:42pt'></td>
+                        <td width=50 style='width:38pt'></td>
+                        <td width=37 style='width:28pt'></td>
+                        <td width=97 style='width:73pt'></td>
+                        <td width=89 style='width:67pt'></td>
+                        <td width=11 style='width:8pt'></td>
+                        <td width=6 style='width:5pt'></td>
+                        <td width=24 style='width:18pt'></td>
+                        <td width=16 style='width:12pt'></td>
+                        <td width=21 style='width:16pt'></td>
+                        <td width=39 style='width:29pt'></td>
+                        <td width=30 style='width:23pt'></td>
+                        <td width=28 style='width:21pt'></td>
+                        <td width=53 style='width:40pt'></td>
+                        <td width=45 style='width:34pt'></td>
+                        <td width=48 style='width:36pt'></td>
+                        </tr>
+                        <![endif]>
+                    </table>
+                </div>
+            </div>            
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(function () {
+        var form = $("#formInfo").dxForm("instance");
+        form.option("formData.YEARANDMONTH", new Date());
+    });
+
+    function formInfo_YEARANDMONTH_OnValueChanged(e) {
+        $('#workFromTo').text(e.value.getMonth() + 1 + '월' + '1일 ~ ' +  (e.value.getMonth() + 1) + '월' +(new Date(e.value.getFullYear(), e.value.getMonth() + 1, 0)).getDate() + '일');
+        var param = $.param({ YearAndMonth: Globalize.dateFormatter({dateTime:'short'})($("#formInfo").dxForm("instance").option("formData.YEARANDMONTH")) });
+        setForm(param);
+    }
+
+    function setForm(param) {
+         $.ajax({
+            url: '@Url.Action("get", "QUAO001WebApi", new { httproute = "DefaultApi", })' + "?" + param,
+            type: 'GET',
+            success: function (data) {
+                var form = $("#formInfo").dxForm("instance");                
+                form.option("formData.WORKDATE", new Date(data.WORKDATE));
+                form.option("formData.WORKER", data.WORKER);
+
+                form.option("formData.TOTAL_DEFECT_QUANTITY", data.TOTAL_DEFECT_QUANTITY);
+                form.option("formData.TOTAL_WORK_QUANTITY", data.TOTAL_WORK_QUANTITY);                
+                                
+                form.option("formData.DEFECTCAUSE", data.DEFECTCAUSE);
+                form.option("formData.MEASURES", data.MEASURES);
+                form.option("formData.MEASURES_PLAN", data.MEASURES_PLAN);
+                form.option("formData.MEASURES_MEMO", data.MEASURES_MEMO);
+                form.option("formData.POSTEVALUATION", data.POSTEVALUATION);
+                form.option("formData.POSTEVALUATION_PLAN", data.POSTEVALUATION_PLAN);
+                form.option("formData.POSTEVALUATION_MEMO", data.POSTEVALUATION_MEMO);
+
+                $("#grdDefectList").dxDataGrid("instance").option("dataSource", data.DEFECT_LIST);
+
+                if (data.DEFECT_LIST.length > 0) {
+                    for (var defIndex = 0; data.DEFECT_LIST.length > defIndex; defIndex++){                    
+                        $("#DEF0" + (defIndex + 1) + '_VALUE').text(data.DEFECT_LIST[defIndex]["DEFECTQTY"]);
+                        $("#DEF0" + (defIndex + 1) + '_NAME').text(data.DEFECT_LIST[defIndex]["DEFECTNAME"]);
+                    }
+                } else {
+                    $("#DEF0" + (defIndex + 1) + '_VALUE').text(data.DEFECT_LIST[defIndex]["DEFECTQTY"]);
+                    $("#DEF0" + (defIndex + 1) + '_NAME').text(data.DEFECT_LIST[defIndex]["DEFECTNAME"]);
+                }                
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+    
+    function post() {        
+        var form = $("#formInfo").dxForm("instance");
+
+        var aJson = new Object();
+        var yearAndMonth = form.option("formData.YEARANDMONTH")
+        aJson.YEARMONTH = yearAndMonth.getFullYear() + "-" + (parseInt(yearAndMonth.getMonth()) + 1);
+        aJson.WORKDATE = form.option("formData.WORKDATE");
+        aJson.WORKER = form.option("formData.WORKER");
+        aJson.DEFECTCAUSE = form.option("formData.DEFECTCAUSE");
+        aJson.MEASURES = form.option("formData.MEASURES");
+        aJson.MEASURES_PLAN = form.option("formData.MEASURES_PLAN");
+        aJson.MEASURES_MEMO = form.option("formData.MEASURES_MEMO");
+        aJson.POSTEVALUATION = form.option("formData.POSTEVALUATION");
+        aJson.POSTEVALUATION_PLAN = form.option("formData.POSTEVALUATION_PLAN");
+        aJson.POSTEVALUATION_MEMO = form.option("formData.POSTEVALUATION_MEMO");
+
+        var data = {};
+        data.values = JSON.stringify(aJson);
+        
+        $.ajax({
+            url:
+                '@Url.Action("post", "QUAO001WebApi", new { httproute = "DefaultApi", })',
+                type: 'POST',
+                data: data,
+                success: function() {
+                    DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS',
+                        'success',
+                        globalNotificationSuccessTime);
+                    return true;
+                },
+                error: function(e) {
+                    showError(this, e);
+                    return false;
+                }
+        });
+    }
+    
+    function postAndPrint() {
+        if (post()) {
+            print();
+        }
+    }
+
+    function print() {
+        localStorage.improveMeasuresPage = $('#printPage').html(); 
+        window.open(rootURL + 'PrintOut/ImprovementMeasures', 'popupWindow', 'width=600,height=600,scrollbars=yes');
+    }
+
+    function newlinetoBR(value) {
+        if (value == null) {
+            return '';
+        } else {
+            return value.replace(/\n/g, '<br>');   
+        }        
+    }       
+</script>

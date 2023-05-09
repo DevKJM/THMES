@@ -1,0 +1,114 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.MAT.MATD;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<MATD003_LIST>
+                  ()
+                  .ID("grdSurveyHis")
+                  .DataSource(d => d.WebApi().Controller("MATD003WebApi").Key("SERIALNUMBER"))
+                  .Columns(columns =>
+                  {
+                      //columns.AddFor(m => m.PLANTCODE);
+                      columns.AddFor(m => m.PARTNUMBER);
+                      columns.AddFor(m => m.MATERIALNAME);
+                      columns.AddFor(m => m.MATERIALTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("MATERIALTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.WAREHOUSECODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("WAREHOUSECODE")
+                              .LoadAction("WAREHOUSE_LIST"))
+                              .DisplayExpr("WAREHOUSENAME")
+                              .ValueExpr("WAREHOUSECODE")
+                          );
+                      columns.AddFor(m => m.LOTNUMBER);
+                      columns.AddFor(m => m.SERIALNUMBER);
+                      columns.AddFor(m => m.UNITCODE)
+                          .Lookup(lookup => lookup
+                              .DataSource(d => d.WebApi()
+                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                  .LoadAction("UNITCODE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.SURVEYDATE).Width(170)
+                          .Format(f => f.Type(Format.ShortDate))
+                          .SelectedFilterOperation(FilterOperations.Between)
+                          .FilterValue(new JS("[(new Date(new Date().getFullYear(),new Date().getMonth(), 1)), new Date(new Date().getFullYear(),new Date().getMonth()+1, 0)]"))
+                          .SortOrder(SortOrder.Desc);
+                      columns.AddFor(m => m.SURVEYQUANTITY)
+                          .Format(f => f.Type(Format.FixedPoint).Precision(0));
+                      columns.AddFor(m => m.CREATEUSER);
+                      columns.AddFor(m => m.CREATEDATE).SortOrder(SortOrder.Asc)
+                          .Format(f => f.Type(Format.ShortDateShortTime));
+                      columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                      columns.AddFor(m => m.WORKER)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("EMPCODE")
+                              .LoadAction("HR_LIST"))
+                              .DisplayExpr("EMPNAME")
+                              .ValueExpr("EMPCODE")
+                          );
+                      columns.AddFor(m => m.PROCESSYN)//.SortOrder(SortOrder.Asc)
+                          .Lookup(lookup => lookup.DataSource(new JS("USE_YN"))
+                              .DisplayExpr("NAME")
+                              .ValueExpr("CODE")).Visible(false);
+                  })
+
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowAdding(false)
+                          .AllowUpdating(false)
+                          .AllowDeleting(false)
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  .OnInitialized("grdSurveyHis_OnInitialized")
+                  .Option("KEY_FIELD", new object[]
+                  {
+                      "PLANTCODE", "PARTNUMBER", "MATERIALNAME", "LOTNUMBER", "SERIALNUMBER", "MATERIALTYPE",
+                      "WAREHOUSECODE", "UNITCODE", "SURVEYDATE", "SURVEYQUANTITY", "CREATEUSER", "QUANTITY",
+                      "PROCESSYN", "WORKER", "CREATEDATE"
+                  })
+                  .Option("USE_REQUIRED_HEADER", true)
+                  )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdSurveyHis_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

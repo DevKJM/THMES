@@ -1,0 +1,96 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<StandardWeightMaster>()
+                                  .DataSource(d => d.WebApi().Controller("MSTN001WebApi").Key("STANDARDWEIGHTID"))
+                                  .ID("grdStandardWeightMaster")
+                                  .Columns(columns =>
+                                  {
+                                      columns.AddFor(m => m.PRODUCTSPECTYPE)
+                                          .Lookup(lookup => lookup
+                                              .DataSource(d => d.WebApi()
+                                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                                  .LoadAction("PRODUCTSPECTYPE_LIST"))
+                                              .DisplayExpr("SYSCODENAME")
+                                              .ValueExpr("SYSCODE")
+                                          ).SortOrder(SortOrder.Asc);
+                                      columns.AddFor(m => m.EXTERNALDIAMETER).Format(f => f.Type(Format.FixedPoint).Precision(2));
+                                      columns.AddFor(m => m.INTERNALDIAMETER).Format(f => f.Type(Format.FixedPoint).Precision(2));
+                                      columns.AddFor(m => m.THICKNESS).Format(f => f.Type(Format.FixedPoint).Precision(2));
+                                      columns.AddFor(m => m.METERPERWEIGHT).Format(f => f.Type(Format.FixedPoint).Precision(2)).Caption("미터당 중량");
+                                      //columns.AddFor(m => m.CENTIMETERPERWEIGHT).Format(f => f.Type(Format.FixedPoint).Precision(2));
+                                      columns.AddFor(m => m.MEMO).EditCellTemplate(@<text>@(Html.DevExtreme().TextArea().Height(100).Value(new JS("data.MEMO")).OnValueChanged("function(e){setValue(e.value);}"))</text>);
+                                    columns.AddFor(m => m.CREATEUSER);
+                                    columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                                    columns.AddFor(m => m.RECENTUSER);
+                                    columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                                })
+                                .AllowColumnResizing(true)
+                                .RemoteOperations(true)
+                                .FilterPanel(f => f.Visible(true))
+                                .ColumnAutoWidth(true)
+                                .Paging(p => p.PageSize(25).Enabled(true))
+                                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                //.StateStoring(s => s.Enabled(true).StorageKey("MSTD001_grdPartNumber").Type(StateStoringType.LocalStorage))
+                                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                .ShowRowLines(true)
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                                .SearchPanel(searchPanel => searchPanel
+                                    .Visible(true)
+                                    .Width(180)
+                                    .Placeholder("Search...")
+                                )
+                                .FilterRow(filterRow => filterRow
+                                    .Visible(true)
+                                    .ApplyFilter(GridApplyFilterMode.Auto)
+                                )
+                                .ShowBorders(true)
+                                .AllowColumnResizing(true)
+                                .Editing(e =>
+                                    e.Mode(GridEditMode.Batch)
+                                        .AllowUpdating(new JS("iudAuth()"))
+                                        .AllowAdding(new JS("iudAuth()"))
+                                        .AllowDeleting(new JS("iudAuth()"))
+                                )
+                                .RowAlternationEnabled(true)
+                        .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                        .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                        .OnInitialized("grdPartNumber_OnInitialized")
+                        //.Option("KEY_FIELD", new object[] { "PARTNUMBER" })
+                        //.Option("INIT_FIELD", new object[] { "USEYN", "PARTNUMBER" })
+                        .OnInitNewRow("grdPartNumber_OnInitNewRow")
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdPartNumber_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdPartNumber_OnInitNewRow(e) {
+        e.data.SAFETYINVENTQUANTITY = 0;
+    }
+
+</script>
+
+
+@Html.Partial("_DropdownPartial")

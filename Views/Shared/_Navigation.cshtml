@@ -1,0 +1,447 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.Controllers;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using System.Threading;
+@using JSMES.WebUI.Alpha.ViewModels;
+
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav" id="side-menu">
+            <li class="nav-header">
+                <div class="dropdown profile-element">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                        <span class="clear">
+                            @{
+                                var userInfo = LoginUserInfo.get(User.Identity.GetUserId());
+                                <img style="float:left;margin:8px;" src="@Url.Content("~/")@userInfo.PHOTOURL" width="70" height="70" class="img-circle">
+
+                                <span class="block m-t-xs">
+                                    <strong class="font-bold">@userInfo.EMPNAME</strong> <small>(@User.Identity.Name)</small>
+                                </span>
+                                if (userInfo.DEPARTMENT != null && @userInfo.POSITION != null)
+                                {
+                                    <span class="block m-t-xs">
+                                        <small>@userInfo.DEPARTMENT / @userInfo.POSITION</small>
+                                    </span>
+                                }
+                                else if (userInfo.DEPARTMENT == null && @userInfo.POSITION != null)
+                                {
+                                    <span class="block m-t-xs">
+                                        <small>@userInfo.POSITION</small>
+                                    </span>
+                                }
+                                else if (userInfo.DEPARTMENT != null && @userInfo.POSITION == null)
+                                {
+                                    <span class="block m-t-xs">
+                                        <small>@userInfo.DEPARTMENT</small>
+                                    </span>
+                                }
+                                <span class="block">
+                                    <small>@userInfo.Email</small>
+                                </span>
+                            }
+                            <span class="text-muted text-xs block"><small>@LabelText.CONFIG</small><b class="caret"></b></span>
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu animated fadeInDown m-t-xs">
+                        <li><a href="javascript:showChangePasswrod();">@LabelText.RESET_PASSWORD</a></li>
+                        <li><a href="javascript:document.getElementById('logoutForm').submit()">@LabelText.LOGOUT</a></li>
+                    </ul>
+                </div>
+                <div class="logo-element">
+                    @System.Configuration.ConfigurationManager.AppSettings["systemName"]
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+@*첨부 팝업 _ FORM*@
+@(Html.DevExtreme().Popup()
+    .ID("LOGIN_PASSWORDCHANGE_POPUP")
+    .ElementAttr("class", "popup")
+    .Animation(a=>a.Show(s=>s.Direction(Direction.Top).Type(AnimationType.SlideIn)))
+    .ShowTitle(true)
+    .DragEnabled(true)    
+    .ContentTemplate(@<text>
+                           <div class="container-fluid">
+                               <div class="row">
+                                   <div class="col-12">
+                                       @(Html.DevExtreme().Form<PasswordChangeViewModel>()
+                                             .ID("loginPasswordChangeForm")
+                                             .ColCount(2)
+                                             .Items(items =>
+                                             {
+                                                 items.AddSimpleFor(m => m.EMPID)
+                                                     .Editor(e => e
+                                                         .TextArea()
+                                                         .StylingMode(EditorStylingMode.Filled)).ColSpan(2).Visible(false);
+
+                                                 items.AddSimpleFor(m => m.EMPCODE)
+                                                     .Editor(e => e
+                                                         .DropDownBox()
+                                                         .Disabled((true))
+                                                         .ValueExpr("EMPCODE")
+                                                         .DisplayExpr("EMPNAME")
+                                                         .DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                                             .LoadAction("HR_LIST")
+                                                             .Key("EMPCODE")
+                                                         )
+                                                     ).ColSpan(2);
+
+                                                 items.AddSimpleFor(m => m.EMPPWD)
+                                                     .Editor(e => e
+                                                         .TextBox()
+                                                         .Mode(TextBoxMode.Password)
+                                                         .StylingMode(EditorStylingMode.Filled)).ColSpan(2);
+
+                                                 items.AddSimpleFor(m => m.EMPCONFIRMPWD)
+                                                     .Editor(e => e
+                                                         .TextBox()
+                                                         .Mode(TextBoxMode.Password)
+                                                         .StylingMode(EditorStylingMode.Filled)).ColSpan(2);
+
+                                             })
+                                             )
+                                   </div>
+                               </div>
+                           </div>
+
+                        </text>)
+    .FullScreen(false)
+    .ShowCloseButton(true)
+    .Width(430)
+    .Height(250)
+    .Title(LabelText.RESET_PASSWORD)
+    .ToolbarItems(t =>
+    {
+      t.Add().Widget(w => w.Button().Text(LabelText.INSERT)
+          .Width(200)
+          .OnClick("loginPasswordChangeForm_save_onClick")
+          .Icon("check")
+          .Type(ButtonType.Success).StylingMode(ButtonStylingMode.Contained))
+          .Location(ToolbarItemLocation.After).Toolbar(Toolbar.Bottom);
+      t.Add().Widget(w => w.Button().Text(LabelText.CANCEL)
+          .OnClick("loginPasswordChangeForm_cancel_onClick")
+          .Icon("close")
+          .Type(ButtonType.Normal)
+          .Width(200).StylingMode(ButtonStylingMode.Contained))
+          .Location(ToolbarItemLocation.After).Toolbar(Toolbar.Bottom);
+    })
+)
+
+
+<script type="text/javascript">
+    var fullScreenName = '';
+    
+    function showChangePasswrod() {
+        var param = new Object();
+        param.EMPID = getLoginUserId();
+        param.EMPCODE = '@User.Identity.Name';
+        param.EMPPWD = ''; 
+        param.EMPCONFIRMPWD = ''; 
+
+        $('#LOGIN_PASSWORDCHANGE_POPUP').dxPopup('instance').show();
+        var form = $('#loginPasswordChangeForm').dxForm('instance');
+        form.option('formData', param);
+        var editor = form.getEditor('EMPPWD');
+        editor.option("isValid", true);
+        var editor = form.getEditor('EMPCONFIRMPWD');
+        editor.option("isValid", true);
+    }
+
+    // 암호 변경 
+    function loginPasswordChangeForm_save_onClick(e) {
+        var form = $('#loginPasswordChangeForm').dxForm('instance');
+        var result = form.validate();
+
+        if (result.isValid == true) {
+            var data = {};
+            data.key = form.option('formData.EMPID');
+            data.values = JSON.stringify(form.option('formData'));
+
+            $.ajax({
+                url: '@Url.Action("changePassword", "MSTA001WebApi", new { httproute = "DefaultApi", })',
+                type: 'POST',
+                data: data,
+                success: function () {
+                    $('#LOGIN_PASSWORDCHANGE_POPUP').dxPopup('instance').hide();
+                    DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+                },
+                error: function (e) {
+                    showError(this, e);
+                }
+            });
+        }
+    }
+
+    // 암호 변경 취소
+    function loginPasswordChangeForm_cancel_onClick(e) {
+        var form = $('#loginPasswordChangeForm').dxForm('instance');
+        form.option('formData.EMPPWD', null);
+        form.option('formData.EMPCONFIRMPWD', null);
+        var validate = form.validate();
+
+        if (validate.brokenRules.length > 0) {
+            validate.brokenRules.forEach(function (e) {
+                e.validator.reset();
+            });
+        }
+
+        $('#loginPasswordChangeForm').dxPopup('instance').hide();
+    }
+
+    $(document).ready(function () {
+        var queryResult = getnavigationDataSource();
+
+        queryResult.store.load().done(function(e) {
+            var controllerGroupName = controllerName.substring(0, 3);
+
+            for (itemIndex = 0; itemIndex < e.length; itemIndex++) {
+                var firstLevel = "";
+
+                if (e[itemIndex].PARENTMENUID == null && e[itemIndex].MENULEVEL == 1) {
+                    if (controllerGroupName == e[itemIndex].MENUCODE) {
+                        firstLevel =
+                            "<li class='active' id='" + e[itemIndex].MENUID + "'>";
+                        $('#CurrentLocation').append('<li class="breadcrumb-item""><i class="fa fa-location-arrow"> ' + e[itemIndex].MENUNAME + '</i> </li>');
+                        fullScreenName = fullScreenName + "_" + e[itemIndex].MENUNAME;
+                    } else {
+                        firstLevel = "<li id='" + e[itemIndex].MENUID + "'>";
+                    }
+
+                    firstLevel =
+                        firstLevel +
+                        "     <a href='#' onclick='setMenuState_lv1(this)'><i class='" +
+                        e[itemIndex].MENUICON +
+                        "'></i> <span class='nav-label' id='" +
+                        + e[itemIndex].MENUID +
+                        "_S'><small>" +
+                        e[itemIndex].CONTENTID + '</small> ' +
+                        e[itemIndex].MENUNAME +
+                        "</span> </a>";
+
+                    if (controllerGroupName == e[itemIndex].MENUCODE) {
+                        firstLevel =
+                            firstLevel +
+                            "     <ul class='nav nav-second-level collapse in' id='" +
+                            e[itemIndex].MENUID +
+                            "_UL'></ul>";
+                    } else {
+                        firstLevel =
+                            firstLevel +
+                            "     <ul class='nav nav-second-level collapse' id='" +
+                            e[itemIndex].MENUID +
+                            "_UL'></ul>";
+                    }
+
+                    firstLevel = firstLevel + "</li>";
+
+                    $("#side-menu").append(firstLevel);
+                }
+            }
+
+            for (itemIndex = 0; itemIndex < e.length; itemIndex++) {
+
+                var sourceHtml = "";
+                firstLevel = "";
+
+                if (e[itemIndex].PARENTMENUID != null && e[itemIndex].MENULEVEL == 2) {
+
+                    if (e[itemIndex].URL2 != null && e[itemIndex].URL2 != undefined && e[itemIndex].URL2 != '') {
+                        var url1 = e[itemIndex].URL1;
+                        var url2 = e[itemIndex].URL2;
+
+                        var root = '@Url.Content("~/")';
+                        var targetUrl = root + url1 + "/" + url2;
+
+                        if (controllerName == url1 && actionName == url2) {
+                            firstLevel =
+                                "<li class='active' id='" + e[itemIndex].MENUID + "''>";
+
+                            if (e[itemIndex].FAVORITE == "Y") {
+                                $('#CurrentLocation').append("<li class='breadcrumb-item'>" + e[itemIndex].MENUNAME + " <span class='fa fa-bookmark-o' id='favoriteMenu' style='cursor:pointer' onclick='setFavoriteMenu(\"" + e[itemIndex].MENUCODE + "\");'></span></li>");
+                            } else {
+                                $('#CurrentLocation').append("<li class='breadcrumb-item'>" + e[itemIndex].MENUNAME + " <span class='fa fa-bookmark' id='favoriteMenu' style='cursor:pointer' onclick='setFavoriteMenu(\"" + e[itemIndex].MENUCODE + "\");'></span></li>");
+                            }
+
+                            fullScreenName = fullScreenName + "_" + e[itemIndex].MENUNAME;
+                        } else {
+                            firstLevel = "<li id='" + e[itemIndex].MENUID + "'>";
+                        }
+
+                        var externalLink = "<i class='fa fa-external-link externalLink' style='right:3px;' onclick='window.open(\"" + targetUrl + "\");return false;'></i>";
+
+                        firstLevel =
+                            firstLevel +
+                            "     <a href='" + targetUrl + "'><i class='" +
+                            e[itemIndex].MENUICON +
+                            "'></i><small>" +
+                            e[itemIndex].CONTENTID + '</small> ' +
+                            e[itemIndex].MENUNAME + externalLink +
+                            "</span></a>";
+                    } else {
+                        if (controllerName == e[itemIndex].MENUCODE) {
+                            firstLevel =
+                                "<li class='active' id='" + e[itemIndex].MENUID + "''>";
+                            $('#CurrentLocation').append("<li class='breadcrumb-item'>" + e[itemIndex].MENUNAME + " </li>");
+                            fullScreenName = fullScreenName + '_' + e[itemIndex].MENUNAME;
+                        } else {
+                            firstLevel = "<li id='" + e[itemIndex].MENUID + "'>";
+                        }
+
+                        firstLevel =
+                            firstLevel +
+                            "     <a href='#' onclick='setMenuState_lv2(this)'><i class='" +
+                            e[itemIndex].MENUICON +
+                            "'></i><small>" +
+                            e[itemIndex].CONTENTID + '</small> ' +
+                            e[itemIndex].MENUNAME +
+                            "</a>";
+                    }
+
+                    if (controllerName == e[itemIndex].MENUCODE) {
+                        firstLevel =
+                            firstLevel +
+                            "     <ul class='nav nav-third-level collapse in' id='" +
+                            e[itemIndex].MENUID +
+                            "_UL'></ul>";
+                    } else {
+                        firstLevel =
+                            firstLevel +
+                            "     <ul class='nav nav-third-level collapse' id='" +
+                            e[itemIndex].MENUID +
+                            "_UL'></ul>";
+                    }
+
+                    firstLevel = firstLevel + "</li>";
+
+                    $("#" + e[itemIndex].PARENTMENUID + "_UL").append(firstLevel);
+
+                    var parentItem = $("#" + e[itemIndex].PARENTMENUID + "_UL").parent();
+                }
+            }
+
+            for (itemIndex = 0; itemIndex < e.length; itemIndex++) {
+
+                var sourceHtml = "";
+
+                if (e[itemIndex].PARENTMENUID != null && e[itemIndex].MENULEVEL == 3) {
+
+                    var url1 = e[itemIndex].URL1;
+                    var url2 = e[itemIndex].URL2;
+
+                    var root = '@Url.Content("~/")';
+                    var targetUrl = root + url1 + "/" + url2;
+
+                    if (controllerName == url1 && actionName == url2) {
+                        className = 'active';
+                        
+                        if (e[itemIndex].FAVORITE == "Y") {
+                            $('#CurrentLocation').append("<li class='breadcrumb-item'>" + e[itemIndex].MENUNAME + " <span class='fa fa-bookmark-o' id='favoriteMenu' style='cursor:pointer' onclick='setFavoriteMenu(\"" + e[itemIndex].MENUCODE + "\");'></span></li>");
+                        }
+                        else {
+                            $('#CurrentLocation').append("<li class='breadcrumb-item'>" + e[itemIndex].MENUNAME + " <span class='fa fa-bookmark' id='favoriteMenu' style='cursor:pointer' onclick='setFavoriteMenu(\"" + e[itemIndex].MENUCODE + "\");'></span></li>");
+                        }
+
+                        fullScreenName = fullScreenName + '_' + e[itemIndex].MENUNAME;
+                    } else {
+                        className = '';
+                    }
+                    //<span onclick="window.open('http://localhost:40213/MSTA/MSTA001')">qqq</span>
+                    var externalLink = "<i class='fa fa-external-link externalLink' style='right:3px;' onclick='window.open(\"" + targetUrl + "\");return false;'></i>";
+
+                    sourceHtml =
+                        "<li class='" +
+                        className +
+                        "'><a href='" +
+                        targetUrl +
+                        "'><small>" +
+                        e[itemIndex].CONTENTID +
+                        "&nbsp;</small>" +
+                        e[itemIndex].MENUNAME + externalLink +
+                        "</a></li>";
+
+                    $("#" + e[itemIndex].PARENTMENUID + "_UL").append(sourceHtml);
+                    var parentItem = $("#" + e[itemIndex].PARENTMENUID + "_UL").parent();
+                }
+            }
+        });
+
+        fullScreenName = fullScreenName.replace(' ', '_');
+    });
+
+    function getnavigationDataSource() {
+        return {
+            store: DevExpress.data.AspNet.createStore({
+                key: ["EMP_CODE"],
+                loadUrl: '@Url.Action("USER_MENU_LIST", "COMA002WebApi", new { httproute = "DefaultApi" })',
+                loadParams: { EMPID: "@User.Identity.GetUserId()" }
+            })
+        };
+    }
+
+    function setMenuState_lv1(e) {
+        var liList = [];
+
+        $("#side-menu li").each(function () {
+            liList.push($(this).attr('id'));
+        });
+
+        for (index = 0; liList.length > index; index++) {
+            if (liList[index] != undefined) {
+                $("#" + liList[index]).removeClass('active');
+            }
+        }
+
+        var ulList = [];
+
+        $("#side-menu li ul").each(function () {
+            ulList.push($(this).attr('id'));
+        });
+
+        $("#" + e.parentElement.id).addClass('active');
+        $("#" + e.parentElement.id + "_UL").toggleClass('in');
+    }
+
+    
+    function setMenuState_lv2(e) {
+        var liList = [];
+        var v = $('#' + e.parentElement.id);
+        $('#' + v.children()[1].id).toggleClass('in');
+    }
+
+    function setFavoriteMenu(menuCode) {
+
+        var data = {};
+        data.EMPID = '@User.Identity.GetUserId()';
+        data.MENUCODE = menuCode;
+
+        var param = new Object();
+        param.data = JSON.stringify(data);
+
+        $.ajax({
+            url: '@Url.Action("setEmpFavoriteMenu", "COMA002WebApi", new { httproute = "DefaultApi" })',
+            type: 'POST',
+            data: param,
+            success: function () {
+                // 정상 처리 메세지 표시
+                console.log('asdf');
+                var checkFavoriteMenu = $('#favoriteMenu').attr('class');
+                if (checkFavoriteMenu.lastIndexOf('fa-bookmark-o') > 0) {
+                    $('#favoriteMenu').removeClass('fa-bookmark-o').addClass('fa-bookmark');
+                } else {
+                    $('#favoriteMenu').removeClass('fa-bookmark').addClass('fa-bookmark-o');
+                }
+
+                // 우측 즐겨찾기 메뉴 갱신
+                loadEmpFavoriteMenuList();
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+
+</script>
+

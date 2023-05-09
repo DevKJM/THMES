@@ -1,0 +1,252 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.LogStruct
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @using (Html.BeginForm())
+            {
+                @(Html.DevExtreme().Form()
+                              .ID("formInfo")
+                              .ColCount(8)
+                              //.OnContentReady("formInfo_OnContentReady")
+                              .ScrollingEnabled(false)
+                              .Items(items =>
+                              {
+                                  items.AddSimple()
+                                      .Editor(e => e
+                                          .DateBox()
+                                          //.ReadOnly(false)
+                                          .Type(DateBoxType.Date)
+                                          //.DisplayFormat(Format.MonthAndYear)
+                                          .Value(new JS("new Date()"))
+                                          .Width("100%")
+                                      //.Option("maxZoomLevel", "year")
+                                      //.Option("minZoomLevel", "century")
+                                      )
+                                      .Label(T => T.Text("일자"))
+                                      .ColSpan(1);
+
+                                  items.AddSimple()
+                                      .Editor(e => e
+                                          .DateBox()
+                                          //.ReadOnly(false)
+                                          .Type(DateBoxType.Date)
+                                          //.DisplayFormat(Format.MonthAndYear)
+                                          .Value(new JS("new Date()"))
+                                          .Width("100%")
+                                      //.Option("maxZoomLevel", "year")
+                                      //.Option("minZoomLevel", "century")
+                                      )
+                                      //.Label(T => T.Text("일자"))
+                                      .ColSpan(1);
+
+                                  items.AddSimple()
+                                      .Editor(e => e.DropDownBox()
+                                          .DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                              .Key("SYSCODE")
+                                              .LoadAction("INSPECTTYPE_LIST")
+                                          )
+                                          .ContentTemplate(new TemplateName("EmbeddedDataGridInspectype"))
+                                          .DisplayExpr("SYSCODENAME")
+                                          .ValueExpr("SYSCODE")
+                                          //.ReadOnly(true)
+                                          .Placeholder("Select a value...")
+                                      //.Value(new JS("globalEquipmentCode[0]"))
+                                      )
+                                      .Name("INSPECTTYPE")
+                                      .Label(T => T.Text(LabelText.INSPECTTYPE))
+                                      .ColSpan(2);
+
+                                  items.AddSimple()
+                                      .Editor(e => e.DropDownBox()
+                                          .DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                              .Key("EQUIPMENTCODE")
+                                              .LoadAction("EQUIPMENT_LIST")
+                                          )
+                                          .ContentTemplate(new TemplateName("EmbeddedDataGridEqp"))
+                                          .DisplayExpr("EQUIPMENTNAME")
+                                          .ValueExpr("EQUIPMENTCODE")
+                                          //.ReadOnly(true)
+                                          .Placeholder("Select a value...")
+                                      //.Value(new JS("globalEquipmentCode[0]"))
+                                      )
+                                      .Name("EQUIPMENT")
+                                      .Label(T => T.Text(LabelText.EQUIPMENT))
+                                      .ColSpan(2);
+
+                          items.AddButton().ColSpan(2)
+                                      .HorizontalAlignment(HorizontalAlignment.Left)
+                                      .ButtonOptions(b => b.Text("조회")
+                                          .Icon("check")
+                                          .ID("btnSave")
+                                          //.Height("90%")
+                                          .Width("100%")
+                                          .StylingMode(ButtonStylingMode.Contained)
+                                          .Type(ButtonType.Default)
+                                      //.OnClick("btnSave_OnClick")
+                                      );
+
+                          //items.AddEmpty()
+                          //    .ColSpan(1);
+                      })
+                )
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<SampleInspectionHistory>()
+                          .ID("grdShipment")
+                          //.DataSource(d => d.WebApi().Controller("RPTA007WebApi"))
+                          .Columns(columns =>
+                          {
+                              columns.Add().Caption("검사일자");
+                              columns.Add().Caption("설비명");
+                              columns.Add().Caption("품명");
+                              columns.Add().Caption("검사명");
+                              columns.Add().Caption("초중종 구분");
+                              columns.Add().Caption("SPEC");
+                              columns.Add().Caption("주기");
+                              columns.Add().Caption("값");
+                              columns.Add().Caption("판정");
+                              columns.Add().Caption("검사자");
+                              columns.Add().Caption("검사시간");
+                          })
+                          //.Summary(s => s.GroupItems(items =>
+                          //{
+                          //    items.AddFor(m => m.INVENTQUANTITY)
+                          //        .SummaryType(SummaryType.Sum)
+                          //        .Column("INVENTQUANTITY")
+                          //        .ValueFormat(Format.FixedPoint)
+                          //        .DisplayFormat("{0}")
+                          //        .ShowInGroupFooter(false)
+                          //        .AlignByColumn(true);
+                          //}))
+                          .RemoteOperations(true)
+                          .FilterPanel(f => f.Visible(true))
+                          .ColumnAutoWidth(true)
+                          .Paging(p => p.PageSize(25).Enabled(true))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .SearchPanel(searchPanel => searchPanel
+                              .Visible(true)
+                              .Width(180)
+                              .Placeholder("Search...")
+                          )
+                          .FilterRow(filterRow => filterRow
+                              .Visible(true)
+                              .ApplyFilter(GridApplyFilterMode.Auto)
+                          )
+                          .ShowBorders(true)
+                          .AllowColumnResizing(true)
+                          .Editing(e =>
+                              e.Mode(GridEditMode.Batch)
+                                  .AllowAdding(false)
+                                  .AllowUpdating(false)
+                                  .AllowDeleting(false)
+                          )
+                          .RowAlternationEnabled(true)
+                          .Export(e => e.Enabled(true))
+                          .OnInitialized("grdShipment_OnInitialized")
+                          .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                          .ShowRowLines(true)
+            )
+        </div>
+    </div>
+</div>
+
+@*InspType 선택*@
+@using (Html.DevExtreme().NamedTemplate("EmbeddedDataGridInspectype"))
+{
+    @(Html.DevExtreme().DataGrid<SyscodeMaster>()
+                                                  .ID("grdList")
+                                                  .DataSource(new JS(@"component.option(""dataSource"")"))
+                                                  .Columns(columns =>
+                                                  {
+                                                      columns.AddFor(m => m.SYSCODE).Visible(false);
+                                                      columns.AddFor(m => m.SYSCODENAME).Caption(LabelText.INSPECTTYPE);
+                                                  })
+                                                  //.StateStoring(s => s.Enabled(true).StorageKey("PRCA001_grdPartList").Type(StateStoringType.LocalStorage))
+                                                  .ColumnAutoWidth(true)
+                                                  .HoverStateEnabled(true)
+                                                  .Paging(p => p.PageSize(10))
+                                                  .FilterRow(f => f.Visible(false))
+                                                  .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                                                  //.Height(445)
+                                                  //.Width(800)
+                                                  .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                                                  .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                                                  .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                                                  .OnSelectionChanged(@<text>
+                                                    function(selectedItems) {
+                                                    var haskey;
+                                                    var keys = selectedItems.selectedRowKeys;
+                                                    if(typeof keys !== 'undefined' && keys.length > 0)
+                                                    {
+                                                    haskey = true;
+                                                    }
+
+                                                    component.option("value", haskey ? keys[0] : null);
+                                                    component.option("subvalue", selectedItems.selectedRowsData);
+                                                    if(typeof keys !== 'undefined' && keys.length > 0){
+                                                    component.close();
+                                                    }
+                                                    }
+                                                </text>)
+    )
+}
+
+@*설비 선택*@
+@using (Html.DevExtreme().NamedTemplate("EmbeddedDataGridEqp"))
+{
+    @(Html.DevExtreme().DataGrid<EquipmentMaster>()
+                                                  .ID("grdList")
+                                                  .DataSource(new JS(@"component.option(""dataSource"")"))
+                                                  .Columns(columns =>
+                                                  {
+                                                      columns.AddFor(m => m.EQUIPMENTCODE).Visible(false);
+                                                      columns.AddFor(m => m.EQUIPMENTNAME);
+                                                  })
+                                                  //.StateStoring(s => s.Enabled(true).StorageKey("PRCA001_grdPartList").Type(StateStoringType.LocalStorage))
+                                                  .ColumnAutoWidth(true)
+                                                  .HoverStateEnabled(true)
+                                                  .Paging(p => p.PageSize(10))
+                                                  .FilterRow(f => f.Visible(false))
+                                                  .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                                                  //.Height(445)
+                                                  //.Width(800)
+                                                  .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                                                  .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+                                                  .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+                                                  .OnSelectionChanged(@<text>
+                                                    function(selectedItems) {
+                                                    var haskey;
+                                                    var keys = selectedItems.selectedRowKeys;
+                                                    if(typeof keys !== 'undefined' && keys.length > 0)
+                                                    {
+                                                    haskey = true;
+                                                    }
+
+                                                    component.option("value", haskey ? keys[0] : null);
+                                                    component.option("subvalue", selectedItems.selectedRowsData);
+                                                    if(typeof keys !== 'undefined' && keys.length > 0){
+                                                    component.close();
+                                                    }
+                                                    }
+                                                </text>)
+    )
+}
+<script>
+    function grdShipment_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

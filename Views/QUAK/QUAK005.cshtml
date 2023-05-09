@@ -1,0 +1,77 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<RPTA007_LIST>
+                  ()
+                  .ID("grdShipment")
+                  //.DataSource(d => d.WebApi().Controller("RPTA007WebApi"))
+                  .Columns(columns =>
+                  {
+                      columns.Add().Caption("등록일자");
+                      columns.Add().Caption("설비명");
+                      columns.Add().Caption("품번");
+                      columns.Add().Caption("품명");
+                      columns.Add().Caption("이상원인");
+                      columns.Add().Caption("등록시간");
+                      columns.Add().Caption("이상조치");
+                      columns.Add().Caption("등록시간");
+                      columns.Add().Caption("메모");
+                  })
+                  //.Summary(s => s.GroupItems(items =>
+                  //{
+                  //    items.AddFor(m => m.INVENTQUANTITY)
+                  //        .SummaryType(SummaryType.Sum)
+                  //        .Column("INVENTQUANTITY")
+                  //        .ValueFormat(Format.FixedPoint)
+                  //        .DisplayFormat("{0}")
+                  //        .ShowInGroupFooter(false)
+                  //        .AlignByColumn(true);
+                  //}))
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowAdding(false)
+                          .AllowUpdating(false)
+                          .AllowDeleting(false)
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e=>e.Enabled(true))
+                  .OnInitialized("grdShipment_OnInitialized")
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  )
+        </div>
+    </div>
+</div>
+<script>
+    function grdShipment_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

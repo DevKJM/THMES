@@ -1,0 +1,570 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.PrintOut;
+@using JSMES.WebUI.Alpha.ViewModels.MON
+
+@{
+    Layout = null;
+    var PRINTOUTDATA = (PrintOutData)ViewData["PRINTOUTDATA"];
+}
+
+<html>
+<head>
+<style>
+    table
+	    {mso-displayed-decimal-separator:"\.";
+	    mso-displayed-thousand-separator:"\,";}
+    .font529927
+	    {color:windowtext;
+	    font-size:8.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;}
+    .xl1529927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:general;
+	    vertical-align:middle;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6329927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6429927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:"\#\,\#\#0";
+	    text-align:center;
+	    vertical-align:middle;
+	    border:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6529927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6629927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6729927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6829927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl6929927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7029927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:normal;}
+    .xl7129927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7229927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7329927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7429927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:none;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7529927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7629927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7729927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7829927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:.5pt solid windowtext;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl7929927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:none;
+	    border-bottom:none;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8029927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8129927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:none;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8229927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:none;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8329927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:none;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8429927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:28.0pt;
+	    font-weight:700;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-number-format:General;
+	    text-align:center;
+	    vertical-align:middle;
+	    border-top:none;
+	    border-right:.5pt solid windowtext;
+	    border-bottom:.5pt solid windowtext;
+	    border-left:none;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    .xl8529927
+	    {padding-top:1px;
+	    padding-right:1px;
+	    padding-left:1px;
+	    mso-ignore:padding;
+	    color:black;
+	    font-size:11.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	
+	    text-align:center;
+	    vertical-align:middle;
+	    border:.5pt solid windowtext;
+	    mso-background-source:auto;
+	    mso-pattern:auto;
+	    white-space:nowrap;}
+    ruby
+	    {ruby-align:left;}
+    rt
+	    {color:windowtext;
+	    font-size:8.0pt;
+	    font-weight:400;
+	    font-style:normal;
+	    text-decoration:none;
+	    font-family:"맑은 고딕", monospace;
+	    mso-font-charset:129;
+	    mso-char-type:none;
+    }
+</style>
+
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+</head>
+<body>
+
+<button id="print" onclick="viewPrint();">인쇄 하기</button>
+<div id="printPage" align=center style="height:280mm;padding-top:20px;">
+</div>
+</body>
+</html>
+<script>
+    $(function(e){
+        $('#printPage').html(localStorage.improveMeasuresPage);
+        $("#printPage").animate({'zoom':0.75}, 200);
+        viewPrint();
+    })
+
+    function viewPrint() {
+        $('#print').hide();
+        $("#printPage").animate({'zoom':1},0);
+        window.print();
+        $("#printPage").animate({'zoom':0.75}, 200);
+        $('#print').show();
+    }
+</script>

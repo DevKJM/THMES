@@ -1,0 +1,112 @@
+﻿@using(Html.DevExtreme().NamedTemplate("EmbeddedErrorToast")) {
+
+        <div class="form" style="width:100%">
+            <div class="dx-fieldset">
+                <div class="dx-fieldset-header">오류 기본 정보</div>
+                <div class="dx-field">
+                        @(Html.DevExtreme()
+                            .TextArea()
+                            .ID("errorToastTitle")
+                            .Height(50)
+                            .Width("100%")
+                        )
+                </div>
+            </div>
+            <div class="dx-fieldset">
+                <div class="dx-fieldset-header">요청 정보</div>
+                <div class="dx-field">
+                    @(Html.DevExtreme()
+                          .TextArea()
+                          .ID("errorToastRequest")
+                          .Height(70)
+                          .Width("100%")
+                          )
+                </div>
+            </div>
+            <div class="dx-fieldset">
+                <div class="dx-fieldset-header">요청 데이터</div>
+                <div class="dx-field">
+                    @(Html.DevExtreme()
+                          .TextArea()
+                          .ID("errorToastRequestData")
+                          .Height(50)
+                          .Width("100%")
+                          )
+                </div>
+            </div>
+            <div class="dx-fieldset">
+                <div class="dx-fieldset-header">상세 오류 내용</div>
+                <div class="dx-field">
+                        @(Html.DevExtreme()
+                            .TextArea()
+                            .ID("errorToastMemo")
+                            .Height(150)
+                            .Width("100%")
+                        )
+                </div>
+            </div>
+
+            <div class="dx-fieldset" id="notes-container">
+                <div class="dx-fieldset-header">조치 방법</div>
+                <div class="dx-field">
+                        @(Html.DevExtreme()
+                            .TextArea()
+                            .ID("errorToastManual")
+                            .Height(50)
+                            .Width("100%")
+                        )
+                </div>
+            </div>
+            <div class="dx-fieldset" id="notes-container">
+                @(Html.DevExtreme().Button().Text("오류 내용 복사").Type(ButtonType.Normal)
+                .OnClick("function(e){ ErrorCopyToClipboard(); }")
+                )
+            </div>
+        </div>
+}
+
+@(Html.DevExtreme().Toast()
+        .ID("errorToast")
+        .Position("")
+        .Shading(true)
+        .MinHeight(300)
+        .Width(500)
+        .DisplayTime(99999999)
+        .CloseOnOutsideClick(true)
+        .ShadingColor("rgba(0,0,0,0.3)")
+        .ContentTemplate(new TemplateName("EmbeddedErrorToast"))
+        .Type(ToastType.Error)
+)
+
+<script>
+    function ErrorCopyToClipboard() {
+        var t = document.createElement("textarea");
+        document.body.appendChild(t);
+        t.value = $('#errorToastTitle').dxTextArea('instance').option('value') + '\r\n' +
+            $('#errorToastRequest').dxTextArea('instance').option('value') + '\r\n' +
+            $('#errorToastRequestData').dxTextArea('instance').option('value') + '\r\n' +
+            $('#errorToastMemo').dxTextArea('instance').option('value') + '\r\n' +
+            $('#errorToastManual').dxTextArea('instance').option('value');
+        t.select();
+        document.execCommand('copy');
+        document.body.removeChild(t);
+    }
+
+    function showError(sender, e) {
+        var title = e.responseJSON.Message;
+        var request = JSON.stringify(sender);
+        var memo = e.responseText;
+
+        if (e.status === 400) {
+            DevExpress.ui.notify(title, "error", globalNotificationErrorTime);
+        }
+        else {
+            $('#errorToast').dxToast('instance').show();
+            $('#errorToastTitle').dxTextArea('instance').option('value', title);
+            $('#errorToastRequest').dxTextArea('instance').option('value', request);
+            $('#errorToastRequestData').dxTextArea('instance').option('value', decodeURIComponent(JSON.parse(request).data));
+            $('#errorToastMemo').dxTextArea('instance').option('value', memo);
+            $('#errorToastManual').dxTextArea('instance').option('value', '시스템 담당자에게 문의 하세요.');
+        }
+    }
+</script>

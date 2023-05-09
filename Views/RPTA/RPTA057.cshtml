@@ -1,0 +1,147 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<RPTA057_LIST>
+                  ()
+                  .ID("grdShipment")
+                  .DataSource(d => d.WebApi().Controller("RPTA057WebApi"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.WORKDATE).Format(f => f.Type(Format.ShortDate))
+                          .SelectedFilterOperation(FilterOperations.Between)
+                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                      //columns.AddFor(m => m.PARTNUMBER);
+                      columns.AddFor(m => m.PRODUCTNAME);
+                      columns.AddFor(m => m.VENDORCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi")
+                              .Key("VENDORCODE")
+                              .LoadAction("VENDOR_LIST")
+                              )
+                              .DisplayExpr("VENDORNAME")
+                              .ValueExpr("VENDORCODE")
+                          );
+                      columns.AddFor(m => m.UNITCOST).DataType(GridColumnDataType.Number).Format(f=>f.Type(Format.Currency).Currency("KRW"));
+                      columns.AddFor(m => m.TOTALCOST).DataType(GridColumnDataType.Number).Format(f=>f.Type(Format.Currency).Currency("KRW")).Caption("금액");
+                      columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                  })
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowAdding(false)
+                          .AllowUpdating(false)
+                          .AllowDeleting(false)
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  .OnInitialized("grdShipment_OnInitialized")
+                  .Option("IGNORE_AUTOWIDTH", new object[] { "VENDORCODE"})
+                  .OnRowClick("grdShipment_OnRowClick")
+                  .MasterDetail(m => m
+                      .Enabled(false)
+                      .Template(new TemplateName("grdShipment-details"))
+                  )
+                  //.OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  //.ShowRowLines(true)
+                  )
+        </div>
+    </div>
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("grdShipment-details"))
+{
+    @(Html.DevExtreme().DataGrid<RPTA057B_LIST>()
+                  .ID(new JS("'grdShipment-details-' + data.WORKDATE + data.PARTNUMBER"))
+                  .ElementAttr("class", "detail-grid")
+                  .ShowBorders(true)
+                  .AllowColumnResizing(false)
+                  .ColumnAutoWidth(false)
+                  .FilterPanel(f => f.Visible(false))
+                  .RowAlternationEnabled(true)
+                  .DataSource(d => d.WebApi()
+                      .Controller("RPTA057WebApi")
+                      .LoadAction("get_detail")
+                      .LoadParams(new
+                      {
+                          workdate = new JS("function() { return data.WORKDATE; }"),
+                          partnumber = new JS("function() { return data.PARTNUMBER; }"),
+                          vendorcode = new JS("function() { return data.VENDORCODE; }")
+                      })
+                  )
+                  .Paging(p => p.PageSize(10))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.WORKDATE).Format(f => f.Type(Format.ShortDate))
+                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                      columns.AddFor(m => m.PARTNUMBER);
+                      columns.AddFor(m => m.PRODUCTNAME);
+                      //columns.AddFor(m => m.VENDORCODE);
+                      columns.AddFor(m => m.VENDORNAME);
+                      columns.AddFor(m => m.UNITCODE).Visible(false);
+                      columns.AddFor(m => m.UNITNAME).Alignment(HorizontalAlignment.Center);
+                      columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                      columns.AddFor(m => m.WORKER)
+                      .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                          .Controller("COMA001WebApi")
+                          .Key("EMPCODE")
+                          .LoadAction("HR_LIST")
+                         )
+                          .DisplayExpr("EMPNAME")
+                          .ValueExpr("EMPCODE")
+                      );
+                      columns.AddFor(m => m.MEMO);
+                  })
+    //.Selection(s => s.Mode(SelectionMode.Single))
+    )
+}
+<script>
+    function grdShipment_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    // 마스터 그리드 (작업지시) 클릭시 하위그리드 오픈
+    function grdShipment_OnRowClick(e) {
+        if (e.rowType == "data") {
+            if (e.component.isRowExpanded(e.key)) {
+                e.component.collapseRow(e.key);
+            } else {
+                e.component.expandRow(e.key);
+                //$('#grdShipment-details-' + e.key).dxDataGrid('instance').cancelEditData();
+                //$('#grdShipment-details-' + e.key).dxDataGrid('instance').clearSelection();
+            }
+        }
+    }
+</script>

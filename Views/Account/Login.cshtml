@@ -1,0 +1,261 @@
+﻿@using JSMES.WebUI.Alpha.App_GlobalResources
+@model JSMES.WebUI.Alpha.ViewModels.TowLoginViewMode
+
+@{
+    Layout = null;    
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@System.Configuration.ConfigurationManager.AppSettings["systemFullName"] - @LabelText.LOGIN</title>
+        @Styles.Render(BundleConfig.DxCssBundle)
+    @Styles.Render("~/Content/css")
+    @Styles.Render("~/font-awesome/css")
+    
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet">
+    <link href="~/Fonts/font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="~/Content/animate.css" rel="stylesheet">
+    <link href="~/Content/style.css" rel="stylesheet">
+
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <script src="~/Scripts/popper.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script src="~/Scripts/jquery.cookie.js"></script>
+        
+    @{
+        string theme = "greenmist";
+
+        if (string.IsNullOrEmpty(theme))
+        {
+            theme = "dark";
+        }
+        var themeName = "generic." + theme;
+
+        var device = "desktop";
+        if (theme.StartsWith("ios"))
+        {
+            device = "iPhone";
+        }
+        else if (theme.StartsWith("android"))
+        {
+            device = "androidPhone";
+        }
+    }
+
+    <link rel="stylesheet" href="~/Content/DevExtreme/dx.@(theme).css" />
+    <link rel="stylesheet" href="~/Content/plugins/metisMenu/metisMenu.css" />
+
+    <style>
+        .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+        color: #495057;
+        background-color: #fff;
+        border-color: #ffffff #ffffff #fff;
+        }
+    </style>
+    @Scripts.Render(BundleConfig.JsBundle)
+    <script>
+        DevExpress.devices.current("@device");
+        DevExpress.viz.currentTheme("@themeName");
+    </script>
+</head>
+
+<body class="gray-bg">  
+    <div class="middle-box text-center loginscreen">
+        <div>
+            <div>
+                <h3 class="logo-name" id="logoTitle">
+                    @System.Configuration.ConfigurationManager.AppSettings["systemName"]
+                </h3>
+            </div>
+            <h3>@LabelText.WELCOME</h3>
+            <br />
+            <div>
+                <div class="sidebar-container">
+                    <ul class="nav nav-tabs navs-2" id="loginTab" role="tablist">
+                        <li>
+                            <a class="nav-link active" data-toggle="tab" href="#tab-side-1" role="tab"  onclick="setLoginTab();"> 웹 사용자 </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" data-toggle="tab" href="#tab-side-2" role="tab" onclick="setFieldLoginTab();"> 현장 사용자 </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div id="tab-side-1" class="tab-pane active" role="tabpanel" >
+                            @Html.Partial("LoginPartial", Model)
+                        </div>
+                        <div id="tab-side-2" class="tab-pane" role="tabpanel" >
+                            @Html.Partial("FieldLoginPartial", Model)
+                        </div>
+                    </div>
+                </div>
+
+                @if(System.Configuration.ConfigurationManager.AppSettings["optionOpenUser"] == "true")
+                {
+                    <p>
+                        @Html.ActionLink(@LabelText.REGISTER_NEWUSER, "AcceptTerms")
+                    </p>
+                    <p>
+                        @Html.ActionLink(@LabelText.FORGET_YOUR_PASSWORD, "ForgotPassword")
+                    </p>
+                }
+                <p id="capslock" style="position:relative; border:2px solid #003b83; width:300px; bottom:0px; display:none">
+                    &nbsp;<b>CapsLock</b> @LabelText.PRESSEDKEY&nbsp;
+                </p>
+                @if (System.Configuration.ConfigurationManager.AppSettings["optionLanguage"] == "true")
+                {
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-light">
+                            <input type="radio" name="options" id="ko-KR" autocomplete="off" checked><img src="~/Content/Images/Flag/KR.png" />
+                        </label>
+                        <label class="btn btn-light">
+                            <input type="radio" name="options" id="zh-CN" autocomplete="off"><img src="~/Content/Images/Flag/CN.png" />
+                        </label>
+                        <label class="btn btn-light">
+                            <input type="radio" name="options" id="de-DE" autocomplete="off"><img src="~/Content/Images/Flag/DE.png" />
+                        </label>
+                        <label class="btn btn-light">
+                            <input type="radio" name="options" id="ja-JP" autocomplete="off"><img src="~/Content/Images/Flag/JP.png" />
+                        </label>
+                        <label class="btn btn-light">
+                            <input type="radio" name="options" id="en-US" autocomplete="off"><img src="~/Content/Images/Flag/US.png" />
+                        </label>
+                        <label class="btn btn-light"> 
+                            <input type="radio" name="options" id="vi-VN" autocomplete="off"><img src="~/Content/Images/Flag/VN.png" />
+                        </label>
+                    </div>
+                }
+                <p class="m-t"> <small>@System.Configuration.ConfigurationManager.AppSettings["systemCopyright"]</small> </p>
+        </div>
+    </div>
+</body>
+</html>
+
+<script>
+    var locale = getLocale();
+
+    fitText('logoTitle');
+
+    $(function () {        
+        if (Cookies.get("CurrentLogTab") == "FIELDLOGIN") {
+            $("#loginTab a[href='#tab-side-1']").removeClass("active");
+            $("#loginTab a[href='#tab-side-2']").addClass("active");
+            $("#tab-side-1").removeClass("active");
+            $("#tab-side-2").addClass("active");
+        } else {
+            $("#loginTab a[href='#tab-side-1']").addClass("active");
+            $("#loginTab a[href='#tab-side-2']").removeClass("active");
+            $("#tab-side-1").addClass("active");
+            $("#tab-side-2").removeClass("active");
+        }        
+    })
+
+    function setLoginTab() {
+        Cookies.set("CurrentLogTab", "LOGIN", { expires: 99999 });
+    }
+
+    function setFieldLoginTab() {
+        Cookies.set("CurrentLogTab", "FIELDLOGIN", { expires: 99999 });
+    }
+
+    function loginDepartment_OnValueChanged(e){
+        $('#loginFieldUserId').dxLookup('instance').getDataSource().reload();
+        $('#loginFieldUserId').dxLookup('instance').open();
+    }
+
+    function loginFieldUserId_OnBeforeSend(method, ajaxOptions){
+        if (method == "load") {
+            var departmentLookup = $('#loginDepartment').dxLookup('instance');            
+            ajaxOptions.data.DEPARTMENT_CODE = departmentLookup.option('value');
+        }
+    }
+
+    $('.btn-group .btn').each(function() {
+        if ($(this).find('input').attr('id') == locale) {
+            $(this).addClass('active');
+        }
+    });
+
+    $('.btn-group .btn').on('click', function(e) { // On the click event for each button
+        var selectedCulture = $(this).children('input').attr('id');
+        changeLang(selectedCulture);
+    });
+    
+    function changeLang(lang) {
+        Cookies.set("Culture", lang, { expires: 99999 });
+        location.reload();
+    }
+
+    function getLocale() {
+        var locale = Cookies.get("Culture");
+
+        if (locale == null) {
+            locale = "ko-KR";
+            Cookies.set("Culture", locale, { expires: 99999 });
+        }
+
+        return locale;
+    }
+
+    function fitText(outputSelector){
+	    // max font size in pixels
+	    const maxFontSize = 80;
+	    // get the DOM output element by its selector
+	    let outputDiv = document.getElementById(outputSelector);
+	    // get element's width
+	    let width = outputDiv.clientWidth;
+	    // get content's width
+	    let contentWidth = outputDiv.scrollWidth;
+	    // get fontSize
+	    let fontSize = parseInt(window.getComputedStyle(outputDiv, null).getPropertyValue('font-size'),10);
+	    // if content's width is bigger than elements width - overflow
+	    if (contentWidth > width){
+		    fontSize = Math.ceil(fontSize * width/contentWidth,10);
+		    fontSize =  fontSize > 90 ? fontSize = 90 : fontSize - 1;
+		    outputDiv.style.fontSize = fontSize+'px';	
+	    }else{
+		    // content is smaller than width... let's resize in 1 px until it fits 
+		    while (contentWidth === width && fontSize < maxFontSize){
+			    fontSize = Math.ceil(fontSize) + 1;
+			    fontSize = fontSize > 80 ? fontSize = 80 : fontSize;
+			    outputDiv.style.fontSize = fontSize+'px';	
+			    // update widths
+			    width = outputDiv.clientWidth;
+			    contentWidth = outputDiv.scrollWidth;
+			    if (contentWidth > width){
+				    outputDiv.style.fontSize = fontSize-1+'px';	
+			    }
+		    }
+	    }
+	    // save data for persistence over page reloads
+	    sessionStorage.setItem('fontSize', fontSize);
+	    sessionStorage.setItem('textInput',outputDiv.innerHTML);
+    }
+
+    function caps_lock(e) {
+        var keyCode = 0;
+        var shiftKey = false;
+        keyCode = e.keyCode;
+        shiftKey = e.shiftKey;
+        if (((keyCode >= 65 && keyCode <= 90) && !shiftKey)
+            || ((keyCode >= 97 && keyCode <= 122) && shiftKey)) {
+            show_caps_lock();
+            setTimeout("hide_caps_lock()", 3500);
+        } else {
+            hide_caps_lock();
+        }
+    }
+ 
+    function show_caps_lock() {
+        $("#capslock").show();
+    }
+ 
+    function hide_caps_lock() {
+        $("#capslock").hide();
+    }
+
+</script>

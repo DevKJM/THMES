@@ -1,0 +1,20 @@
+﻿
+@using JSMES.WebUI.Alpha.Infrastructure.DBA
+
+@{
+    ViewBag.Title = "Main";
+}
+
+@{
+    var dba = new XDBContext();
+    var system = dba.systemMaster.SingleOrDefault(w => w.SYSGRPCD == "PROCESSOPTION");
+
+    if (system.ATTRIBUTE2.ToLower() == "true")
+    {
+        @Html.Partial("_PODB001PartialPlan");
+    }
+    else
+    {
+        @Html.Partial("_PODB001PartialNonePlan");
+    }
+}

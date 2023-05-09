@@ -1,0 +1,125 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MAT.MATF;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="options">
+                <div class="option">
+                    <span>@LabelText.SELECT @LabelText.DATE</span>
+                    @(Html.DevExtreme().DateBox()
+                        .ID("searchFrom")
+                        .DisplayFormat(Format.MonthAndYear)
+                        .CalendarOptions(o=>o.MaxZoomLevel(CalendarZoomLevel.Year).MinZoomLevel(CalendarZoomLevel.Century))
+                        .Type(DateBoxType.Date)
+                        .Value(new JS("new Date()"))
+                        .OnValueChanged("function(e) { $('#grdMaterialReceive').dxDataGrid('instance').refresh(); $('#chtMaterialReceive').dxChart('instance').refresh(); } ")
+                        .DisplayFormat(Format.MonthAndYear)
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+     <div class="row mt-3">
+        <div class="col-lg-5">
+             @(Html.DevExtreme().DataGrid<MATF053A_LIST>()
+                .DataSource(d => d.WebApi().Controller("MATF053WebApi").LoadAction("getInvent").UpdateAction("putInvent").Key("PARTNUMBER"))
+                .ID("grdInvent")
+                .FilterRow(f=>f.Visible(true))
+                .ShowRowLines(true)
+                .Width("100%")
+                .Columns(columns =>
+                {
+                    columns.AddFor(m=>m.PARTNUMBER).AllowEditing(false)
+                        .Lookup(lookup => lookup
+                                        .DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("MATERIALCODE")
+                                            .LoadAction("MATERIAL_LIST"))
+                                        .DisplayExpr("MATERIALNAME")
+                                        .ValueExpr("MATERIALCODE")
+                                    );
+                    columns.AddFor(m=>m.QUANTITY).Format(f=>f.Type(Format.FixedPoint));
+                    columns.AddFor(m=>m.MEMO).Width(100);
+                })                
+                .ColumnHidingEnabled(true)
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{ 10, 25, 50, 100, 1000}))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .Editing(e=>e.Mode(GridEditMode.Batch).AllowUpdating(true))
+                .OnInitialized("OnInitialized")
+                .OnContentReady("OnContentReady")
+                .Option("MANUAL_UPDATING", true)
+            )
+        </div>
+        <div class="col-lg-7">
+            @(Html.DevExtreme().DataGrid<MATF053_LIST>()
+                .ID("grdInventHis")
+                .Width("100%")
+                .DataSource(d => d.WebApi().Controller("MATF053WebApi").Key("MATERIALHISSEQ").OnBeforeSend("grdMaterialReceive_OnBeforeSend"))
+                .FilterRow(f=>f.Visible(true))
+                .ShowRowLines(true)
+                .Columns(columns =>
+                {
+                    columns.AddFor(m=>m.WORKDATE).SortOrder(SortOrder.Desc);
+                    columns.AddFor(m=>m.PARTNUMBER)
+                        .Lookup(lookup => lookup
+                                        .DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("MATERIALCODE")
+                                            .LoadAction("MATERIAL_LIST"))
+                                        .DisplayExpr("MATERIALNAME")
+                                        .ValueExpr("MATERIALCODE")
+                                    ).SetCellValue("function(e, value) { e.VENDORCODE = this.lookup.items.find(function(e){ return e.MATERIALCODE == value; }).UDCF2; this.defaultSetCellValue(e, value); }");
+                    columns.AddFor(m=>m.VENDORCODE)
+                                .Lookup(lookup => lookup
+                                        .DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("VENDORCODE")
+                                            .LoadAction("VENDOR_LIST"))
+                                        .DisplayExpr("VENDORNAME")
+                                        .ValueExpr("VENDORCODE")
+                                    ).AllowEditing(false);
+                    columns.AddFor(m=>m.QUANTITY).Format(f=>f.Type(Format.FixedPoint));
+                    columns.AddFor(m=>m.MEMO).Width(100);
+                })                
+                .ColumnHidingEnabled(true)
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{ 10, 25, 50, 100, 1000}))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)                                
+            )
+        </div>
+     </div>
+</div>
+
+<script>
+            
+    function grdMaterialReceive_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            ajaxOptions.data.SEARCHFROM = Globalize.formatDate(($('#searchFrom').dxDateBox('instance').option('value')),{dateTime:'short'});            
+        }
+    }
+
+    function OnContentReady(e){
+        if (e.component.option("updating") && !e.component.hasEditData()) {  // updates finished successfully
+            e.component.option("updating", false);
+            $("#grdInventHis").dxDataGrid("instance").refresh();
+        }
+    }
+    
+    function OnInitialized (e) {
+        userCustomGrid(e);
+    }
+</script>

@@ -1,0 +1,175 @@
+﻿@using JSMES.WebUI.Alpha.Models
+@using Microsoft.AspNet.Identity;
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@System.Configuration.ConfigurationManager.AppSettings["systemFullName"] - @ViewBag.Title</title>
+    @Styles.Render(BundleConfig.DxCssBundle)
+    @Styles.Render("~/Content/css")
+    @Styles.Render("~/font-awesome/css")
+    
+    @if (IsSectionDefined("Styles"))
+    {@RenderSection("Styles", required: false)}
+
+    @{
+        string theme = "greenmist";
+
+        /* 작은 폰트 사용*/
+        if(this.Request.Cookies.Get("globalFontSize") == null
+                || (this.Request.Cookies.Get("globalFontSize") != null && this.Request.Cookies.Get("globalFontSize").Value == "false"))
+        {
+            theme = theme + ".compact";
+        }
+
+        if (string.IsNullOrEmpty(theme))
+        {
+            theme = "light";
+        }
+        var themeName = "generic." + theme;
+
+        var device = "desktop";
+        if (theme.StartsWith("ios"))
+        {
+            device = "iPhone";
+        }
+        else if (theme.StartsWith("android"))
+        {
+            device = "androidPhone";
+        }
+    }
+    <link rel="stylesheet" href="~/Content/DevExtreme/dx.@(theme).css" />
+    <link rel="stylesheet" href="~/Content/plugins/metisMenu/metisMenu.css" />
+
+    @Scripts.Render(BundleConfig.JsBundle)
+    <script>
+        DevExpress.devices.current("@device");
+        DevExpress.viz.currentTheme("@themeName");
+
+        var rootURL = '@Url.Content("~/")';
+        var controllerName = '@this.ViewContext.RouteData.Values["controller"].ToString()';
+        var actionName = '@this.ViewContext.RouteData.Values["action"].ToString()';
+
+        function iudAuth() {
+            return '@User.IsInRole(String.Format("/{0}/{1}_iud", ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString())).ToString().ToLower()' == "true";
+        }
+
+        function getAuth() {
+            return '@User.IsInRole(String.Format("/{0}/{1}_get", ViewContext.RouteData.Values["controller"].ToString(), ViewContext.RouteData.Values["action"].ToString())).ToString().ToLower()' == "true";
+        }
+
+        function getLoginUserId() {
+            return '@User.Identity.GetUserId()';
+        }
+
+    </script>
+
+    <script src="@Url.Action( "CldrData", "Localization", new { t = CldrDataScriptBuilder.GetCacheParam() })"></script>
+
+    @RenderSection("Localization", false)
+
+</head>
+<body>
+    <!-- Wrapper-->
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        @Html.Partial("_Navigation")
+
+        <!-- Page wraper -->
+        <div id="page-wrapper" class="gray-bg">
+
+            <!-- Top Navbar -->
+            @Html.Partial("_TopNavbar")
+
+            <!--<section id="page">-->
+            <div class="row wrapper border-bottom page-heading">
+                <div class="col-sm-8 col-lg-9 col-xl-10">
+                    <ol class="breadcrumb" id="CurrentLocation"></ol>
+                </div>
+                <div class="col-sm-4 col-lg-3 col-xl-2">
+                    @(Html.DevExtreme().Lookup()
+                            .DataSource(d => d.WebApi().Controller("COMA002WebApi")
+                            .Key("MENUID")
+                            .LoadAction("USER_MENU_SHORT_LIST")
+                            .LoadParams(new { EMPID = User.Identity.GetUserId() })
+                        )
+                        .Placeholder("메뉴 바로가기")
+                        .PopupWidth(250)
+                        .DataSourceOptions(o => o.Group("URL1"))
+                        .Grouped(true)
+                        .CloseOnOutsideClick(true)
+                        .ShowPopupTitle(false)
+                        .DisplayExpr("MENUNAME")
+                        .SearchExpr(new string[] { "MENUCODE", "MENUNAME" })
+                        .OnItemClick("MenuShort_OnItemClick")
+                    )
+
+                </div>
+            </div>
+            <div class="row wrapper wrapper-content" style="background-color: white;">
+                <div id="noSelectProcessMessage" style="display: none;" class="alert alert-warning alert-dismissible fade show" role="alert" style="width:100%">
+                    <i class="fa fa-exclamation-triangle"></i> 공정이 선택 되지 않아 작업 지시 목록을 불러 올수 없습니다. <b>공정을 선택해주세요.</b>
+                    @(Html.DevExtreme().Button()
+                                          .ID("btnWarningConfig")
+                                          .Text("공정 설정하기")
+
+                                          .Icon("fa fa-cogs")
+                                          .OnClick("btnWarningConfig_OnClick")
+                                          .StylingMode(ButtonStylingMode.Contained)
+                                          .Type(ButtonType.Default)
+                    )
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                @RenderBody()
+            </div>
+            @*@Html.Partial("_Footer")*@
+        </div>
+        <!-- End page wrapper-->
+        @Html.Partial("_rightSidebar")
+        @Html.Partial("_CommonPartial")
+        @Html.Partial("_NamedTemplatePartial")
+    </div>
+    <!-- End wrapper-->
+
+    @Scripts.Render("~/plugins/popper")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/inspinia")
+    @Scripts.Render("~/plugins/metsiMenu")
+    @Scripts.Render("~/plugins/pace")
+    @Scripts.Render("~/plugins/slimScroll")
+    @Scripts.Render("~/scripts/common.js")
+    @Scripts.Render("~/scripts/chartJs")
+    @Scripts.Render("~/plugins/footable")
+    @Scripts.Render("~/plugins/moment")
+    @Scripts.Render("~/plugins/mdetect")
+    @RenderSection("scripts", required: false)
+
+    <script>
+
+        function MenuShort_OnItemClick(e) {
+            var root = '@Url.Content("~/")';
+            var targetUrl = root + e.itemData.URL1 + "/" + e.itemData.URL2;
+            location.href = targetUrl;            
+        }
+
+        function btnWarningConfig_OnClick(e) {
+            $('#right-sidebar').addClass('sidebar-open');
+            $('.sidebar-container .nav.nav-tabs.navs-2 > li > a').removeClass('active');
+            $('.sidebar-container .nav.nav-tabs.navs-2 > li > a').removeClass('active show');
+            $('.sidebar-container .nav.nav-tabs.navs-2 > li:last-child > a').addClass('active show');
+
+            $('.sidebar-container .tab-content > div').removeClass('active');
+            $('.sidebar-container .tab-content > div').removeClass('active show');
+            $('.sidebar-container .tab-content > div:last-child').addClass('active show');
+
+            $('#settingsPROCESSCODE').dxSelectBox('instance').open();
+        }
+    </script>
+</body>
+</html>

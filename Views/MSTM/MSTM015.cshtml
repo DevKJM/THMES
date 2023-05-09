@@ -1,0 +1,248 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTJ
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTM;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-5 col-md-5">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> 설비 목록</i></span></h4>
+            @(Html.DevExtreme().DataGrid<EquipmentMaster>()
+                  .ID("grdEquipment")
+                  .DataSource(d => d.WebApi()
+                      .Controller("COMA001WebApi")
+                      .LoadAction("EQUIPMENT_LIST")
+                      .Key("EQUIPMENTCODE")
+                      .LoadParams(new
+                      {
+                          Culture = new JS("function() { return locale; }")
+                      }))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.EQUIPMENTCODE).SortOrder(SortOrder.Asc).SortIndex(1).Visible(false);
+                      columns.AddFor(m => m.EQUIPMENTTYPE).SortOrder(SortOrder.Asc).SortIndex(0).Visible(false);
+                      columns.AddFor(m => m.EQUIPMENTNAME);
+                  })
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  //.StateStoring(s => s.Enabled(true).StorageKey("MSTJ002_grdProcessMaster").Type(StateStoringType.LocalStorage))
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .RowAlternationEnabled(true)
+                  .Selection(s => s.Mode(SelectionMode.Single))
+                  .OnRowClick("grdEquipment_OnRowClick")
+                  //.Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                  .ShowRowLines(true)
+                  )
+        </div>
+        <div class="col-xl-7 col-md-7 mt-md-0 mt-lg-0 mt-sm-2">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> 조건항목코드 목록</i></span></h4>
+            @(Html.DevExtreme().DataGrid<MSTM015_LIST>()
+              .ID("grdEquipmentDailyCheckItemMaster")
+              .DataSource(d => d.WebApi()
+                  .Controller("MSTM015WebApi")
+                  .Key("index")
+                  .OnBeforeSend("grdEquipmentDailyCheckItemMaster_OnBeforeSend"))
+              .Columns(columns =>
+              {
+                  columns.AddFor(m => m.index).Visible(false);
+                  //columns.AddFor(m => m.CREATEDATE);
+                  //columns.AddFor(m => m.CONDITIONITEMID);
+                  columns.AddFor(m => m.CONDITIONITEMCODE).AllowEditing(false).SortOrder(SortOrder.Asc)
+                      .Lookup(lookup => lookup
+                          .DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("CONDITIONITEMCODE")
+                              .LoadAction("CONDITIONITEMMASTER_LIST")
+                          )
+                          .DisplayExpr("CONDITIONITEMNAME")
+                          .ValueExpr("CONDITIONITEMCODE")
+                      );
+                  columns.AddFor(m => m.CONDITIONITEMGROUP)
+                      .SortOrder(SortOrder.Asc)
+                      .Lookup(lookup => lookup
+                          .DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("CONDITIONITEMGROUP_LIST"))
+                          .DisplayExpr("SYSCODENAME")
+                          .ValueExpr("SYSCODE")
+                      ).AllowEditing(false);
+                  columns.AddFor(m => m.DEFAULTSPEC).AllowEditing(false);
+                  columns.AddFor(m => m.SPEC);
+                  columns.AddFor(m => m.CYCLE)
+                      .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                          .Controller("COMA003WebApi").Key("SYSCODE")
+                          .LoadAction("INSPECTIONCLASSIFY_LIST"))
+                          .DisplayExpr("SYSCODENAME")
+                          .ValueExpr("SYSCODE")
+                      ).Caption("주기").SortOrder(SortOrder.Asc);
+                  columns.AddFor(m => m.USEYN).SortOrder(SortOrder.Desc);
+                  columns.AddFor(m => m.MEMO).AllowEditing(false).Visible(false);
+              })
+              .RemoteOperations(true)
+              .FilterPanel(f => f.Visible(true))
+              .ColumnAutoWidth(true)
+              .Paging(p => p.PageSize(25).Enabled(true))
+              .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+              .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+              //.OnFocusedCellChanged()
+              .SearchPanel(searchPanel => searchPanel
+                  .Visible(true)
+                  .Width(180)
+                  .Placeholder("Search...")
+              )
+              .FilterRow(filterRow => filterRow
+                  .Visible(true)
+                  .ApplyFilter(GridApplyFilterMode.Auto)
+              )
+              .Editing(e =>
+                  e.Mode(GridEditMode.Batch)
+                      .AllowUpdating(new JS("iudAuth()"))
+              )
+              //.StateStoring(s => s.Enabled(true).StorageKey("MSTJ002_grdProcessDefectMaster").Type(StateStoringType.LocalStorage))
+              .OnCellClick("grdEquipmentDailyCheckItemMaster_OnCellClick")
+              .ShowBorders(true)
+              .AllowColumnResizing(true)
+              .RowAlternationEnabled(true)
+              //.Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+              .ShowRowLines(true)
+            )
+            @*@(Html.DevExtreme().DataGrid<MSTM005_LIST>()
+        .ID("grdEquipmentDailyCheckItemMaster")
+        .DataSource(d => d.WebApi()
+            .Controller("MSTM005WebApi")
+            .Key("CONDITIONITEMID")
+            .OnBeforeSend("grdEquipmentDailyCheckItemMaster_OnBeforeSend"))
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.CONDITIONITEMID);
+            columns.AddFor(m => m.CONDITIONITEMCODE).AllowEditing(false).SortOrder(SortOrder.Asc)
+                .Lookup(lookup => lookup
+                    .DataSource(d => d.WebApi()
+                        .Controller("COMA001WebApi").Key("CONDITIONITEMCODE")
+                        .LoadAction("CONDITIONITEMMASTER_LIST")
+                    )
+                    .DisplayExpr("CONDITIONITEMNAME")
+                    .ValueExpr("CONDITIONITEMCODE")
+                );
+            columns.AddFor(m => m.CONDITIONITEMGROUP)
+                .SortOrder(SortOrder.Asc)
+                .Lookup(lookup => lookup
+                    .DataSource(d => d.WebApi()
+                        .Controller("COMA003WebApi").Key("SYSCODE")
+                        .LoadAction("CONDITIONITEMGROUP_LIST"))
+                    .DisplayExpr("SYSCODENAME")
+                    .ValueExpr("SYSCODE")
+                ).AllowEditing(false);
+            columns.AddFor(m => m.DEFAULTSPEC).AllowEditing(false);
+            columns.AddFor(m => m.SPEC);
+            columns.AddFor(m => m.CYCLE)
+                .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                    .Controller("COMA003WebApi").Key("SYSCODE")
+                    .LoadAction("INSPECTIONCLASSIFY_LIST"))
+                    .DisplayExpr("SYSCODENAME")
+                    .ValueExpr("SYSCODE")
+                ).Caption("주기").SortOrder(SortOrder.Asc);
+            columns.AddFor(m => m.USEYN).SortOrder(SortOrder.Desc);
+            columns.AddFor(m => m.MEMO).AllowEditing(false).Visible(false);
+        })
+        .RemoteOperations(true)
+        .FilterPanel(f => f.Visible(true))
+        .ColumnAutoWidth(true)
+        .Paging(p => p.PageSize(25).Enabled(true))
+        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+        //.OnFocusedCellChanged()
+        .SearchPanel(searchPanel => searchPanel
+            .Visible(true)
+            .Width(180)
+            .Placeholder("Search...")
+        )
+        .FilterRow(filterRow => filterRow
+            .Visible(true)
+            .ApplyFilter(GridApplyFilterMode.Auto)
+        )
+        .Editing(e =>
+            e.Mode(GridEditMode.Batch)
+                .AllowUpdating(true)
+        )
+        //.StateStoring(s => s.Enabled(true).StorageKey("MSTJ002_grdProcessDefectMaster").Type(StateStoringType.LocalStorage))
+        .OnCellClick("grdEquipmentDailyCheckItemMaster_OnCellClick")
+        .ShowBorders(true)
+        .AllowColumnResizing(true)
+        .RowAlternationEnabled(true)
+        //.Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+        .ShowRowLines(true)
+        )*@
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function grdEquipmentDailyCheckItemMaster_OnCellClick(e) {
+        if (e.rowType == "data" && e.column.dataField == "USEYN") {
+            if (e.data.USEYN == false)//e.value == false || e.row.oldData.USEYN == false || e.USEYN)
+                $('#grdEquipmentDailyCheckItemMaster').dxDataGrid('instance').cellValue(e.rowIndex, "USEYN", true);
+            else
+                $('#grdEquipmentDailyCheckItemMaster').dxDataGrid('instance').cellValue(e.rowIndex, "USEYN", false);
+        }
+    }
+
+    function grdEquipmentDailyCheckItemMaster_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var processRow = $('#grdEquipment').dxDataGrid('instance').getSelectedRowsData();
+
+            if (processRow.length > 0) {
+                ajaxOptions.data.EQUIPMENTCODE = processRow[0].EQUIPMENTCODE;
+            } else {
+                ajaxOptions.data.EQUIPMENTCODE = "";
+            }
+        } else if (method == "update") {
+            var processRow = $('#grdEquipment').dxDataGrid('instance').getSelectedRowsData();
+
+            var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+
+            var index = $('#grdEquipmentDailyCheckItemMaster').dxDataGrid('instance').getRowIndexByKey(ajaxOptions.data.key);
+            var CONDITIONITEMCODE = $('#grdEquipmentDailyCheckItemMaster').dxDataGrid('instance').cellValue(index, 'CONDITIONITEMCODE');
+            var SPEC = $('#grdEquipmentDailyCheckItemMaster').dxDataGrid('instance').cellValue(index, 'SPEC');
+            var CYCLE = $('#grdEquipmentDailyCheckItemMaster').dxDataGrid('instance').cellValue(index, 'CYCLE');
+
+            if (processRow.length > 0) {
+                parseJson.EQUIPMENTCODE = processRow[0].EQUIPMENTCODE;
+                parseJson.CONDITIONITEMCODE = CONDITIONITEMCODE;
+                parseJson.SPEC = SPEC;
+                parseJson.CYCLE = CYCLE;
+                ajaxOptions.data.values = JSON.stringify(parseJson);
+            } 
+        }
+    }
+
+    function grdEquipment_OnRowClick(e) {
+        this.selectedValue = e.key;
+        e.component.selectRows([e.key], false);
+
+        if (e.rowType == "data") {
+            $('#grdEquipmentDailyCheckItemMaster').dxDataGrid('instance').refresh();
+            $('#grdEquipmentDailyCheckItemMaster').dxDataGrid('instance').cancelEditData();
+        }
+    }
+
+</script>

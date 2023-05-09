@@ -1,0 +1,352 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCE;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        <div class="col-lg-12 col-sm-12">
+            <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @LabelText.REISSUE_LABEL</i></span></h4>
+            @(Html.DevExtreme().DataGrid<PRCE011A_LIST>()
+                    .ID("grdReissue")
+                    .DataSource(d => d.WebApi().Controller("PRCE011WebApi").OnBeforeSend("grdReissue_OnBeforeSend"))
+                    .Columns(columns =>
+                    {
+                        //columns.AddFor(m => m.WORKDATE).Width(170)
+                        //    .Format(f => f.Type(Format.ShortDate))
+                        //    .SelectedFilterOperation(FilterOperations.Between)
+                        //    .FilterValue(new object[] { DateTime.Now.Date, DateTime.Now.AddDays(+7).Date })
+                        //    .SortOrder(SortOrder.Desc).SortIndex(1).AllowEditing(false).SortOrder(SortOrder.Asc).SortIndex(0);
+
+                        columns.AddFor(m => m.TRANSCODE).AllowEditing(false)
+                            .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("TRANSCODE")
+                            .LoadAction("TRANSACTION_LIST")
+                            .LoadParams(new { Culture = new JS("function() { return locale; }") }))
+                            .DisplayExpr("TRANSNAME")
+                            .ValueExpr("TRANSCODE")
+                        ).Visible(false);
+                        columns.AddFor(m => m.SERIALNUMBER).AllowEditing(false);
+                        columns.AddFor(m => m.LOTNUMBER).AllowEditing(false).SortOrder(SortOrder.Desc).SortIndex(1);
+                        columns.AddFor(m => m.MATERIALCODE).AllowEditing(false);
+                        columns.AddFor(m => m.MATERIALNAME).AllowEditing(false);
+                        columns.AddFor(m => m.PARTNUMBER).AllowEditing(false).Visible(false);
+                        columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false).Visible(false);
+                        columns.AddFor(m => m.CUSTOMERPARTNUMBER).AllowEditing(false).Visible(false);
+                        //columns.AddFor(m => m.EQUIPMENTCODE).AllowEditing(false).Visible(false)
+                        //    .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                        //    .Controller("COMA001WebApi").Key("EQUIPMENTCODE")
+                        //    .LoadAction("EQUIPMENT_LIST")
+                        //    .LoadParams(new { Culture = new JS("function() { return locale; }") }))
+                        //    .DisplayExpr("EQUIPMENTNAME")
+                        //    .ValueExpr("EQUIPMENTCODE")
+                        //);
+                        columns.AddFor(m => m.WEIGHT).Format(f => f.Type(Format.FixedPoint).Precision(0)).AllowEditing(false);
+                        columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0)).AllowEditing(false).Visible(false);
+                        columns.AddFor(m => m.WORKER).AllowEditing(false)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("EMPCODE")
+                            .LoadAction("HR_LIST")
+                            .LoadParams(new { Culture = new JS("function() { return locale; }") }))
+                            .DisplayExpr("EMPNAME")
+                            .ValueExpr("EMPCODE")
+                        );
+                        columns.AddFor(m => m.SORTINDEX).AllowEditing(false).SortOrder(SortOrder.Asc).SortIndex(0).Visible(false);
+                    })
+                    //.ColumnMinWidth(50)
+                    .FilterPanel(f => f.Visible(true))
+                    .SearchPanel(c => c.Visible(true))
+                    .RemoteOperations(true)
+                    .ColumnAutoWidth(true)
+                    .Paging(p => p.PageSize(25).Enabled(true))
+                    .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                    .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                    .AllowColumnResizing(true)
+                    .RowAlternationEnabled(true)
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .Export(e => e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                    .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                  .Selection(s => s.Mode(SelectionMode.Multiple).ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.Always))
+                  .OnToolbarPreparing("grdReissue_OnToolbarPreparing")
+                  .OnRowClick("grdReissue_OnRowClick")
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function grdReissue_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+
+            var dxRadioGroup = $('#LABELTYPE').dxRadioGroup('instance');
+            var selectedLabelType;
+
+            if (dxRadioGroup != undefined) {
+                selectedLabelType = dxRadioGroup.option('value');
+            }
+            else {
+                selectedLabelType = "";
+            }
+
+            ajaxOptions.data.LABELTYPE = selectedLabelType;
+        }
+    }
+
+    var priorities = [{
+        "CODE": "MATERIAL",
+        "NAME": "자재"
+    }, {
+        "CODE": "PRODUCT",
+        "NAME": "제품"
+        }];
+
+    function grdReissue_OnToolbarPreparing(e) {
+        var toolbarItems = e.toolbarOptions.items;
+        $.each(toolbarItems, function (_, item) {
+            if (item.name === "saveButton" || item.name == "revetButton") {
+                item.visible = false;
+            }
+        });
+
+        e.toolbarOptions.items.unshift(
+            {
+                widget: "dxRadioGroup",
+                //html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '@LabelText.LABELTYPE' +"</div> ",
+                location: "before",
+                options: {
+                    items: priorities,
+                    elementAttr: { "id": "LABELTYPE" },
+                    value: "MATERIAL",
+                    valueExpr: "CODE",
+                    displayExpr: "NAME",
+                    layout: "horizontal",
+                    onValueChanged: function(e) {
+                        if (e.value == "MATERIAL") {
+
+                            $('#grdReissue').dxDataGrid('instance').beginUpdate();
+
+                            $('#grdReissue').dxDataGrid('columnOption', 'PARTNUMBER', 'visible', false);
+                            $('#grdReissue').dxDataGrid('columnOption', 'PRODUCTNAME', 'visible', false);
+                            $('#grdReissue').dxDataGrid('columnOption', 'CUSTOMERPARTNUMBER', 'visible', false);
+                            $('#grdReissue').dxDataGrid('columnOption', 'QUANTITY', 'visible', false);
+
+                            $('#grdReissue').dxDataGrid('columnOption', 'MATERIALCODE', 'visible', true);
+                            $('#grdReissue').dxDataGrid('columnOption', 'MATERIALNAME', 'visible', true);
+                            $('#grdReissue').dxDataGrid('columnOption', 'WEIGHT', 'visible', true);
+
+                            $('#grdReissue').dxDataGrid('instance').endUpdate();
+
+                            $('#grdReissue').dxDataGrid('instance').refresh();
+                        } else if (e.value == "PRODUCT") {
+
+                            $('#grdReissue').dxDataGrid('instance').beginUpdate();
+
+                            $('#grdReissue').dxDataGrid('columnOption', 'PARTNUMBER', 'visible', true);
+                            $('#grdReissue').dxDataGrid('columnOption', 'PRODUCTNAME', 'visible', true);
+                            $('#grdReissue').dxDataGrid('columnOption', 'CUSTOMERPARTNUMBER', 'visible', true);
+                            $('#grdReissue').dxDataGrid('columnOption', 'QUANTITY', 'visible', true);
+
+                            $('#grdReissue').dxDataGrid('columnOption', 'MATERIALCODE', 'visible', false);
+                            $('#grdReissue').dxDataGrid('columnOption', 'MATERIALNAME', 'visible', false);
+                            $('#grdReissue').dxDataGrid('columnOption', 'WEIGHT', 'visible', false);
+
+                            $('#grdReissue').dxDataGrid('instance').endUpdate();
+
+                            $('#grdReissue').dxDataGrid('instance').refresh();
+                        }
+                    }
+                }
+
+
+            },
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    elementAttr: { "id": "labelOutput" },
+                    icon: "fa fa-reply",
+                    stylingMode: "outlined",
+                    text: "@LabelText.LABEL @LabelText.PUBLICATION",@*"@LabelText.INBONDINSPECTCANCEL",*@
+                    type: "info",
+                    onClick: function() {
+
+                        var dxRadioGroup = $('#LABELTYPE').dxRadioGroup('instance');
+                        var selectedLabelType;
+
+                        if (dxRadioGroup != undefined) {
+                            selectedLabelType = dxRadioGroup.option('value');
+                        }
+                        else {
+                            selectedLabelType = "";
+                            return;
+                        }
+
+                        if (selectedLabelType == "MATERIAL") {
+                            ReprintMaterial();
+                        }
+                        else if (selectedLabelType == "PRODUCT") {
+                            ReprintProduct();
+                        }
+
+
+                    }
+                }
+            }
+        )
+    }
+
+    function grdReissue_OnRowClick(e) {
+        var grid = e.component;
+        var rowKey = grid.getKeyByRowIndex(e.rowIndex);
+        if (!e.isSelected)
+            grid.selectRows([rowKey], true);
+        else
+            grid.deselectRows([rowKey]);
+    }
+
+    function ReprintMaterial() {
+
+        var selectedRowCount = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData().length;
+        if (selectedRowCount <= 0) {
+            return;
+        }
+
+        var result = DevExpress.ui.dialog.confirm('재발행 하시겠습니까?', "Confirm changes");
+        result.done(function(dialogResult) {
+            if (!dialogResult) {
+                return;
+            } else {
+                var aJsonReprintMaterialInfo = new Array();
+
+                for (var i = 0; i < selectedRowCount; i++) {
+                    var aJson = new Object();
+                    aJson.WORKDATE = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].WORKDATE;
+                    aJson.SERIALNUMBER = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].SERIALNUMBER;
+                    aJson.LOTNUMBER = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].LOTNUMBER;
+                    aJson.MATERIALCODE = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].MATERIALCODE;
+                    aJson.MATERIALNAME = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].MATERIALNAME;
+                    aJson.WEIGHT = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].WEIGHT;
+
+                    aJsonReprintMaterialInfo.push(aJson);
+                }
+
+                var data = new Object();
+                var ReprintMaterialInfo = new Object();
+                ReprintMaterialInfo.materialInfo = aJsonReprintMaterialInfo;
+                data.values = JSON.stringify(ReprintMaterialInfo);
+
+                $.ajax({
+                    url: '@Url.Action("postReprintMaterial", "PRCE011WebApi", new { httproute = "DefaultApi" })',
+                    async: false,
+                    type: 'POST',
+                    data: data,
+                    success: function (data) {
+
+                        if (zebraBrowserSelected_device != null) {
+
+                            var offset = 0;
+
+                            data.forEach(function(e) {
+                                setTimeout(function(){
+                                    console.log(e);
+                                    writeToSelectedPrinter(e.zplList);
+                                }, 500 + offset);    
+                                offset += 500;
+                            });
+                        }
+
+                        DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+
+                    },
+                    error: function (e) {
+                        showError(this, e);
+                    }
+                })
+            }
+        });
+
+    }
+
+    function ReprintProduct() {
+
+        var selectedRowCount = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData().length;
+        if (selectedRowCount <= 0) {
+            return;
+        }
+
+        var result = DevExpress.ui.dialog.confirm('재발행 하시겠습니까?', "Confirm changes");
+        result.done(function(dialogResult) {
+            if (!dialogResult) {
+                return;
+            } else {
+                var aJsonReprintProductInfo = new Array();
+
+                for (var i = 0; i < selectedRowCount; i++) {
+                    var aJson = new Object();
+                    aJson.WORKDATE = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].WORKDATE;
+                    aJson.SERIALNUMBER = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].SERIALNUMBER;
+                    aJson.LOTNUMBER = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].LOTNUMBER;
+                    aJson.PARTNUMBER = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].PARTNUMBER;
+                    aJson.PRODUCTNAME = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].PRODUCTNAME;
+                    aJson.QUANTITY = $('#grdReissue').dxDataGrid('instance').getSelectedRowsData()[i].QUANTITY;
+
+                    aJsonReprintProductInfo.push(aJson);
+                }
+
+                var data = new Object();
+                var ReprintProductInfo = new Object();
+                ReprintProductInfo.productInfo = aJsonReprintProductInfo;
+                data.values = JSON.stringify(ReprintProductInfo);
+
+                $.ajax({
+                    url: '@Url.Action("postReprintProduct", "PRCE011WebApi", new { httproute = "DefaultApi" })',
+                    async: false,
+                    type: 'POST',
+                    data: data,
+                    success: function(data) {
+
+                        if (zebraBrowserSelected_device != null) {
+
+                            var offset = 0;
+
+                            data.forEach(function(e) {
+                                setTimeout(function() {
+                                        console.log(e);
+                                        writeToSelectedPrinter(e.zplList);
+                                    },
+                                    500 + offset);
+                                offset += 500;
+                            });
+                        }
+
+                        DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+
+                    },
+                    error: function(e) {
+                        showError(this, e);
+                    }
+                })
+            }
+        });
+
+    }
+
+</script>
+

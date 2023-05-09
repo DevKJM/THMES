@@ -1,0 +1,213 @@
+﻿@using JSMES.WebUI.Alpha.App_GlobalResources
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<VendorMaster>()
+                .ID("grdVendorMaster")
+                .DataSource(d => d.WebApi().Controller("MSTI011WebApi").Key("VENDORID").OnBeforeSend("grdVendorMaster_OnBeforeSend"))
+
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.VENDORCODE);
+                    columns.AddFor(m => m.VENDORNAME);
+                    columns.AddFor(m => m.BUSINESSNUMBER);
+                    columns.AddFor(m => m.TELEPHONE);
+                    columns.AddFor(m => m.FAXNUMBER);
+                    columns.AddFor(m => m.ADDRESS);
+                    columns.AddFor(m => m.CEONAME);
+                    columns.AddFor(m => m.EMAIL);
+                    columns.AddFor(m => m.BUSINESSTYPE);
+                    columns.AddFor(m => m.BUSINESSSTATUS);
+                    columns.AddFor(m => m.PURCHASEYN).Lookup(c => c.DataSource(new JS("USE_YN"))
+                        .DisplayExpr("NAME")
+                        .ValueExpr("CODE"));
+                    columns.AddFor(m => m.SELLYN).Lookup(c => c.DataSource(new JS("USE_YN"))
+                        .DisplayExpr("NAME")
+                        .ValueExpr("CODE"));
+                    columns.AddFor(m => m.OUTSOURCINGYN).Lookup(c => c.DataSource(new JS("USE_YN"))
+                        .DisplayExpr("NAME")
+                        .ValueExpr("CODE"));
+                    columns.AddFor(m => m.USEYN);
+                    columns.AddFor(m => m.CREATEUSER);
+                    columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                    columns.AddFor(m => m.RECENTUSER);
+                    columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                })
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .Editing(e =>
+                    e.Mode(GridEditMode.Batch)
+                        .AllowUpdating(new JS("iudAuth()"))
+                        .AllowAdding(new JS("iudAuth()"))
+                        .AllowDeleting(new JS("iudAuth()"))
+                )
+                //.StateStoring(s => s.Enabled(true).StorageKey("MSTI001_grdVendorMaster").Type(StateStoringType.LocalStorage))
+                .RowAlternationEnabled(true)
+                .Export(e => e.Enabled(true))
+                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                .ShowRowLines(true)
+                .OnInitialized("grdVendorMaster_OnInitialized")
+                .OnInitNewRow("grdVendorMaster_OnInitNewRow")
+                .OnRowValidating("onRowValidating")
+                .OnContentReady("OnContentReady")
+                .Option("KEY_FIELD", new object[] { "VENDORCODE" })
+                .Option("INIT_FIELD", new object[] { "USEYN" })
+                .Option("IGNORE_AUTOWIDTH", new object[] { "VENDORCODE", "VENDORNAME", "BUSINESSNUMBER", "TELEPHONE", "FAXNUMBER", "ADDRESS", "CEONAME", "EMAIL", "BUSINESSTYPE", "BUSINESSSTATUS", "PURCHASEYN", "SELLYN", "OUTSOURCINGYN", "USEYN", "CREATEUSER", "CREATEDATE", "RECENTUSER", "RECENTDATE" })
+            //.Option("USE_REQUIRED_HEADER", true)
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdVendorMaster_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function onRowValidating(e) {
+        var business = e.newData.BUSINESSNUMBER;
+
+        if (business != undefined) {
+            var param = $.param({
+                businessnum: business
+            });
+
+            $.ajax({
+                url: '@Url.Action("CheckValidation", "MSTI011WebApi", new {httproute = "DefaultApi",})',
+            data: param,
+            async: false,
+            type: 'GET',
+            success: function (data) {
+                console.log("OK");
+            },
+            error: function (e) {
+                showError(this, e);
+                validat = false;
+            }
+            });
+        }
+        if (e.isValid) {
+            var purchaseyn = e.newData.PURCHASEYN == undefined ? e.oldData.PURCHASEYN : e.newData.PURCHASEYN;
+            var sellyn = e.newData.SELLYN == undefined ? e.oldData.SELLYN : e.newData.SELLYN;
+            var outsourcingyn = e.newData.OUTSOURCINGYN == undefined ? e.oldData.OUTSOURCINGYN : e.newData.OUTSOURCINGYN;
+
+            if (purchaseyn == 'N' && sellyn == 'N' && outsourcingyn == 'N') {
+                if (validat) {
+
+                    DevExpress.ui.notify('@LabelText.PURCHASEYN / @LabelText.SELLYN / @LabelText.OUTSOURCINGYN @LabelText.SELECTVALUE', 'warning', globalNotificationErrorTime);
+                    //alert('@LabelText.PURCHASEYN / @LabelText.SELLYN / @LabelText.OUTSOURCINGYN @LabelText.SELECTVALUE');
+                    validat = false;
+                }
+            }
+        }
+
+        if (!validat)
+            e.isValid = false;
+    }
+
+    var validat = true;
+
+    function OnContentReady(e) {
+        validat = true;
+
+    }
+    function grdVendorMaster_OnBeforeSend(method, ajaxOptions) {
+        if (method == "insert") {
+            var routeGroupRow = $('#grdVendorMaster').dxDataGrid('instance').getSelectedRowsData();
+
+            //if (routeGroupRow.length > 0) {
+            //    ajaxOptions.data.RouteGroupCode = routeGroupRow[0].SYSCODE;
+            //    ajaxOptions.data.RouteGroupName = routeGroupRow[0].SYSCODENAME;
+            //} else {
+            //    ajaxOptions.data.RouteGroupCode = "";
+            //    ajaxOptions.data.RouteGroupName = "";
+            //}
+        } else if (method == "update") {
+            var routeGroupRow = $('#grdVendorMaster').dxDataGrid('instance').getSelectedRowsData();
+
+            @*var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+
+            var processGrid = $('#grdProcessList').dxDataGrid('instance');
+            var processData = processGrid.getDataSource();
+            var index = processGrid.getRowIndexByKey(ajaxOptions.data.key);
+            var processCode = processGrid.cellValue(index, 'PROCESSCODE');
+            var processSequence = processGrid.cellValue(index, 'PROCESSSQEUENCE');
+            var UseYN = processSequence != null ? "Y" : "N"
+
+            var isValidation = true;
+            if (processGrid.cellValue(index, "ROUTEGROUPCODE") == null) {
+
+                DevExpress.ui.notify('@LabelText.SELECTROUTEGROUP', 'error', globalNotificationErrorTime);
+                isValidation = false;
+            }
+            for (var i = 0; i < processData._items.length; i++) {
+                if (processGrid.cellValue(i, "PROCESSCODE") != processCode) {
+                    if (processGrid.cellValue(i, "PROCESSSQEUENCE") != "" && processGrid.cellValue(i, "PROCESSSQEUENCE") != null) {
+                        if (processGrid.cellValue(i, "PROCESSSQEUENCE") == processSequence) {
+
+                            DevExpress.ui.notify('@LabelText.PROCESSINDEXEXISTED', 'error', globalNotificationErrorTime);
+                            isValidation = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (isValidation) {
+                if (processSequence == null) {
+                    processSequence = 0;
+                }
+                if (routeGroupRow.length > 0) {
+                    parseJson.RouteGroupCode = routeGroupRow[0].SYSCODE;
+                    parseJson.RouteGroupName = routeGroupRow[0].SYSCODENAME;
+                    parseJson.ProcessCode = processCode;
+                    parseJson.PROCESSSQEUENCE = processSequence;
+                    parseJson.USEYN = UseYN == true ? "Y" : "N";
+                    ajaxOptions.data.values = JSON.stringify(parseJson);
+                }
+            }
+            else {
+                method.abort();
+            }*@
+        }
+    }
+
+    function grdVendorMaster_OnInitNewRow(e) {
+        e.data.PURCHASEYN = "N";
+        e.data.SELLYN = "N";
+        e.data.OUTSOURCINGYN = "N";
+    }
+</script>

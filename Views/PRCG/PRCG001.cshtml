@@ -1,0 +1,129 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCG;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<PRCG001A_LIST>()
+                                          .DataSource(d => d.WebApi().Controller("PRCG001WebApi").Key("NOPSEQUENCE").LoadAction("get1").InsertAction("post").UpdateAction("put"))
+                                          .ID("grdNopHistory")
+                                          .Columns(columns =>
+                                          {
+                                              columns.AddFor(m => m.NOPSEQUENCE).Visible(false);
+                                              columns.AddFor(m => m.EQUIPMENTCODE)
+                                                  .Lookup(lookup => lookup
+                                                      .DataSource(d => d.WebApi()
+                                                          .Controller("COMA001WebApi").Key("EQUIPMENTCODE")
+                                                          .LoadAction("EQUIPMENT_LIST"))
+                                                      .DisplayExpr("EQUIPMENTNAME")
+                                                      .ValueExpr("EQUIPMENTCODE")
+                                                  );
+                                              columns.AddFor(m => m.NOPDAY);
+                                              columns.AddFor(m => m.NOPSTARTTIME).Format(f => f.Type(Format.ShortDateShortTime)).DataType(GridColumnDataType.DateTime);
+                                              columns.AddFor(m => m.NOPENDDATE).Format(f => f.Type(Format.ShortDateShortTime)).DataType(GridColumnDataType.DateTime);
+                                              columns.AddFor(m => m.NOPRESULTTIME).AllowEditing(false);
+                                              columns.AddFor(m => m.NOPCODE)
+                                                  .Lookup(lookup => lookup
+                                                      .DataSource(d => d.WebApi()
+                                                          .Controller("COMA001WebApi").Key("NOPCODE")
+                                                          .LoadAction("NOPCODE_LIST"))
+                                                      .DisplayExpr("NOPNAME")
+                                                      .ValueExpr("NOPCODE")
+                                                  );
+                                            columns.AddFor(m => m.NOPREASON).EditCellTemplate(@<text>@(Html.DevExtreme().TextArea().Height(100).Value(new JS("data.NOPREASON")).OnValueChanged("function(e){setValue(e.value);}"))</text>);
+                                            columns.AddFor(m => m.CREATEUSER).Visible(false);
+                                            columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime)).Visible(false);
+                                            columns.AddFor(m => m.RECENTUSER).Visible(false);
+                                            columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime)).Visible(false);
+                                        })
+                                        .AllowColumnResizing(true)
+                                        .RemoteOperations(true)
+                                        .FilterPanel(f => f.Visible(true))
+                                        .ColumnAutoWidth(true)
+                                        .Paging(p => p.PageSize(25).Enabled(true))
+                                        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                        //.StateStoring(s => s.Enabled(true).StorageKey("MSTD001_grdPartNumber").Type(StateStoringType.LocalStorage))
+                                        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                        .ShowRowLines(true)
+                                        .SearchPanel(searchPanel => searchPanel
+                                            .Visible(true)
+                                            .Width(180)
+                                            .Placeholder("Search...")
+                                        )
+                                        .FilterRow(filterRow => filterRow
+                                            .Visible(true)
+                                            .ApplyFilter(GridApplyFilterMode.Auto)
+                                        )
+                                        .ShowBorders(true)
+                                        .AllowColumnResizing(true)
+                                        .Editing(e =>
+                                            e.Mode(GridEditMode.Batch)
+                                                .AllowUpdating(new JS("iudAuth()"))
+                                                .AllowAdding(new JS("iudAuth()"))
+                                        )
+                                        .RowAlternationEnabled(true)
+                                .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                                        .OnInitialized("grdNopHistory_OnInitialized")
+                                        .Option("KEY_FIELD", new object[] { "NOPSEQUENCE" })
+                                        .Option("INIT_FIELD", new object[] { "NOPSEQUENCE" })
+                                .OnInitNewRow("grdNopHistory_OnInitNewRow")
+            )
+        </div>
+    </div>
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPART"))
+{
+    @(Html.DevExtreme().DateBox()
+          .ID("ddbPart")
+          .Type(DateBoxType.DateTime)
+          .OnValueChanged(@<text>
+                              function(e){
+                              setValue(e.value[0]);
+                              }
+                           </text>)
+          .OnOpened(@<text>
+                        function (e) {
+                        e.component.content().parent().width(350);
+
+                        var trans = e.component.content().parent().css('transform');
+                        var matrix = trans.replace(/[^0-9\-.,]/g, '').split(',');
+                        var vLeft = 350 - (window.innerWidth - matrix[4]);
+                        if (vLeft > 0) {
+                        e.component.content().parent().css('left', -(vLeft + 5));
+                        }
+                        }
+                     </text>))
+}
+
+<script>
+    function grdNopHistory_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdNopHistory_OnInitNewRow(e) {
+
+    }
+
+    function grdNopHistory_DateBox_EditCellTemplate(container, options) {
+        $('<div />').dxDateBox({
+            format: "datetime",
+            type: "datetime"
+            })
+            .appendTo(container);
+    }
+
+    function colNOPSTARTTIME_SetCellValue(newData, value, currentRowData) {
+        newData.NOPSTARTTIME = value[0];
+    }
+
+</script>
+
+
+@Html.Partial("_DropdownPartial")

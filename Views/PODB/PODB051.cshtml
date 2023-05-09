@@ -1,0 +1,615 @@
+﻿@using System.Web.UI.WebControls
+@using JSMES.WebUI.Alpha.ViewModels.POD.PODB;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using ButtonType = DevExtreme.AspNet.Mvc.ButtonType
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-4 col-sm-12">
+            <h4><span class="dx-fieldset-header"><i class="fa fa-angle-right">@LabelText.PRODUCT @LabelText.RELEASE @LabelText.INSERTION</i></span></h4>
+            @(Html.DevExtreme().Form<PODB051_LIST>
+                          ()
+                          .ID("form")
+                          .ColCount(3).ColCountByScreen(c=>c.Xs(3))
+                          .Items(items =>
+                          {
+                              items.AddSimpleFor(m => m.VENDORCODE)
+                                  .Editor(e => e
+                                      .DropDownBox()
+                                      .DataSource(d => d.WebApi().Key("VENDORCODE").Controller("COMA001WebApi").LoadAction("VENDOR_SELLYN_LIST"))
+                                      .DisplayExpr("VENDORNAME")
+                                      .ValueExpr("VENDORCODE")
+                                      .ContentTemplate(new TemplateName("EmbeddedPODB051_Vendor"))
+                                      .Placeholder("Select a value...")
+                                      .OnValueChanged("form_OnValueChanged")
+                                      .ReadOnly(true)
+                                  )
+                                  .ColSpan(3);
+
+                              items.AddSimpleFor(m => m.WORKDATE)
+                                  .Editor(e => e
+                                      .DateBox()
+                                      .Value(DateTime.Today)
+                                      .Type(DateBoxType.Date)
+                                      .ReadOnly(true)
+                                  ).ColSpan(1);
+
+                              items.AddSimpleFor(m => m.DELIVERYQUANTITY)
+                                  .Editor(e => e
+                                      .NumberBox()
+                                      .Format(f => f.Type(Format.FixedPoint).Precision(0))
+                                      .ReadOnly(true)
+                                  ).ColSpan(1);
+                              
+                              items.AddSimple().Name("PALLETCOUNT").Label(l=>l.Text("케리어 수량"))
+                                  .Editor(e => e
+                                      .NumberBox()
+                                      .Format(f => f.Type(Format.FixedPoint).Precision(0))
+                                      .ReadOnly(true)
+                                  ).ColSpan(1);
+
+                              items.AddSimpleFor(m => m.MEMO)
+                                  .Editor(e => e
+                                      .TextArea()
+                                      .StylingMode(EditorStylingMode.Outlined)
+                                      .Height(90)
+                                      .OnValueChanged("form_OnValueChanged")
+                                  ).ColSpan(3);
+
+
+                              items.AddButton()
+                                  .ButtonOptions(b => b.ID("btnSave")
+                                      .Icon("check")
+                                      .Text(LabelText.INSERTION)
+                                      .Type(ButtonType.Success)
+                                      .StylingMode(ButtonStylingMode.Contained)
+                                      .OnClick("btnSave_OnClick")
+                                      .Width("100%")
+                                      .FocusStateEnabled(false)
+                                      .HoverStateEnabled(true)
+                                      .Disabled(new JS("!iudAuth()"))
+                                  ).ColSpan(2);
+
+                              items.AddButton()
+                                  .ButtonOptions(b => b.ID("btnClear")
+                                      .Icon("refresh")
+                                      .Text(LabelText.REMOVE)
+                                      .Type(ButtonType.Default)
+                                      .StylingMode(ButtonStylingMode.Contained)
+                                      .OnClick("btnClear_OnClick")
+                                      .Width("100%")
+                                      .FocusStateEnabled(false)
+                                      .HoverStateEnabled(true)
+                                      .Disabled(new JS("!iudAuth()"))
+                                  ).ColSpan(1);
+                          })
+                          .FormData(Model)
+            )
+        </div>
+        <div class="col-lg-8 col-sm-12">
+            <h4><span class="dx-fieldset-header"><i class="fa fa-angle-right">@LabelText.RELEASE @LabelText.SCHEDULE @LabelText.STOCK</i></span></h4>
+            @(Html.DevExtreme().Form<PODB051_LIST>
+                          ()
+                          .ID("form_stock")
+                          .ColCount(4).ColCountByScreen(c=>c.Xs(4))
+                          .Items(items =>
+                          {
+                              items.AddSimple()
+                                  .Editor(e => e
+                                      .TextBox().ID("ScanBarcode")
+                                      //.InputAttr("class", "largeTextboxInput")
+                                      .OnEnterKey("ScanBarcode_onEnterKey")
+                                      .OnInitialized("ScanBarcode_onInitialized")
+                                  ).Name("ScanBarcode")
+                                  .Label(T => T.Text(LabelText.SERIAL + " " + LabelText.BARCODE)).CssClass("widgetLabelFontSize")
+                                  .ColSpan(3);
+
+                              items.AddButton()
+                              .VerticalAlignment(VerticalAlignment.Bottom)
+                                  .ButtonOptions(b => b.ID("btnStockSelect")
+                                      .Text(LabelText.STOCK + LabelText.SELECTION)
+                                      .Type(ButtonType.Default)
+                                      .StylingMode(ButtonStylingMode.Contained)
+                                      .OnClick("btnStockSelect_onClick")
+                                      .Width("100%")
+                                      .FocusStateEnabled(false)
+                                      .HoverStateEnabled(true)
+                                      .Disabled(new JS("!iudAuth()"))
+                                  ).ColSpan(1);
+
+                            items.AddSimple()
+                                .ColSpan(4)
+                                .Template(@<text>
+                                    @(Html.DevExtreme().DataGrid<PODB051_LIST>
+                                                  ()
+                                                  .ID("grdDevProductStock")
+                                                  .DataSource(new[]
+                                                  {
+                                                            new { SERIALNUMBER = "", LOTNUMBER = "" }
+
+                                                                }, "SERIALNUMBER")
+                                                  .KeyExpr("SERIALNUMBER")
+                                                  .RepaintChangesOnly(true)
+                                                  .Columns(columns =>
+                                                  {
+                                                      columns.AddFor(m => m.PLANTCODE).AllowEditing(false).Visible(false);
+                                                      columns.AddFor(m => m.SERIALNUMBER).SortOrder(SortOrder.Asc).AllowEditing(false).Width(150);
+                                                      columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false).Width(150);;
+                                                      columns.AddFor(m => m.LOTNUMBER).SortOrder(SortOrder.Asc).AllowEditing(false);                                                      
+                                                      columns.AddFor(m => m.PRODUCTTYPE).AllowEditing(false).Visible(false)
+                                                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                                              .Controller("COMA003WebApi").Key("SYSCODE")
+                                                              .LoadAction("PRODUCTTYPE_LIST")
+                                                              .LoadParams(new { Culture = new JS("function() { return locale; }") }))
+                                                              .DisplayExpr("SYSCODENAME")
+                                                              .ValueExpr("SYSCODE")
+                                                          );
+                                                      columns.AddFor(m => m.PARTNUMBER).AllowEditing(false).Visible(false);
+                                                      
+                                                      columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0)).AllowEditing(false);
+                                                      columns.Add()
+                                                          .Type(GridCommandColumnType.Buttons)
+                                                          .Width(110)
+                                                          .Buttons(b =>
+                                                          {
+                                                                            //b.Add().Name(GridColumnButtonName.Edit);
+                                                                            //b.Add().Name(GridColumnButtonName.Delete);
+
+                                                                            b.Add()
+                                                                                .Hint("Delete")
+                                                                                .Icon("trash")
+                                                                                .Visible(new JS("!iudAuth()"))
+                                                                                .OnClick("delIconClick");
+                                                          });
+                                                  })
+                                                  .FilterPanel(f => f.Visible(false))
+                                                  .ColumnAutoWidth(true)
+                                                  .Paging(p => p.PageSize(50).Enabled(true))
+                                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                  .FilterRow(filterRow => filterRow
+                                                      .Visible(false)
+                                                      .ApplyFilter(GridApplyFilterMode.Auto)
+                                                  )
+
+                                                  .Editing(e =>
+                                                  {
+                                                      e.Mode(GridEditMode.Batch);
+                                                      e.UseIcons(true);
+                                                  })
+                                                  .ShowBorders(true)
+                                                  .AllowColumnResizing(true)
+                                                  .RowAlternationEnabled(true)
+                                                  .OnCellPrepared("grdDevProductStock_OnCellPrepared")
+                                                  .OnContentReady("grdDevProductStock_OnContentReady")
+                                                  .OnRowInserted("grdDevProductStock_OnRowInserted")
+                                                  .OnToolbarPreparing("grdDevProductStock_OnToolbarPreparing")
+                                    )
+                                </text>);
+                            }
+                            ))
+
+        </div>
+    </div>
+</div>
+
+@*재고 선택 팝업창 _ FORM*@
+@(Html.DevExtreme().Popup()
+              .ID("STOCK_POPUP")
+              .ElementAttr("class", "popup")
+              .ShowTitle(true)
+              .DragEnabled(false)
+              .ContentTemplate(new TemplateName("EmbeddedPODB051_ProductStock"))
+              .FullScreen(false)
+              .ShowCloseButton(true)
+                .FullScreen(new JS("MobileEsp.DetectAndroid()"))
+                .ShowCloseButton(true)                
+                .Height(600)                
+                .OnShown("function(e) { if(!MobileEsp.DetectAndroid()) { $('#STOCK_POPUP').dxPopup('instance').option('width', 800); $('#grdProductStock').dxDataGrid('instance').option('height', 420); } }")
+              .Title(LabelText.STOCK + LabelText.LIST)
+              .OnShowing("function(){ $('#grdProductStock').dxDataGrid('instance').refresh(); }")
+              .ToolbarItems(t =>
+              {
+                  t.Add().Widget(w => w.Button().Text(LabelText.INSERT)
+                      .Width(150)
+                      .OnClick("popForm_btnStockSave")
+                      .Icon("check")
+                      .Disabled(new JS("!iudAuth()"))
+                      .Type(ButtonType.Success).StylingMode(ButtonStylingMode.Contained))
+                      .Location(ToolbarItemLocation.Center).Toolbar(Toolbar.Bottom);
+
+                  t.Add().Widget(w => w.Button().Text(LabelText.CANCEL)
+                      .OnClick("popFrmStock_btnCancel_onClick")
+                      .Icon("refresh")
+                      .Disabled(new JS("!iudAuth()"))
+                      .Type(ButtonType.Normal)
+                      .Width(150).StylingMode(ButtonStylingMode.Contained))
+                      .Location(ToolbarItemLocation.Center).Toolbar(Toolbar.Bottom);
+              })
+)
+
+@*업체 선택 GRID*@
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPODB051_Vendor"))
+{
+    @(Html.DevExtreme().DataGrid<VendorMaster>
+            ()
+            .ID("embedded-vendor-datagrid")
+            .DataSource(new JS(@"component.option(""dataSource"")"))
+            .Columns(columns =>
+            {
+                columns.AddFor(m => m.VENDORNAME);
+                columns.AddFor(m => m.TELEPHONE);
+                columns.AddFor(m => m.ADDRESS);
+            })
+            .RemoteOperations(true)
+            .ColumnAutoWidth(true)
+            .HoverStateEnabled(true)
+            .Paging(p => p.PageSize(10))
+            .FilterRow(f => f.Visible(true))
+            .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+            .Selection(s => s.Mode(SelectionMode.Single))
+            .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+            .OnSelectionChanged(@<text>
+                function(selectedItems) {
+                var haskey;
+                var keys = selectedItems.selectedRowKeys;
+                if(typeof keys !== 'undefined' && keys.length > 0)
+                {
+                haskey = true;
+                }
+
+                component.option("value", haskey ? keys[0] : null);
+                if(typeof keys !== 'undefined' && keys.length > 0){
+                component.close();
+                }
+                }
+            </text>)
+    )
+}
+
+@*제품 재고 선택 GRID*@
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPODB051_ProductStock"))
+{
+    @(Html.DevExtreme().Form<PODB051_LIST>
+          ()
+          .ID("popForm")
+          .ScrollingEnabled(false)
+          .Items(items =>
+          {
+              items.AddSimple()
+                  .Template(@<text>
+                                @( Html.DevExtreme().DataGrid<PODB051_LIST>()
+                                       .ID("grdProductStock")
+                                       .DataSource(d => d.WebApi().Controller("PODB051WebApi").Key("SERIALNUMBER")
+                                       .OnBeforeSend("grdProductStock_OnBeforeSend")
+                                       )
+                                       .Columns(columns =>
+                                       {
+                                           columns.AddFor(m => m.PLANTCODE).Visible(false);
+                                           columns.AddFor(m => m.LOTNUMBER).AllowEditing(false);
+                                           columns.AddFor(m => m.SERIALNUMBER).AllowEditing(false).SortOrder(SortOrder.Asc);
+                                           columns.AddFor(m => m.PARTNUMBER).AllowEditing(false);
+                                           columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false);
+                                           columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0)).AllowEditing(false);
+                                       })
+                                       .HeaderFilter(h => h.Visible(false))
+                                       .ColumnHidingEnabled(true)
+                                       .SearchPanel(s => s.Visible(true))
+                                       .ColumnResizingMode(ColumnResizingMode.Widget)
+                                       .AllowColumnResizing(true)
+                                       .RowAlternationEnabled(true)
+                                       .ShowBorders(false)
+                                       .ShowColumnLines(false)
+                                       .ShowRowLines(false)
+                                       .ColumnAutoWidth(true)
+                                       .AllowColumnReordering(true)
+                                       .Scrolling(scrolling => scrolling.Mode(GridScrollingMode.Infinite))
+                                       .RemoteOperations(true)
+                                       .Height(500)
+                                       .Selection(s => s.Mode(SelectionMode.Multiple)) //.ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.Always))
+                                       .OnInitialized("grdProductStock_OnInitialized")
+                                      )
+                             </text>);
+          }
+          ))
+}
+
+<script>
+
+    function grdProductStock_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            var VENDORCODE = $('#form').dxForm('instance').getEditor('VENDORCODE').option('value');
+
+            if (VENDORCODE != null)
+                ajaxOptions.data.CUSTOMER = VENDORCODE;
+            else
+                ajaxOptions.data.CUSTOMER = "";            
+        }
+    }
+
+    var delIconClick = function (e) {
+        $('#grdDevProductStock').dxDataGrid('instance').getDataSource().store().remove(e.row.key);
+        $('#grdDevProductStock').dxDataGrid('instance').refresh();
+    }
+    function grdDevProductStock_OnCellPrepared(e) {
+        if (e.rowType == 'header') {
+            e.cellElement.css('text-align', 'center');
+        }
+    }
+    function grdProductStock_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function ScanBarcode_onInitialized(e) {
+        /*
+        setTimeout(function () {
+            e.component.focus();
+        }, 0);
+        */
+    }
+    
+    function popFrmStock_btnCancel_onClick(e) {
+        $("#STOCK_POPUP").dxPopup("instance").hide();
+    }
+        function grdDevProductStock_OnRowInserted(e) {
+            setTotalQty();
+
+        }
+
+        function grdDevProductStock_OnContentReady(e) {
+            var FirstRowBoxSerialNoValue = $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'SERIALNUMBER');
+            if (FirstRowBoxSerialNoValue == "") {
+                $('#grdDevProductStock').dxDataGrid('instance').getDataSource().store().remove('');
+                $('#grdDevProductStock').dxDataGrid('instance').refresh();
+                //$('#grdDevProductStock').dxDataGrid('instance').deleteRow(0);
+                //$('#grdDevProductStock').dxDataGrid('instance').saveEditData();
+            }
+
+            setTotalQty();
+        }
+    
+        function SetLabelText(e) {
+            $('#form_stock').dxForm('instance').updateData('ScanBarcode', e);
+            BarcodeProcess(e);
+        }
+
+        function ScanBarcode_onEnterKey(e) {
+            BarcodeProcess(e.component._options.value);
+        }
+
+        function BarcodeProcess(e) {
+            var txt = e;
+            var IsExistBoxSerial = false;
+
+            if (txt == null || txt == "") {
+                $('#ScanBarcode').dxTextBox('instance').reset();
+                if(typeof(JS2CS) != "undefined")
+                    JS2CS.NG();
+                DevExpress.ui.notify('@LabelText.ANSWERRESCAN', 'error', globalNotificationErrorTime);
+                return;
+            }
+
+            var pairindex = $('#grdDevProductStock').dxDataGrid('instance').getRowIndexByKey(txt);
+            if (pairindex >= 0) {
+                IsExistBoxSerial = true;
+            }
+
+            if (IsExistBoxSerial == true) {
+                $('#ScanBarcode').dxTextBox('instance').reset();
+                if(typeof(JS2CS) != "undefined")
+                    JS2CS.NG();
+                DevExpress.ui.notify('@LabelText.ANSWERSCANEDBARCODE', 'error', globalNotificationErrorTime);
+                return;
+            } else {
+
+                $.ajax({
+                    url: '@Url.Action("CheckStockSerialnumber", "PODB051WebApi", new { httproute = "DefaultApi" })' + "?" + "SERIALNUMBER=" + txt,
+                    type: 'GET',
+                    success: function (data) {
+
+                        if (data.data.length <= 0) {
+                            DevExpress.ui.notify("@LabelText.ANSWERNOEXIST", 'error', globalNotificationErrorTime);
+                            if(typeof(JS2CS) != "undefined")
+                                    JS2CS.NG();
+                            $('#ScanBarcode').dxTextBox('instance').reset();
+                            return;
+                        } else {
+                            if ($("#form").dxForm("instance").option("formData.VENDORCODE") != undefined &&
+                                    $("#form").dxForm("instance").option("formData.VENDORCODE") != data.data[0].VENDORCODE) {
+                                DevExpress.ui.notify("진행 중인 업체와 다릅니다.",'error', globalNotificationErrorTime);                                                                   
+                                if(typeof(JS2CS) != "undefined")
+                                    JS2CS.NG();
+                            } else {
+                                $("#form").dxForm("instance").option("formData.VENDORCODE", data.data[0].VENDORCODE);
+                                $('#grdDevProductStock').dxDataGrid('instance').addRow();
+                                $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'PLANTCODE', data.data[0].PLANTCODE);
+                                $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'LOTNUMBER', data.data[0].LOTNUMBER);
+                                $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'SERIALNUMBER', data.data[0].SERIALNUMBER);
+                                $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'PRODUCTTYPE', data.data[0].PRODUCTTYPE);
+                                $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'PARTNUMBER', data.data[0].PARTNUMBER);
+                                $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'PRODUCTNAME', data.data[0].PRODUCTNAME);
+                                $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'QUANTITY', data.data[0].QUANTITY);
+                                
+                                $('#grdDevProductStock').dxDataGrid('instance').saveEditData();                                
+                                $('#ScanBarcode').dxTextBox('instance').reset();
+                                if(typeof(JS2CS) != "undefined")
+                                    JS2CS.OK();
+                            }
+                        }
+                    },
+                    error: function () {
+                        console.log("error");
+                        if(typeof(JS2CS) != "undefined")
+                            JS2CS.NG();
+                        showError(this, e);
+                    }
+                });
+            }
+        }
+
+        function btnStockSelect_onClick(e) {
+            $("#STOCK_POPUP").dxPopup("instance").show();
+        }
+
+        function popForm_btnStockSave(e) {
+            var selectedRowCount = $('#grdProductStock').dxDataGrid('instance').getSelectedRowsData().length;
+
+            for (var i = 0; i < selectedRowCount; i++) {
+                var pairData = $('#grdProductStock').dxDataGrid('instance').getSelectedRowsData()[i].SERIALNUMBER;
+                var findrowindex = $('#grdDevProductStock').dxDataGrid('instance').getRowIndexByKey(pairData);
+                if (findrowindex == -1) {
+                    $('#grdDevProductStock').dxDataGrid('instance').addRow();
+                    $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'PLANTCODE', $('#grdProductStock').dxDataGrid('instance').getSelectedRowsData()[i].PLANTCODE);
+                    $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'LOTNUMBER', $('#grdProductStock').dxDataGrid('instance').getSelectedRowsData()[i].LOTNUMBER);
+                    $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'SERIALNUMBER', $('#grdProductStock').dxDataGrid('instance').getSelectedRowsData()[i].SERIALNUMBER);
+                    $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'PRODUCTTYPE', $('#grdProductStock').dxDataGrid('instance').getSelectedRowsData()[i].PRODUCTTYPE);
+                    $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'PARTNUMBER', $('#grdProductStock').dxDataGrid('instance').getSelectedRowsData()[i].PARTNUMBER);
+                    $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'PRODUCTNAME', $('#grdProductStock').dxDataGrid('instance').getSelectedRowsData()[i].PRODUCTNAME);
+                    $('#grdDevProductStock').dxDataGrid('instance').cellValue(0, 'QUANTITY', $('#grdProductStock').dxDataGrid('instance').getSelectedRowsData()[i].QUANTITY);
+                    //$('#grdDevProductStock').dxDataGrid('instance').saveEditData();
+                }
+            }
+            $('#grdDevProductStock').dxDataGrid('instance').saveEditData();
+
+
+            $('#grdProductStock').dxDataGrid('instance').clearSelection();
+
+            $("#STOCK_POPUP").dxPopup("instance").hide();
+
+            $('#ScanBarcode').dxTextBox('instance').reset();
+        }
+
+        function setTotalQty() {
+            var cnt = $('#grdDevProductStock').dxDataGrid('instance').totalCount();
+            var totalQty = 0;
+            if (cnt > 0) {
+                for (var i = 0; i < cnt; i++) {
+                    var rowQty = $('#grdDevProductStock').dxDataGrid('instance').cellValue(i, 'QUANTITY');
+                    totalQty = totalQty + rowQty;
+                }
+            }
+
+            $('#form').dxForm('instance').option('formData.DELIVERYQUANTITY', totalQty);
+            $('#form').dxForm('instance').option('formData.PALLETCOUNT', cnt);
+        }
+
+        function btnSave_OnClick(e) {
+            var grid = $("#grdDevProductStock").dxDataGrid("instance");
+            var cnt = grid.totalCount();
+
+            var vendor = $('#form').dxForm('instance').option('formData.VENDORCODE');
+            var workdate = $('#form').dxForm('instance').option('formData.WORKDATE');
+            var memo = $('#form').dxForm('instance').option('formData.MEMO');
+
+            if (vendor == "" || vendor == undefined) {
+                DevExpress.ui.dialog.alert("@LabelText.ANSWERPLEASESELECTVENDOR", "warning");
+                //$('#ORDERNUMBER').dxTextBox('instance').focus();
+                return;
+            }
+            var result = DevExpress.ui.dialog.confirm("@LabelText.QUESTIONRELEASE", "Confirm changes");
+            result.done(function (dialogResult) {
+                if (!dialogResult) {
+                    return;
+                } else {
+                    if (cnt > 0) {
+
+                        var aJsonArray = new Array();
+                        var aJson = new Object();
+
+                        for (var Index = 0; Index < cnt; Index++) {
+                            aJson = new Object();
+                            aJson.PLANTCODE = grid.cellValue(Index, 'PLANTCODE');
+                            aJson.WORKDATE = workdate;
+                            aJson.VENDORCODE = vendor;
+                            aJson.MEMO = memo;
+                            aJson.SERIALNUMBER = grid.cellValue(Index, 'SERIALNUMBER');
+                            aJson.LOTNUMBER = grid.cellValue(Index, 'LOTNUMBER');
+                            aJson.PARTNUMBER = grid.cellValue(Index, 'PARTNUMBER');
+                            aJson.QUANTITY = grid.cellValue(Index, 'QUANTITY');
+                            aJsonArray.push(aJson);
+                        }
+
+                        var data = new Object();
+                        data.data = JSON.stringify(aJsonArray);
+
+                        //var param = $.param({ ORDERNUMBER: orderno, Culture: locale });
+
+                        $.ajax({
+                            url: '@Url.Action("post", "PODB051WebApi", new {httproute = "DefaultApi", })', // + "?" + param,
+                            type: 'POST',
+                            data: data,
+                            success: function () {
+                                setRefresh();
+
+                                $('#ScanBarcode').dxTextBox('instance').reset();
+                                DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+                                //$('#ScanBarcode').dxTextBox('instance').focus();
+                            },
+                            error: function (e) {
+                                console.log(data);
+                                showError(this, e);
+                            }
+                        });
+                    } else {
+                        DevExpress.ui.dialog.alert("@LabelText.ANSWERNOTSHIPPINGQTY", "warning");
+                        //$('#ORDERNUMBER').dxTextBox('instance').focus();
+                        return;
+                    }
+                }
+            });
+        }
+
+        function btnClear_OnClick(e) {
+            setRefresh();
+
+            $('#ScanBarcode').dxTextBox('instance').reset();
+            //$('#ScanBarcode').dxTextBox('instance').focus();
+        }
+
+        function form_OnValueChanged(e) {
+            //$('#ScanBarcode').dxTextBox('instance').focus();
+
+        }
+
+        function setRefresh() {
+
+            var grid = $("#grdDevProductStock").dxDataGrid("instance");
+            var grid2 = $('#embedded-vendor-datagrid').dxDataGrid('instance');
+            var cnt = grid.totalCount();
+
+            //var FirstRowBoxSerialNoValue =
+
+            for (var Index = 0; Index < cnt; Index++) {
+                var delData = $('#grdDevProductStock').dxDataGrid('instance').cellValue(Index, 'SERIALNUMBER');
+                $('#grdDevProductStock').dxDataGrid('instance').getDataSource().store().remove(delData);
+                //grid.deleteRow();
+            }
+            $('#grdDevProductStock').dxDataGrid('instance').refresh();
+            //grid.saveEditData();
+
+            $('#form').dxForm('instance').option('formData.VENDORCODE', undefined);
+
+            if (grid2 != undefined)
+                $('#embedded-vendor-datagrid').dxDataGrid('instance').clearSelection();
+
+            $('#form').dxForm('instance').option('formData.MEMO', undefined);
+            $('#form').dxForm('instance').option('formData.DELIVERYQUANTITY', 0);
+        }
+
+        // FORM 그리드 상위 버튼 제거
+        function grdDevProductStock_OnToolbarPreparing(e) {
+            var toolbarItems = e.toolbarOptions.items;
+            $.each(toolbarItems, function (_, item) {
+                if (item.name === "saveButton" || item.name == "revetButton" || item.name == "addRowButton") {
+                    // Change the item options here
+                    item.visible = false;
+                }
+            });
+        }
+</script>

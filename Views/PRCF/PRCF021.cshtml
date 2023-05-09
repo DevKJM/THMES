@@ -1,0 +1,175 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCF;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @string.Format("{0}{1}{2}", LabelText.WORK, LabelText.HISTORY, LabelText.LIST) </i></span></h4>
+            @(Html.DevExtreme().DataGrid<PRCF021_LIST>()
+                  .ID("grdWorkHistory")
+                  .DataSource(d => d.WebApi().Controller("PRCF021WebApi").Key("SERIALNUMBER"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.BETWEENWORKDATE)
+                          .SelectedFilterOperation(FilterOperations.Between)
+                          .Format(Format.ShortDate)
+                          .SortOrder(SortOrder.Desc)
+                          .FilterValue(new object[] { DateTime.Now.AddDays(-20).Date, DateTime.Now.Date });//.GroupIndex(0);
+                      columns.AddFor(m => m.HIGHPRIORITYFLAG).Visible(false)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi")
+                              .Key("SYSCODE")
+                              .LoadAction("HIGHPRIORITYFLAG_LIST")
+                              )
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.ORDERNUMBER).Visible(false);
+                      columns.AddFor(m => m.ORDERSEQUENCE).Visible(false);
+                      columns.AddFor(m => m.WIPGUBUN).Caption("구분").Visible(false);
+                      columns.AddFor(m => m.LOTNUMBER);
+                      columns.AddFor(m => m.SEQ).SortOrder(SortOrder.Desc).Visible(false);
+                      columns.AddFor(m => m.STATE).Visible(false)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi")
+                              .Key("SYSCODE")
+                              .LoadAction("STATE_LIST")
+                              )
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.SERIALNUMBER).Visible(false);
+                      columns.AddFor(m => m.UDCF1)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi")
+                              .Key("SYSCODE")
+                              .LoadAction("CARTYPE_LIST")
+                              )
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          ).Caption(LabelText.CARTYPE);
+
+                      columns.AddFor(m => m.PARTNUMBER);
+                      columns.AddFor(m => m.PRODUCTNAME);
+                      columns.AddFor(m => m.TYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi")
+                              .Key("SYSCODE")
+                              .LoadAction("PARTTYPE_LIST")
+                              )
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.PROCESSCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi")
+                              .Key("PROCESSCODE")
+                              .LoadAction("PROCESS_LIST")
+                              )
+                              .DisplayExpr("PROCESSNAME")
+                              .ValueExpr("PROCESSCODE")
+                          );
+                      columns.AddFor(m => m.EQUIPMENTCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi")
+                              .Key("EQUIPMENTCODE")
+                              .LoadAction("EQUIPMENT_LIST")
+                              )
+                              .DisplayExpr("EQUIPMENTNAME")
+                              .ValueExpr("EQUIPMENTCODE")
+                          );
+                      columns.AddFor(m => m.WORKCENTERCODE).Visible(false)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi")
+                              .Key("WORKCENTERCODE")
+                              .LoadAction("WORKCENTER_LIST")
+                              )
+                              .DisplayExpr("WORKCENTERNAME")
+                              .ValueExpr("WORKCENTERCODE")
+                          );
+                      columns.AddFor(m => m.ORDERQUANTITY).Format(Format.FixedPoint).Visible(false);
+                      columns.AddFor(m => m.QUANTITY).Format("#,##0.###");//.Format(f => f.Type(Format.FixedPoint).Precision(3));
+                      columns.AddFor(m => m.UNITCODE)
+                          .Lookup(lookup => lookup
+                              .DataSource(d => d.WebApi()
+                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                  .LoadAction("UNITCODE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.TRANSCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi")
+                              .Key("TRANSCODE")
+                              .LoadAction("TRANSACTION_LIST")
+                              )
+                              .DisplayExpr("TRANSNAME")
+                              .ValueExpr("TRANSCODE")
+                          );
+                      columns.AddFor(m => m.WORKER);
+                      columns.AddFor(m => m.HOLDINGYN).Visible(false);
+                      columns.AddFor(m => m.MEMO).Visible(false);
+                      columns.AddFor(m => m.PLANTCODE).Visible(false)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi")
+                              .Key("PLANTCODE")
+                              .LoadAction("PLANT_LIST")
+                              )
+                              .DisplayExpr("PLANTNAME")
+                              .ValueExpr("PLANTCODE")
+                          );
+                      columns.AddFor(m => m.SHIFTCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi")
+                              .Key("SYSCODE")
+                              .LoadAction("SHIFT_LIST")
+                              )
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.CREATEUSER).Visible(false)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi")
+                              .Key("EMPCODE")
+                              .LoadAction("HR_LIST")
+                              )
+                              .DisplayExpr("EMPNAME")
+                              .ValueExpr("EMPCODE")
+                          );
+                      columns.AddFor(m => m.CREATEDATE).Format(Format.ShortDateShortTime).SortOrder(SortOrder.Desc).Visible(false);
+                  })
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                  .OnInitialized("grdWorkHistory_OnInitialized")
+                  )
+        </div>
+    </div>
+</div>
+<script>
+
+    function grdWorkHistory_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

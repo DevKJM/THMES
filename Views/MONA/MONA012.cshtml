@@ -1,0 +1,249 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.MON;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().ScrollView()
+                                          .ScrollByThumb(true)
+                                          .ScrollByContent(true)
+                                          .Height("100%")
+                                          .Width("100%")
+                                          .ElementAttr("style", "padding-bottom:5px;")
+                                          .Content(@<text><div class="row" id="mainView" /></text>)
+            )
+        </div>
+    </div>
+</div>
+<style>
+</style>
+<script>
+    var timerId;
+    var interval = 10000;
+    var dataBox;
+    var viewCnt = 0;
+    var viewTotalCnt = 0;
+    var lastChk = true;
+
+    $(function () {
+        //set();
+        StartTimer();
+    });
+
+    function StartTimer() {
+        search();
+        timerId = setTimeout(StartTimer, interval);
+    }
+
+    function StopTimer() {
+        if(timerId != null) {
+            clearTimeout(timerId);
+        }
+    }
+
+    function search() {
+        var html;
+        if (!lastChk) {
+            
+            $.ajax({
+                url: '@Url.Action("getPartData", "MONA012WebApi", new {httproute = "DefaultApi"})',
+                type: 'GET',
+                success: function(e) {
+                    if (e.data.length > 0) {
+
+                        var row = 1;
+                        var fromRow = viewCnt * 12;
+                        var toRow = fromRow + 12;
+                        viewCnt++;
+
+                        $('#mainView *').remove();
+                        e.data.forEach(function (element) {
+                            if (row > fromRow && row <= toRow) {
+                                html = crtHtml(element.PARTNUMBER,
+                                    element.PRODUCTNAME,
+                                    element.PROCESSNAME,
+                                    element.EQUIPMENTNAME,
+                                    element.WORKER,
+                                    element.ATTAINMENTRATE,
+                                    element.ORDERQUANTITY,
+                                    element.PRODUCTQUANTITY);
+                                    $('#mainView').append(html);
+                            }
+                            row++;
+                        });
+                        if (viewCnt == viewTotalCnt)
+                            lastChk = true;
+                    }
+                },
+                error: function(e) {
+
+                }
+            });
+        } else {
+            
+            $.ajax({
+                url: '@Url.Action("getPartData", "MONA012WebApi", new {httproute = "DefaultApi"})',
+                type: 'GET',
+                success: function(e) {
+                    if (e.data.length > 0) {
+                        //dataBox = e;
+                        viewCnt = 1;
+                        //var mod = e.length % 12;
+                        var cnt = e.data.length / 12;
+                        viewTotalCnt = Math.ceil(cnt);
+                        var row = 1;
+
+                        if (viewTotalCnt != 1) {
+                            lastChk = false;
+                        }
+                        
+                        $('#mainView *').remove();
+                        
+                        e.data.forEach(function (element) {
+                            if (row <= 12) {
+                                html = crtHtml(element.PARTNUMBER,
+                                    element.PRODUCTNAME,
+                                    element.PROCESSNAME,
+                                    element.EQUIPMENTNAME,
+                                    element.WORKER,
+                                    element.ATTAINMENTRATE,
+                                    element.ORDERQUANTITY,
+                                    element.PRODUCTQUANTITY,
+                                    element.CUSTOMERNAME);
+                                $('#mainView').append(html);
+                            }
+                            row++;
+                        });
+                    }
+                },
+                error: function(e) {
+
+                }
+            });
+        }
+    }
+
+    @*function set() {
+        var html;
+        if (!lastChk) {
+            if (dataBox != undefined) {
+                viewCnt++;
+                
+                $('#mainView *').remove();
+
+                if (viewCnt == 1 && viewCnt == viewTotalCnt) {
+                    for (var i = outRow; i < dataBox.data.length; i++) {
+                        html = crtHtml(dataBox.data[i].PARTNUMBER,
+                            dataBox.data[i].PRODUCTNAME,
+                            dataBox.data[i].PROCESSNAME,
+                            dataBox.data[i].EQUIPMENTNAME,
+                            dataBox.data[i].WORKER,
+                            dataBox.data[i].ATTAINMENTRATE,
+                            dataBox.data[i].ORDERQUANTITY,
+                            dataBox.data[i].PRODUCTQUANTITY);
+                        $('#mainView').append(html);
+                    }
+                } else if (viewCnt == 1) {
+
+                } else {
+
+                }
+
+            } else {
+                lastChk = true;
+            }
+
+        } else {
+            $.ajax({
+                url: '@Url.Action("getPartData", "MONA002WebApi", new {httproute = "DefaultApi"})',
+                type: 'GET',
+                success: function(e) {
+                    if (e.data.length > 0) {
+                        dataBox = e;
+                        lastChk = false;
+                        viewCnt = 0;
+                        //var mod = e.length % 12;
+                        var cnt = e.data.length / 12;
+                        viewTotalCnt = Math.ceil(cnt);
+
+                        $('#mainView *').remove();
+
+
+                        e.data.forEach(function(element) {
+                            var result = element.ATTAINMENTRATE;
+
+                            html = crtHtml(element.PARTNUMBER,
+                                element.PRODUCTNAME,
+                                element.PROCESSNAME,
+                                element.EQUIPMENTNAME,
+                                element.WORKER,
+                                element.ATTAINMENTRATE,
+                                element.ORDERQUANTITY,
+                                element.PRODUCTQUANTITY);
+                            $('#mainView').append(html);
+                        });
+                    }
+                },
+                error: function(e) {
+
+                }
+            });
+
+        }
+    }*@
+
+    function addComma(num) {
+        var regexp = /\B(?=(\d{3})+(?!\d))/g;
+        return num.toString().replace(regexp, ',');
+    }
+
+    function crtHtml(PARTNUMBER, PRODUCTNAME, PROCESSNAME, EQUIPMENTNAME, WORKER, ATTAINMENTRATE, ORDERQUANTITY, PRODUCTQUANTITY, CUSTOMERNAME) {
+        var html =
+            "<div class='col-lg-3 col-md-6 col-sm-12'>" +
+                "<div style='width:100%;height:230px;display:inline-block;border:1px solid gray;cursor: pointer;margin-bottom:20px;'>" +
+                    "<div style='text-align:center;position: relative;margin: 5px;'>" +
+            "<h3 style='font-size: 20px;text-align:center;'>" + CUSTOMERNAME + "</h3>" +
+                        "<table style='width:100%;'>" +
+                            "<tr>" +
+                                "<td style='text-align:right;width:80px;'>" + '@LabelText.PRODUCTNAME' + ' :' + "</td>" +
+                                "<td style='text-align:left;padding-left:10px;'>" + PRODUCTNAME + "</td>" +
+                            "</tr>" +
+                            "<tr>" +
+                                "<td style=' text-align:right;'>" + '@LabelText.PARTNUMBER' + ' :' + "</td>" +
+                                "<td style=' text-align:left;padding-left:10px;'>" + PARTNUMBER + "</td>" +
+                            "</tr>" +
+                            "<tr>" +
+                                "<td style=' text-align:right;'>" + '@LabelText.PROCESSNAME' + ' :' + "</td>" +
+                                "<td style=' text-align:left;padding-left:10px;'>" + PROCESSNAME + "</td>" +
+                            "</tr>" +
+                            "<tr>" +
+                                "<td style=' text-align:right;'>" + '@LabelText.EQUIPMENTNAME' + ' :' + "</td>" +
+                                "<td style=' text-align:left;padding-left:10px;'>" + EQUIPMENTNAME + "</td>" +
+                            "</tr>" +
+                            "<tr>" +
+                                "<td style=' text-align:right;'>" + '@LabelText.WORKER' + ' :' + "</td>" +
+                                "<td style=' text-align:left;padding-left:10px;'>" + WORKER + "</td>" +
+                            "</tr>" +
+                        "</table>" +
+                    "</div>" +
+                    "<div class='progress' style='margin-left:20px; margin-right:20px;'>" +
+                        "<div class='progress-bar progress-bar-striped active' style='width:" + ATTAINMENTRATE.toFixed(2) + "%; '>" +
+                            "<div class='progress-value'>" + ATTAINMENTRATE.toFixed(2) + "%</div>" +
+                        "</div>" +
+                    "</div>" +
+                    "<div style='display:inline-block; width:50%; text-align:center;color:#f0ad4e;'>" + //#f0ad4e;
+                        "<h4>" + '@LabelText.PLANQUANTITY' + ' : ' + addComma(ORDERQUANTITY) + "</h4> </div>" +
+                    "<div style='display:inline-block; width:50%; text-align:center;color: #5cb85c'>" +
+                        "<h4>" + '@LabelText.PRODUCTQUANTITY' + ' : ' + addComma(PRODUCTQUANTITY) + "</h4></div>" +
+                "</div>" +
+            "</div>";
+
+        return html;
+    }
+
+</script>

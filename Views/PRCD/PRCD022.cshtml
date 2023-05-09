@@ -1,0 +1,426 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCD;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.PRODUCTLIST</i></span></h4>
+            @(Html.DevExtreme().DataGrid<PRCD022A_LIST>()
+                                          .ID("grdProductList")
+                                          .DataSource(d => d.WebApi()
+                                              .Controller("PRCD022WebApi")
+                                              .OnBeforeSend("grdProductList_OnBeforeSend")
+                                              .Key("REPORTSEQUENCE")
+                                          )
+                                          .Columns(columns =>
+                                          {
+                                              columns.AddFor(m => m.REPORTSEQUENCE).Visible(false);
+                                              columns.AddFor(m => m.PARTNUMBER).SortIndex(1).SortOrder(SortOrder.Asc).Width(200);
+                                              columns.AddFor(m => m.PRODUCTNAME).Width(200);
+                                              columns.AddFor(m => m.LOTNUMBER).Visible(false);
+                                              columns.AddFor(m => m.REPORTFLAG).Caption("성적서분류").Visible(false);
+                                              //columns.AddFor(m => m.WORKDATE);
+                                              columns.AddFor(m => m.REVISION_NO).Caption("성적서번호").Width(120).SortIndex(2).SortOrder(SortOrder.Desc).Alignment(HorizontalAlignment.Center);
+                                              columns.AddFor(m => m.FOLDERID).Visible(false).Width(200)
+                                                  .ShowEditorAlways(true)
+                                                  .EditCellTemplate(new JS("grd_EditCellTemplate"));
+                                              columns.AddFor(m => m.FILEID).Visible(true).Width(300)
+                                                  .ShowEditorAlways(true)
+                                                  .EditCellTemplate(new JS("grd_EditCellTemplate")).Caption("파일받기").Alignment(HorizontalAlignment.Center);
+                                              columns.AddFor(m => m.FOLDERID).Type(GridCommandColumnType.Buttons).Caption("").Alignment(HorizontalAlignment.Center)
+                                                  .Buttons(b => b.Add().Text("성적서확인").OnClick("AA")).Visible(true);
+                                              columns.AddFor(m => m.WORKDATE).SortIndex(0).SortOrder(SortOrder.Desc).Width(150).Caption("등록일자");
+                                              //columns.AddFor(m => m.CREATEDATE).Width(150);
+                                              columns.AddFor(m => m.CREATEUSER).Width(150);
+                                          })
+                                          .FilterPanel(f => f.Visible(true)) //하단 필터 만들기 표시 여부
+                                          .ColumnAutoWidth(false)
+                                          .ShowRowLines(true)
+                                          .Paging(p => p.PageSize(25).Enabled(true))
+                                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                          .SearchPanel(searchPanel => searchPanel
+                                              .Visible(true)
+                                              .Width(180)
+                                              .Placeholder("Search...")
+                                          )
+                                          .FilterRow(filterRow => filterRow
+                                              .Visible(true)
+                                              .ApplyFilter(GridApplyFilterMode.Auto)
+                                          )
+                                          .ShowBorders(true)
+                                          .AllowColumnResizing(true)
+                                          .RowAlternationEnabled(true)
+                                          //.Export(e => e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                                          .Selection(s => s.Mode(SelectionMode.Single)) // Row 선택 모드 (단일선택)
+                                          .Option("KEY_FIELD", new object[] { "PARTNUMBER", "PRODUCTNAME" })
+                                          //.OnRowClick("grdProductList_OnRowClick")
+                                          .OnToolbarPreparing("grdProductList_OnToolbarPreparing")
+            )
+        </div>
+    </div>
+</div>
+
+<div id="layerPopup" class="image-container" style="display: none">
+    <div style="float:left;">www</div>
+     <button type="btnViewClose" style="width: 90px;top: -22px;">닫기</button>
+    <img id="viewImg" />
+</div>
+<style>
+    .image-container {
+        background-color: white;
+        /*border: 4px solid #ddd;*/
+        position: absolute;
+        left: 100px;
+        top: 100px;
+        width: 100%;
+        height: auto;
+        padding: 0.5em;
+        z-index: 9999999;
+        /*overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;*/
+    }
+
+        .image-container img {
+            border: 4px solid #ddd;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: auto;
+        }
+
+    #layerPopup button {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        z-index: 9999999;
+    }
+    #layerPopup {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        height: auto;
+        z-index: 9999999;
+    }
+</style>
+
+<script>
+
+    $(function () {
+        $("#layerPopup").hide();
+
+        $("#layerPopup button").click(function () {
+            $("#layerPopup").hide();
+        });
+    });
+    $(function () {
+        $("#layerPopup").draggable();
+    });
+
+    $(function () {
+        var today = new Date();
+        today.setDate(today.getDate() - 7);
+
+        $('#searchDate').dxDateBox('instance').option('value', today);
+        $('#searchDate2').dxDateBox('instance').option('value', new Date());
+        //initDateColumnHeader();
+        //GetHoliday();
+    });
+    
+    var FileGUID;
+    function AA(e) {
+
+        GetPhoto(e.row.data.FOLDERID, e.row.data.FILEID);
+        //GetPhoto(e.row.data.FOLDERID);
+    }
+
+
+    //$("#grdReportHis").dxDataGrid("instance").refresh();
+    
+    function grdProductList_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var dxDateBox2 = $('#searchDate2').dxDateBox('instance');
+            var selectDate;
+            var selectDate2;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                selectDate2 = dxDateBox2.option('value');
+            }
+            else {
+                selectDate = new Date();
+                selectDate2 = new Date();
+            }
+            ajaxOptions.data.date1 = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.date2 = Globalize.dateFormatter({ date: "short" })(selectDate2);
+            ajaxOptions.data.flag = "S";
+        }
+    }
+
+
+    function grdProductList_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                widget: "dxDateBox",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '등록일자' +"</div> ", // @LabelText.STANDARDDATE
+                location: "before",
+                options: {
+                    elementAttr: { "id": "searchDate" },
+                    //maxZoomLevel: "year",
+                    //minZoomLevel: "century",
+                    displayFormat: "shortDate",
+                    onValueChanged: function (e) {
+                        if (e.previousValue != undefined) {
+                            $('#grdProductList').dxDataGrid('instance').refresh();
+
+                            //grid.refresh();
+
+                            //grid.beginUpdate();
+                            //var dxDateBox = $('#searchDate').dxDateBox('instance');
+                            //var selectDate;
+
+                            //if (dxDateBox != undefined) {
+                            //    selectDate = dxDateBox.option('value');
+                            //}
+
+                            //var lastDay = (new Date(selectDate.getFullYear(), selectDate.getMonth() + 1, 0)).getDate();
+
+                            //for (dayIndex = 0; dayIndex < 31; dayIndex++) {
+                            //    grid.columnOption('DAY' + (dayIndex + 1), 'caption', dayIndex + 1);
+
+                            //    //안보임
+                            //    if ((dayIndex + 1) > lastDay) {
+                            //        $('#grdProductList').dxDataGrid('columnOption', 'DAY' + (dayIndex + 1), 'visible', false);
+                            //    }
+                            //    else if ((dayIndex + 1) <= lastDay) {
+                            //        $('#grdProductList').dxDataGrid('columnOption', 'DAY' + (dayIndex + 1), 'visible', true);
+                            //    }
+                            //}
+
+                            //grid.endUpdate();
+
+                            //GetHoliday();
+                        }
+                    }
+                }
+            },{
+                widget: "dxDateBox",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '~' +"</div> ", // @LabelText.STANDARDDATE
+                location: "before",
+                options: {
+                    elementAttr: { "id": "searchDate2" },
+                    //maxZoomLevel: "year",
+                    //minZoomLevel: "century",
+                    displayFormat: "shortDate",
+                    onValueChanged: function (e) {
+                        if (e.previousValue != undefined) {
+                            $('#grdProductList').dxDataGrid('instance').refresh();
+                            
+                            //var grid = $('#grdProductList').dxDataGrid('instance');
+
+                            //grid.refresh();
+
+                            //grid.beginUpdate();
+                            //var dxDateBox = $('#searchDate').dxDateBox('instance');
+                            //var selectDate;
+
+                            //if (dxDateBox != undefined) {
+                            //    selectDate = dxDateBox.option('value');
+                            //}
+
+                            //var lastDay = (new Date(selectDate.getFullYear(), selectDate.getMonth() + 1, 0)).getDate();
+
+                            //for (dayIndex = 0; dayIndex < 31; dayIndex++) {
+                            //    grid.columnOption('DAY' + (dayIndex + 1), 'caption', dayIndex + 1);
+
+                            //    //안보임
+                            //    if ((dayIndex + 1) > lastDay) {
+                            //        $('#grdProductList').dxDataGrid('columnOption', 'DAY' + (dayIndex + 1), 'visible', false);
+                            //    }
+                            //    else if ((dayIndex + 1) <= lastDay) {
+                            //        $('#grdProductList').dxDataGrid('columnOption', 'DAY' + (dayIndex + 1), 'visible', true);
+                            //    }
+                            //}
+
+                            //grid.endUpdate();
+
+                            //GetHoliday();
+                        }
+                    }
+                },
+            }
+        )
+    }
+
+    function GetPhoto(guid, fileguid) {
+        var result = "";
+
+        var CheckMAKER = $.param({
+
+            FolderID: guid,
+            FileID: fileguid,
+            rootURL: rootURL
+
+        });
+
+        $.ajax({
+            url: '@Url.Action("getPhoto", "PRCD021WebApi", new { httproute = "DefaultApi" })',
+            async: false,
+            data: CheckMAKER,
+            type: 'GET',
+            success: function (data) {
+                if (data.length > 0) {
+
+                    $("#layerPopup").show();
+
+                    $("#viewImg").attr("src", data[0]);
+                    //$("#galleryView").dxGallery('instance').option('dataSource', data);
+
+                    //$("#galleryView").dxGallery({
+                    //    dataSource: data,
+                    //    height: 500,
+                    //    showNavButtons: true,
+                    //    showIndicator: true})
+                    return result;
+                }
+
+                return result;
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+
+        return result;
+    }
+
+    function grd_EditCellTemplate(container, options) {
+        $("<div />").dxSelectBox({
+            dataSource: DevExpress.data.AspNet.createStore({
+                key: "FILEID",
+                loadUrl: rootURL + "api/COMA004WebApi/getFileList2",
+                loadParams: { folderId: options.data.FOLDERID, fileid: options.data.FILEID },
+            }),
+            valueExpr: 'FILEID',
+            displayExpr: 'FILENAME',
+            onItemClick: function (e) {
+                var path = rootURL + 'Content/Files/Attachments/' + e.itemData.ATTACHMENTFOLDERID + '/' + e.itemData.FILEID + '/' + e.itemData.REVISIONNO + '/' + e.itemData.FILENAME;
+                var x=new XMLHttpRequest();
+                x.open("GET", path, true);
+                x.responseType = 'blob';
+                x.onload=function(o){download(x.response, e.itemData.FILENAME, e.itemData.FILEEXTENSION ); }
+                x.send();
+            },
+            buttons: [{
+                    name: "download",
+                    location: "after",
+                    options: {
+                        icon: "download",
+                        type: "normal",
+                        FOLDERID: options.data.FOLDERID,
+                        onClick: function() {
+                            var data = {};
+                            var aJson = new Object();
+                            aJson.ATTACHMENTFOLDERID = this.option('FOLDERID');
+                            data.values = JSON.stringify(aJson);
+
+                            $.ajax({
+                                url: '@Url.Action("getAllZipFileList", "COMA004WebApi", new { httproute = "DefaultApi", })',
+                                type: 'POST',
+                                data: data,
+                                success: function (param) {
+                                    if (param.ZipFileName == '') {
+                                        DevExpress.ui.notify('등록된 파일이 없습니다.', 'warning', globalNotificationErrorTime);
+                                    } else {
+                                        window.location = rootURL + 'Attachment/DownloadFile?TempZipGuid=' + param.TempZipGuid
+                                            + '&ZipFileName=' + param.ZipFileName;
+                                    }
+                                },
+                                error: function (e) {
+                                    showError(this, e);
+                                }
+                            });
+                        }
+                    }
+                }
+                // , {
+                //name: "upload",
+                //location: "after",
+                //options: {
+                //    icon: "upload",
+                //    type: "normal",
+                //    INSPECTIMAGEID: options.data.INSPECTIMAGEID,
+                //    onClick: function() {
+                //        var fileUploadGuid = this.option('INSPECTIMAGEID');
+
+                //        if (fileUploadGuid == null || fileUploadGuid == undefined) {
+                //            DevExpress.ui.notify('업로드 정보가 없습니다. 관리자에게 문의하세요.', 'error', globalNotificationErrorTime);
+                //        } else {
+                //            $('#ATTACHMENTS_POPUP').dxPopup('instance').option('fileUploadGuid', fileUploadGuid);
+                //            $('#ATTACHMENTS_POPUP').dxPopup('instance').show();
+                //            $('#attachmentFileUploader').dxFileUploader('instance').option('accept', 'image/*');
+                //        }
+                //    }
+                //}
+                //}
+            ],
+            itemTemplate: function (itemData, itemIndex, itemElement) {
+                var className = '';
+
+                if (itemData.FILEEXTENSION == "image/png" || itemData.FILEEXTENSION == "image/jpeg") {
+                    className = "fa-file-image-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "audio") {
+                    className = "fa-file-audio-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "video") {
+                    className = "fa-file-movie-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/pdf") {
+                    className = "fa-file-pdf-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/msword" ||
+                    itemData.FILEEXTENSION == "application/vnd.ms-word" ||
+                    itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.text" ||
+                    itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml") {
+                    className = "fa-file-pdf-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.ms-excel" ||
+                    itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml" ||
+                    itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.spreadsheet") {
+                    className = "fa-file-excel-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.ms-powerpoint" ||
+                    itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml" ||
+                    itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.presentation") {
+                    className = "fa-file-powerpoint-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "text/plain") {
+                    className = "fa-file-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "text/html" || options.value == "application/json") {
+                    className = "fa-file-text-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+                    className = "fa-file-word-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+                    className = "fa-file-excel-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml.presentation") {
+                    className = "fa-file-powerpoint-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/gzip" ||
+                    itemData.FILEEXTENSION == "application/zip" ||
+                    itemData.FILEEXTENSION == "application/x-zip-compressed" ||
+                    itemData.FILEEXTENSION == "application/octet-stream" ||
+                    itemData.FILEEXTENSION == "application/x-msdownload") {
+                    className = "fa-file-archive-o fa-lg";
+                }
+
+                content = "<div><i class='fa " + className + "'></i>" + itemData.FILENAME + "</div>";
+                return content;
+            }
+        }).appendTo(container);
+    }
+</script>

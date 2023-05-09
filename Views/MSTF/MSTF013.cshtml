@@ -1,0 +1,200 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTF;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-5 col-md-5">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.PROCESS @LabelText.LIST</i></span></h4>
+            @(Html.DevExtreme().DataGrid<ProcessMaster>()
+                  .ID("grdProcessMaster")
+                  .DataSource(d => d.WebApi()
+                      .Controller("COMA001WebApi")
+                      .LoadAction("PROCESS_LIST")
+                      .Key("PROCESSID"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.PROCESSNAME);
+                  })
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .RowAlternationEnabled(true)
+                  .ShowRowLines(true)
+                  .Selection(s => s.Mode(SelectionMode.Single))
+                  .OnRowClick("grdProcessMaster_OnRowClick")
+                    .MasterDetail(m => m
+                            .Enabled(false)
+                            .Template(new TemplateName("grdProcessMaster-details"))
+                        )
+                )
+        </div>
+        <div class="col-xl-7 col-md-7 mt-md-0 mt-lg-0 mt-sm-2">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.INSERTABLEEQUIPMENT</i></span></h4>
+            @(Html.DevExtreme().DataGrid<EquipmentMaster>()
+                    .ID("grdNotProcessMappingEquipment")
+                    .DataSource(d=>d.WebApi()
+                                    .Controller("MSTF013WebApi")
+                                    .LoadAction("NotProcessMappingEquipmentList")
+                                    .Key("EQUIPMENTCODE")
+                                    .OnBeforeSend("grdNotProcessMappingEquipment_OnBeforeSend"))
+                    .Columns(columns =>
+                    {
+                        columns.AddFor(m => m.EQUIPMENTCODE).SortOrder(SortOrder.Asc);
+                        columns.AddFor(m => m.EQUIPMENTNAME);
+                        columns.AddFor(m => m.MEMO);
+                        columns.AddFor(m => m.USEYN).Lookup(c => c.DataSource(new JS("USE_YN"))
+                            .DisplayExpr("NAME")
+                            .ValueExpr("CODE"));
+                    })
+                    .RemoteOperations(true)
+                    .FilterPanel(f => f.Visible(true))
+                    .ColumnAutoWidth(true)
+                    .Paging(p => p.PageSize(25).Enabled(true))
+                    .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                    .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                    .SearchPanel(searchPanel => searchPanel
+                        .Visible(true)
+                        .Width(180)
+                        .Placeholder("Search...")
+                    )
+                    .Selection(s => s.Mode(SelectionMode.Multiple))
+                    .FilterRow(filterRow => filterRow
+                        .Visible(true)
+                        .ApplyFilter(GridApplyFilterMode.Auto)
+                    )
+                    .OnToolbarPreparing("grdNotProcessMappingEquipment_OnToolbarPreparing")
+                    .ShowBorders(true)
+                    .ShowRowLines(true)
+                    .AllowColumnResizing(true)
+                    .RowAlternationEnabled(true)
+                )
+        </div>
+    </div>
+</div>
+
+
+@using (Html.DevExtreme().NamedTemplate("grdProcessMaster-details"))
+{
+    @(Html.DevExtreme().DataGrid<MSTF013_LIST>()
+        .ID(new JS("'grdProcessMaster-details-' + data.PROCESSCODE"))
+        .ElementAttr("class", "detail-grid")
+        .ShowBorders(true)
+        .ColumnAutoWidth(true)
+        .FilterPanel(f => f.Visible(true))
+        .RowAlternationEnabled(true)
+        .ShowRowLines(true)
+        .DataSource(d => d.WebApi()
+            .Controller("MSTF013WebApi")
+            .LoadAction("ProcessEquipList")
+            .Key("PROCESSEQPID")
+            .LoadParams(new
+            {
+                ProcessCode = new JS("function() { return data.PROCESSCODE; }")
+            })
+        )
+        .OnRowRemoved("function(e){ $('#grdNotProcessMappingEquipment').dxDataGrid('instance').refresh(); }")
+        .Paging(p => p.PageSize(50))
+        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.EQUIPMENTCODE).Visible(false).SortOrder(SortOrder.Asc);
+            columns.AddFor(m => m.EQUIPMENTNAME);
+        })
+        .Editing(e =>
+                e.Mode(GridEditMode.Batch)
+                          .AllowDeleting(true))
+    )
+}
+
+<script>
+
+    function grdNotProcessMappingEquipment_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var processCodeRow = $('#grdProcessMaster').dxDataGrid('instance').getSelectedRowsData();
+
+            if (processCodeRow.length > 0) {
+                ajaxOptions.data.ProcessCode = processCodeRow[0].PROCESSCODE;
+            } else {
+                ajaxOptions.data.ProcessCode = "";
+            }
+        }
+    }
+
+    function grdProcessMaster_OnRowClick(e) {
+        if (e.rowType == "data") {
+            if (e.component.isRowExpanded(e.key)) {
+            e.component.collapseRow(e.key);
+            } else {
+                e.component.expandRow(e.key);
+            }
+        }
+    }
+
+    function grdNotProcessMappingEquipment_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+        {
+            location: "after",
+            widget: "dxButton",
+            options: {
+                hint: "",
+                icon: "check",
+                disabled: !iudAuth(),
+                onClick: function () {
+                    var processGrid = $('#grdProcessMaster').dxDataGrid('instance');
+                    var grid = $('#grdNotProcessMappingEquipment').dxDataGrid('instance');
+
+                    var processCodeRow = processGrid.getSelectedRowsData();
+
+                    if (processCodeRow.length > 0) {
+                        var processCode = processCodeRow[0].PROCESSCODE;
+
+                        grid.getSelectedRowsData().forEach(function (e) {
+
+                            var source = {};
+                            source.PROCESSCODE = processCode;
+                            source.EQUIPMENTID = e.EQUIPMENTID;
+                            source.EQUIPMENTCODE = e.EQUIPMENTCODE;
+                            
+                            var data = {};
+                            data.values = JSON.stringify(source);
+
+                            $.ajax({
+                                url: '@Url.Action("post", "MSTF013WebApi", new { httproute = "DefaultApi" })',
+                                type: 'POST',
+                                data: data,
+                                success: function (barcode) {
+                                    $('#grdNotProcessMappingEquipment').dxDataGrid('instance').refresh();
+                                    $('#grdProcessMaster-details-'+source.PROCESSCODE).dxDataGrid('instance').refresh();
+                                },
+                                error: function (e) {
+                                    showError(this, e);
+                                }
+                            });
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+</script>

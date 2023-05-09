@@ -1,0 +1,98 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCF;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<PRCF002_LIST>()
+                .ID("grdDefectHistory")
+                .DataSource(d => d.WebApi().Controller("PRCF002WebApi").Key("DEFECTHISSEQ"))
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.SERIALNUMBER).Visible(false);
+                    columns.AddFor(m => m.PARTNUMBER).GroupIndex(0);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.PROCESSCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("PROCESSCODE")
+                            .LoadAction("PROCESS_LIST"))
+                            .DisplayExpr("PROCESSNAME")
+                            .ValueExpr("PROCESSCODE")
+                          );
+                    columns.AddFor(m => m.EQUIPMENTCODE)
+                         .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                           .Controller("COMA001WebApi").Key("EQUIPMENTCODE")
+                           .LoadAction("EQUIPMENT_LIST"))
+                           .DisplayExpr("EQUIPMENTNAME")
+                           .ValueExpr("EQUIPMENTCODE")
+                         );
+                    columns.AddFor(m => m.DEFECTCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("DEFECTCODE")
+                            .LoadAction("DEFECTCODE_LIST"))
+                            .DisplayExpr("DEFECTNAME")
+                            .ValueExpr("DEFECTCODE")
+                          );
+                    columns.AddFor(m => m.DEFECTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.PLANTCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("PLANTCODE")
+                            .LoadAction("PLANT_LIST"))
+                            .DisplayExpr("PLANTNAME")
+                            .ValueExpr("PLANTCODE")
+                          );
+                    columns.AddFor(m => m.CREATEUSER)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("EMPCODE")
+                            .LoadAction("HR_LIST"))
+                            .DisplayExpr("EMPNAME")
+                            .ValueExpr("EMPCODE")
+                          );
+                    columns.AddFor(m => m.CREATEDATE).SortOrder(SortOrder.Desc).Format(f => f.Type(Format.ShortDate))
+                    .SelectedFilterOperation(FilterOperations.Between)
+                    .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date });
+                })
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .Summary(s => s.GroupItems(items =>
+                {
+                    items.AddFor(m => m.DEFECTQUANTITY)
+                    .SummaryType(SummaryType.Count)
+                    .DisplayFormat(LabelText.DEFECTQUANTITY + " : {0}");
+
+                    items.AddFor(m => m.DEFECTQUANTITY)
+                    .SummaryType(SummaryType.Sum)
+                    .DisplayFormat(LabelText.TOTAL + " : {0}")
+                    .ValueFormat(f => f.Type(Format.FixedPoint).Precision(0))
+                    .AlignByColumn(true);
+                })
+                    .RecalculateWhileEditing(true)
+                )
+                .ShowRowLines(true)
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+            )
+        </div>
+    </div>
+</div>

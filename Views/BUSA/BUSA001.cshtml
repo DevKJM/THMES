@@ -1,0 +1,393 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.BUS.BUSA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 mt-2">
+            @(Html.DevExtreme().DataGrid<BUSA001B_LIST>()
+                .ID("grdShippingplan")
+                .DataSource(d => d.WebApi()
+                    .Controller("BUSA001WebApi")
+                    .Key("VENDORCODE","PARTNUMBER")
+                    .OnBeforeSend("grdShippingplan_OnBeforeSend")
+                )
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.VENDORCODE).Fixed(true).AllowEditing(true).SortIndex(0).SortOrder(SortOrder.Asc)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                        .Controller("COMA001WebApi").Key("VENDORCODE")
+                        .LoadAction("VENDOR_SELLYN_LIST"))
+                        .DisplayExpr("VENDORNAME")
+                        .ValueExpr("VENDORCODE")
+                    );
+                    columns.AddFor(m => m.PARTNUMBER).Width(250).Fixed(true).AllowEditing(false);
+                    columns.AddFor(m => m.PARTNUMBER).Width(250).Fixed(true).SortIndex(1).SortOrder(SortOrder.Asc)
+                        .Lookup(l => l.DataSource(d => d.WebApi()
+                                .Controller("COMA001WebApi")
+                                .LoadAction("PART_CUSTOMER_LIST")
+                                .Key("PARTNUMBER")
+                                .OnBeforeSend("grdShippingplan_column_OnBeforeSend")
+                            )
+                            .ValueExpr("PARTNUMBER")
+                            .DisplayExpr("PRODUCTNAME").AllowClearing(true)
+                            .DataSourceOptions(d=>d.Sort("PARTNUMBER",false))
+                        )
+                        .EditCellTemplate(new TemplateName("EmbeddedPART"))
+                        .SetCellValue("function(newData , value , currentRowData)" +
+                                      "{newData.CUSTOMERPARTNUMBER = value.CUSTOMERPARTNUMBER;" +
+                                      "newData.PRODUCTNAME = value.PARTNUMBER;" +
+                                      "newData.PARTNUMBER = value.PARTNUMBER;" +
+                                  " if(value.PARTNUMBER != currentRowData.PARTNUMBER) $('#grdShippingplan').dxDataGrid('instance').closeEditCell();}");
+                    columns.AddFor(m => m.CUSTOMERPARTNUMBER).Width(250).Fixed(true).AllowEditing(false);
+                })
+                .RemoteOperations(true)
+                .FilterPanel(f => f.Visible(true))
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .SearchPanel(searchPanel => searchPanel
+                    .Visible(true)
+                    .Width(180)
+                    .Placeholder("Search...")
+                )
+                .FilterRow(filterRow => filterRow
+                    .Visible(true)
+                    .ApplyFilter(GridApplyFilterMode.Auto)
+                )
+                .FilterPanel(f => f.Visible(false))
+                .ShowBorders(true)
+                .AllowColumnResizing(true)
+                .Editing(e =>
+                {
+                    e.Mode(GridEditMode.Batch);
+                    e.AllowAdding(new JS("iudAuth()"));
+                    e.AllowUpdating(new JS("iudAuth()"));
+                    e.AllowDeleting(new JS("iudAuth()"));
+                    e.SelectTextOnEditStart(new JS("iudAuth()"));
+                    e.StartEditAction(GridStartEditAction.Click);
+                })
+                .ShowRowLines(true)
+                .RowAlternationEnabled(true)
+                .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                .OnToolbarPreparing("grdShippingplan_OnToolbarPreparing")
+                .OnInitNewRow("grdShippingplan_OnInitNewRow")
+            )
+        </div>
+    </div>
+</div>
+
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPART"))
+{
+    @(Html.DevExtreme().DropDownBox()
+        .ID("ddbPart")
+        .Value(new JS("data.PARTNUMBER"))
+        .ValueExpr("PARTNUMBER")
+        .DisplayExpr("PRODUCTNAME")
+        .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("PART_CUSTOMER_LIST").Key("PARTNUMBER")
+        .OnBeforeSend(@<text>
+                function(method, ajaxOptions){
+                if(data.VENDORCODE != null || data.VENDORCODE == ""){
+                    ajaxOptions.data.customer = data.VENDORCODE;
+                }
+                else{
+                    ajaxOptions.data.customer = "";
+                }
+            }
+        </text>))
+        .AcceptCustomValue(true)
+        .OnValueChanged(@<text>
+            function(e){
+                setValue(e.value);
+            }
+        </text>)
+          .DataSourceOptions(d=>d.Sort("PARTNUMBER",false))
+        .ContentTemplate(new TemplateName("EmbeddedPARTSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPARTSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+        .ID("grdPartSingle")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.PARTNUMBER);
+            columns.AddFor(m => m.PRODUCTNAME);
+            columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+        })
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"component.option(""value"")"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var haskey;
+                var keys = selectedItems.selectedRowKeys;
+
+                if(typeof keys !== undefined && keys.length > 0)
+                {
+                    haskey = true;
+                }
+
+                if(typeof keys !== 'undefined' && keys.length > 0){
+                    if(!(selectedItems.currentDeselectedRowKeys.length > 1)){
+                        component.close();
+                    }
+                }
+
+                if (haskey != undefined){
+                    component.option("value", selectedItems.selectedRowsData[0])
+                }
+            }
+        </text>)
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedCUSTOMERPART"))
+{
+    @(Html.DevExtreme().DropDownBox()
+        .ID("ddbPart")
+        .Value(new JS("data.PARTNUMBER"))
+        .ValueExpr("PARTNUMBER")
+        .DisplayExpr("PRODUCTNAME")
+        .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("PART_CUSTOMER_LIST").Key("PARTNUMBER")
+            .OnBeforeSend(@<text>
+                function(method, ajaxOptions){
+                if(data.VENDORCODE != null || data.VENDORCODE == ""){
+                    ajaxOptions.data.customer = data.VENDORCODE;
+                }
+                else{
+                    ajaxOptions.data.customer = "";
+                }
+            }
+        </text>))
+        .AcceptCustomValue(true)
+        .OnValueChanged(@<text>
+            function(e){
+                setValue(e.value[0]);
+                console.log(e);
+            }
+        </text>)
+        .OnOpened(@<text>
+            function (e) {
+                e.component.content().parent().width(350);
+                console.log(data);
+                var trans = e.component.content().parent().css('transform');
+                var matrix = trans.replace(/[^0-9\-.,]/g, '').split(',');
+                var vLeft = 350 - (window.innerWidth - matrix[4]);
+                if (vLeft > 0) {
+                    e.component.content().parent().css('left', -(vLeft + 5));
+                }
+            }
+        </text>)
+        .ContentTemplate(new TemplateName("EmbeddedPARTSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPARTSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+        .ID("grdPartSingle")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.PARTNUMBER);
+            columns.AddFor(m => m.PRODUCTNAME);
+            columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+        })
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"component.option(""value"")"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+            var keys = selectedItems.selectedRowKeys;
+            component.option("value", keys);
+            }
+        </text>)
+    )
+}
+
+
+
+<script>
+    var plandate;
+
+    $(function () {
+        $('#searchDate').dxDateBox('instance').option('value', new Date());
+        initDateColumnHeader();
+    });
+
+    function initDateColumnHeader() {
+        var currentDate = $('#searchDate').dxDateBox('instance').option('value');
+
+        gridInstance = $('#grdShippingplan').dxDataGrid('instance');
+        var state = gridInstance.state();
+        var columns = gridInstance.option("columns");
+
+        for (dayIndex = 0; dayIndex < 7; dayIndex++) {
+
+            var caption = (currentDate).addDays(dayIndex);
+            var day = {
+                dataField: "DAY" + (dayIndex + 1),
+                caption: Globalize.dateFormatter({ date: "short" })(caption),
+                format: {
+                    type: "fixedPoint"
+                    //precision: 2
+                }
+            }
+            columns.push(day);
+        }
+
+        //summary 추가
+        var colSum =  {
+            caption: '@LabelText.TOTAL',
+            format: {
+                type: "fixedPoint"
+                //precision: 2
+            },
+            dataType: "number",
+            calculateDisplayValue: function (e) {
+                var totalSum = Number(e.DAY1) + Number(e.DAY2) + Number(e.DAY3) + Number(e.DAY4) + Number(e.DAY5) + Number(e.DAY6) + Number(e.DAY7);
+                return totalSum;
+            },
+            fixed: true,
+            fixedPosition:"right",
+            cssClass : "dx-grandtotal"
+        }
+
+        columns.push(colSum);
+
+        gridInstance.option("columns", columns);
+        gridInstance.state(state);
+    }
+    
+
+    function grdShippingplan_column_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            var grid = $('#grdShippingplan').dxDataGrid('instance');
+            var data = grid.getSelectedRowsData();
+            if (data.length > 0) {
+                ajaxOptions.data.customer = data[0].VENDORCODE;
+            }
+            else {
+                ajaxOptions.data.customer = "";
+            }
+        }
+    }
+
+    function grdShippingplan_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                widget: "dxDateBox",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '@LabelText.STANDARDDATE' +"</div> ",
+                location: "before",
+                options: {
+                    elementAttr: { "id": "searchDate" },
+                    onValueChanged: function (e) {
+                        if (e.previousValue != undefined) {
+                            var grid = $('#grdShippingplan').dxDataGrid('instance');
+
+                            grid.refresh();
+
+                            grid.beginUpdate();
+                            var currentDate = $('#searchDate').dxDateBox('instance').option('value');
+                            plandate = currentDate;
+                            for (dayIndex = 0; dayIndex < 7; dayIndex++) {
+                                grid.columnOption('DAY' + (dayIndex + 1), 'caption', Globalize.dateFormatter({ date: "short" })((currentDate).addDays(dayIndex)));
+                            }
+                            grid.endUpdate();
+                        }
+                    }
+                },
+            }
+        )
+    }
+
+    function grdShippingplan_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+            var StandardNumber;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                StandardNumber = 7;
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.StandardNumber = StandardNumber == null ? 7 : StandardNumber;
+        } else if (method == "update") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+            var StandardNumber;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                StandardNumber = 7;
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.StandardNumber = StandardNumber == null ? 7 : StandardNumber;
+        } else if (method == "insert") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+            var StandardNumber;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                StandardNumber = 7;
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.StandardNumber = StandardNumber == null ? 7 : StandardNumber;
+        }
+        else if (method == "delete") {
+            var dxDateBox = $('#searchDate').dxDateBox('instance');
+            var selectDate;
+            var StandardNumber;
+
+            if (dxDateBox != undefined) {
+                selectDate = dxDateBox.option('value');
+                StandardNumber = 7;
+            }
+            else {
+                selectDate = new Date();
+            }
+            ajaxOptions.data.PlanDate = Globalize.dateFormatter({ date: "short" })(selectDate);
+            ajaxOptions.data.StandardNumber = StandardNumber == null ? 7 : StandardNumber;
+        }
+    }
+
+    function grdShippingplan_OnInitNewRow(e) {
+        e.data.DAY1 = 0;
+        e.data.DAY2 = 0;
+        e.data.DAY3 = 0;
+        e.data.DAY4 = 0;
+        e.data.DAY5 = 0;
+        e.data.DAY6 = 0;
+        e.data.DAY7 = 0;
+    }
+
+</script>

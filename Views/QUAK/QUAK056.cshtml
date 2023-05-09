@@ -1,0 +1,164 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAD;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="options">
+                <div class="option">
+                    <span>@LabelText.SELECT @LabelText.DATE</span>
+                    @(Html.DevExtreme().DateBox()
+                        .ID("searchFrom")
+                        .Type(DateBoxType.Date)
+                        .DisplayFormat(Format.MonthAndYear)
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            @(Html.DevExtreme().Chart()
+                .ID("chtDefectSum")
+                .Palette(VizPalette.GreenMist)
+                .DataSource(new JS("chartData"))
+                .Title("불량율 (PPM)")
+                
+                .Tooltip(t => t
+                    .Enabled(true)
+                    .Shared(true)
+                    .Format(f=>f.Type(Format.FixedPoint).Precision(0))
+                )
+                .CommonSeriesSettings(s => s
+                    .ArgumentField("WORKDATE")
+                    .Label(l => l
+                        .Visible(true)
+                        .Format(f => f
+                            .Type(Format.FixedPoint)
+                            .Precision(0)
+                        )
+                    )
+                )
+                .Series(s => {
+                    s.Add()
+                        .Type(SeriesType.Bar)
+                        .ArgumentField("WORKDATE")
+                        .ValueField("VALUE");
+                })
+                .Legend(l => l
+                    .VerticalAlignment(VerticalEdge.Top)
+                    .Visible(false)
+                    .HorizontalAlignment(HorizontalAlignment.Center)
+                ))
+        </div>
+    </div>
+     <div class="row">
+        <div class="col-lg-12">
+            @(Html.DevExtreme().DataGrid()
+                .DataSource(new JS("tempData"))
+                .FilterRow(f=>f.Visible(true))
+                .ShowRowLines(true)
+                .Columns(columns =>
+                {
+                    columns.Add().DataField("ITEM").Caption("항목");
+                    columns.Add().DataField("DAY1").Caption("2019-10-10");
+                    columns.Add().DataField("DAY2").Caption("2019-10-11");
+                    columns.Add().DataField("DAY3").Caption("2019-10-12");
+                    columns.Add().DataField("DAY4").Caption("2019-10-13");
+                    columns.Add().DataField("DAY5").Caption("2019-10-14");
+                    columns.Add().DataField("DAY6").Caption("2019-10-15");
+                    columns.Add().DataField("DAY7").Caption("2019-10-16");
+                    columns.Add().DataField("DAY8").Caption("2019-10-17");
+                    columns.Add().DataField("DAY9").Caption("2019-10-18");
+                    columns.Add().DataField("DAY10").Caption("2019-10-19");
+                    columns.Add().DataField("DAY11").Caption("2019-10-20");
+                    columns.Add().DataField("DAY12").Caption("2019-10-21");
+                    columns.Add().DataField("DAY13").Caption("2019-10-22");
+                    ;
+
+                })
+                .ColumnHidingEnabled(false)
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{ 10, 25, 50, 100, 1000}))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+            )
+        </div>
+     </div>
+</div>
+
+<script>
+
+    var tempData = [{"ITEM":"불량율(PPM)","DAY1":0,"DAY2":0,"DAY3":0,"DAY4":0,"DAY5":0,"DAY6":0,"DAY7":0,"DAY8":0,"DAY9":0,"DAY10":0,"DAY11":0,"DAY12":0,"DAY13":0},
+        {"ITEM":"불량수(EA)","DAY1":0,"DAY2":0,"DAY3":0,"DAY4":0,"DAY5":1234,"DAY6":0,"DAY7":0,"DAY8":0,"DAY9":0,"DAY10":0,"DAY11":0,"DAY12":0,"DAY13":0},
+        {"ITEM":"입고량(EA)","DAY1":0,"DAY2":0,"DAY3":0,"DAY4":0,"DAY5":0,"DAY6":111,"DAY7":0,"DAY8":0,"DAY9":0,"DAY10":0,"DAY11":0,"DAY12":0,"DAY13":0},
+        {"ITEM":"이물질","DAY1":0,"DAY2":0,"DAY3":0,"DAY4":0,"DAY5":0,"DAY6":0,"DAY7":123,"DAY8":0,"DAY9":0,"DAY10":0,"DAY11":0,"DAY12":0,"DAY13":0},
+        {"ITEM":"녹발생","DAY1":0,"DAY2":0,"DAY3":1212,"DAY4":0,"DAY5":0,"DAY6":0,"DAY7":0,"DAY8":0,"DAY9":0,"DAY10":0,"DAY11":0,"DAY12":0,"DAY13":0},
+        {"ITEM":"찍힘","DAY1":0,"DAY2":44,"DAY3":0,"DAY4":0,"DAY5":0,"DAY6":0,"DAY7":0,"DAY8":0,"DAY9":0,"DAY10":0,"DAY11":0,"DAY12":0,"DAY13":0},
+        {"ITEM":"유분과다","DAY1":0,"DAY2":0,"DAY3":0,"DAY4":12,"DAY5":0,"DAY6":0,"DAY7":512,"DAY8":0,"DAY9":0,"DAY10":0,"DAY11":0,"DAY12":0,"DAY13":0},
+        {"ITEM":"기타","DAY1":0,"DAY2":0,"DAY3":0,"DAY4":0,"DAY5":0,"DAY6":0,"DAY7":0,"DAY8":0,"DAY9":0,"DAY10":0,"DAY11":0,"DAY12":0,"DAY13":0}]
+
+    var chartData = [{"WORKDATE":"2019-10-10","VALUE":55},
+                        {"WORKDATE":"2019-10-11","VALUE":12},
+                        {"WORKDATE":"2019-10-12","VALUE":0},
+                        {"WORKDATE":"2019-10-13","VALUE":0},
+                        {"WORKDATE":"2019-10-14","VALUE":0},
+                        {"WORKDATE":"2019-10-15","VALUE":12},
+                        {"WORKDATE":"2019-10-16","VALUE":0},
+                        {"WORKDATE":"2019-10-17","VALUE":0},
+                        {"WORKDATE":"2019-10-18","VALUE":0},
+                        {"WORKDATE":"2019-10-19","VALUE":0},
+                        {"WORKDATE":"2019-10-20","VALUE":0},
+                        {"WORKDATE":"2019-10-21","VALUE":0},
+                        {"WORKDATE":"2019-10-22","VALUE":11}]
+
+    $(function(){
+        $("#searchFrom").dxDateBox("instance").option("value", new Date());
+    })
+
+    function chtDefectSum_OnDone(e) {
+        var cumulativeSeries = e.component.getSeriesByPos(2);
+
+        var cumulativePos = cumulativeSeries.getAllPoints();
+        var cumulativeSum = 0;
+        var cumulativeSumList = [];
+
+        for (var index = 0; cumulativePos.length > index; index++) {
+            var value = cumulativePos[index].data.DEFECTQUANTITY;
+            var total = cumulativePos[index].data.TOTALDEFECTQUANTITY;
+
+            cumulativeSum = cumulativeSum + value;;
+
+            var updateItem = new Object();
+            updateItem.type = "update";
+            updateItem.key = cumulativePos[index].data.DEFECTCODE;
+            var cumulativeData = new Object();
+            cumulativeData.CUMULATIVEDEFECTRATIO = (cumulativeSum * 100) / total;
+            updateItem.data = cumulativeData;
+            cumulativeSumList.push(updateItem);
+        }
+
+        var ds = $('#chtDefectSum').dxChart("getDataSource");
+        ds.store().push(cumulativeSumList);
+    }
+
+    function searchFrom_OnValueChanged(e) {
+        $('#pie').dxPieChart('instance').refresh();
+        $('#chtDefectSum').dxChart('instance').refresh();
+    }
+
+    function searchTo_OnValueChanged(e) {
+        $('#chtDefectSum').dxChart('instance').refresh();
+    }
+</script>

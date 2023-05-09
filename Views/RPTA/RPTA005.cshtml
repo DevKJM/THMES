@@ -1,0 +1,91 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+@*본 화면은 대충 뷰모델로 했음. 수정해야됨.*@
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().Form<RPTB005_LIST>()
+                                        .ID("form")
+                                        .ColCount(5)
+                                        .Items(items =>
+                                        {
+                                            items.AddSimpleFor(m => m.LOTTYPE)
+                                                .Editor(e => e
+                                                    .TextBox()
+                                                    .ReadOnly(true)
+                                                )
+                                                .ColSpan(1).Label(m=>m.Text("LOT 구분"));
+
+                                            items.AddSimpleFor(m => m.LOT)
+                                                .Editor(e => e
+                                                    .TextBox()
+                                                    .ReadOnly(true)
+                                                )
+                                            .ColSpan(1).Label(m=>m.Text("LOT NO."));
+
+                                            items.AddEmpty().ColSpan(3);
+
+                                            items.AddSimple().ColSpan(5)
+                                                    .Template(@<text>
+                                                        @(Html.DevExtreme()
+                                                                        .DataGrid<RPTA005_LIST>()
+                                                                        .ID("grdBoxSerialList")
+                                                                        .DataSource(new object[] { new { ROWSINDEX = 0, BOXSERIALNO = "", WORKDATE = DBNull.Value } }, "BOXSERIALNO")
+                                                                        .Columns(columns =>
+                                                                        {
+                                                                            columns.Add().Caption("Lot 번호");
+                                                                            columns.Add().Caption("공정");
+                                                                            columns.Add().Caption("작업구분");
+                                                                            columns.Add().Caption("작업일자");
+                                                                            columns.Add().Caption("작업시작시간");
+                                                                            columns.Add().Caption("작업종료시간");
+                                                                            columns.Add().Caption("생산수량");
+                                                                            columns.Add().Caption("양품수량");
+                                                                            columns.Add().Caption("불량수량");
+                                                                            columns.Add().Caption("주야구분").Visible(false);
+                                                                            columns.Add().Caption("작업자");
+                                                                            columns.Add().Caption("작업취소시간").Visible(false);
+
+                                                                        })
+                                                                        .ColumnMinWidth(50)
+                                                                        .RemoteOperations(true)
+                                                                        .ColumnAutoWidth(true)
+                                                                        .Paging(p => p.PageSize(25).Enabled(true))
+                                                                        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                                        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                        .AllowColumnResizing(true)
+                                                                        .RowAlternationEnabled(true)
+                                                                        .NoDataText("")
+
+                                                                              .Editing(e =>
+                                                                              {
+                                                                                  e.Mode(GridEditMode.Batch);
+
+                                                                                  e.UseIcons(true);
+                                                                              })
+                                                                        .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                                                        )
+                                                    </text>);
+
+                                        })
+
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdEquipmentPartMaster_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>
+
+
+@Html.Partial("_DropdownPartial")

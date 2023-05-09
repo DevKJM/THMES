@@ -1,0 +1,142 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<RPTA003_LIST>
+                  ()
+                  .ID("grdWorkPlanResult")
+                  .DataSource(d => d.WebApi().Controller("RPTA003WebApi"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.PLANTCODE).Visible(false);
+                      columns.AddFor(m => m.WORKDATE).Format(f => f.Type(Format.ShortDate))
+                          .SelectedFilterOperation(FilterOperations.Between)
+                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                      columns.AddFor(m => m.SHIFTCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("SHIFT_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.PARTNUMBER)
+                          .SortOrder(SortOrder.Asc).SortIndex(1);
+                      columns.AddFor(m => m.PRODUCTNAME);
+                      columns.AddFor(m => m.PROCESSCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("PROCESSCODE")
+                              .LoadAction("PROCESS_LIST"))
+                              .DisplayExpr("PROCESSNAME")
+                              .ValueExpr("PROCESSCODE")
+                          )
+                          .SortOrder(SortOrder.Asc).SortIndex(2);
+                      columns.AddFor(m => m.EQUIPMENTCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("EQUIPMENTCODE")
+                              .LoadAction("EQUIPMENT_LIST"))
+                              .DisplayExpr("EQUIPMENTNAME")
+                              .ValueExpr("EQUIPMENTCODE")
+                          )
+                          .SortOrder(SortOrder.Asc).SortIndex(3);
+
+                      columns.AddFor(m => m.WORKSTARTTIME).Format(f => f.Type(Format.ShortDateShortTime));
+                      columns.AddFor(m => m.WORKENDTIME).Format(f => f.Type(Format.ShortDateShortTime));
+
+                      columns.AddFor(m => m.ORDERQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                      columns.AddFor(m => m.PRODUCTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                      columns.AddFor(m => m.GOODQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                      columns.AddFor(m => m.DEFECTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                      columns.AddFor(m => m.ATTAINMENTRATE).Format(f => f.Type(Format.FixedPoint).Precision(2));
+                      //columns.AddFor(m => m.STRAIGHTRATE).Format(f => f.Type(Format.FixedPoint).Precision(2));
+                      //columns.AddFor(m => m.DEFECTRATE).Format(f => f.Type(Format.FixedPoint).Precision(2));
+                  })
+                  .RemoteOperations(false)
+                  .Summary(s => s.TotalItems(d =>
+                  {
+                      d.AddFor(m => m.ORDERQUANTITY).SummaryType(SummaryType.Sum).ValueFormat(Format.FixedPoint);
+                      d.AddFor(m => m.PRODUCTQUANTITY).SummaryType(SummaryType.Sum).ValueFormat(Format.FixedPoint);
+                      d.AddFor(m => m.GOODQUANTITY).SummaryType(SummaryType.Sum).ValueFormat(Format.FixedPoint);
+                      d.AddFor(m => m.DEFECTQUANTITY).SummaryType(SummaryType.Sum).ValueFormat(Format.FixedPoint);
+                      d.Add().Name("ATTAINMENTRATE").ShowInColumn("ATTAINMENTRATE").SummaryType(SummaryType.Custom).ValueFormat(f => f.Type(Format.FixedPoint).Precision(2));
+                      //d.Add().Name("DEFECTRATE").ShowInColumn("DEFECTRATE").SummaryType(SummaryType.Custom).ValueFormat(f => f.Type(Format.FixedPoint).Precision(2));
+                  }).CalculateCustomSummary("grdWorkPlanResult_CalculateCustomSummary")
+                  )
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .Sorting(sorting => sorting.Mode(GridSortingMode.Multiple))
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowAdding(false)
+                          .AllowUpdating(false)
+                          .AllowDeleting(false)
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true))
+
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  .OnInitialized("grdWorkPlanResult_OnInitialized")
+                  .Option("KEY_FIELD", new object[]
+                  {
+                      "PLANTCODE", "WORKDATE", "PARTNUMBER", "PRODUCTNAME", "SHIFTCODE", "PROCESSCODE", "EQUIPMENTCODE",
+                      "CREATEDATE", "RECENTDATE", "PRODUCTQUANTITY", "GOODQUANTITY", "DEFECTQUANTITY", "PROGRESSRATE", "DEFECTRATE"
+                  })
+                  //.Option("USE_REQUIRED_HEADER", true)
+                  )
+        </div>
+    </div>
+</div>
+<script>
+    function grdWorkPlanResult_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdWorkPlanResult_CalculateCustomSummary(e) {
+        if (e.summaryProcess === "start") {
+            e.totalValue = 0;
+            e.attainmentrate = 0;
+            rowCount = 0;
+        }
+        if (e.summaryProcess === "calculate") {
+            if (e.name === "ATTAINMENTRATE") {
+                e.attainmentrate = e.attainmentrate + e.value.ATTAINMENTRATE;
+                rowCount++;
+            }
+            //else if (e.name === "STRAIGHTRATE") {
+            //    e.straight = e.straight + e.value.STRAIGHTRATE;
+            //}
+        }
+        if (e.summaryProcess === "finalize") {
+            if (e.name === "ATTAINMENTRATE") {
+                e.totalValue = e.attainmentrate / rowCount;
+            }
+            //else if (e.name === "STRAIGHTRATE") {
+            //    e.totalValue = e.straight / rowCount;
+            //}
+        }
+    }
+</script>

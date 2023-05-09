@@ -1,0 +1,1811 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCC;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Infrastructure.Enums;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        <div class="col-lg-6 col-sm-12">
+            <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @LabelText.WORK@LabelText.ORDER @LabelText.LIST</i></span></h4>
+            @(Html.DevExtreme().DataGrid<PRCC040_LIST>()
+                .ID("grdWorkorder")
+                .DataSource(d => d.WebApi().Controller("PRCC040WebApi").Key("ORDERNUMBER").OnBeforeSend("grdWorkorder_OnBeforeSend"))
+                .OnRowClick("grdWorkorder_OnRowClick")
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.HIGHPRIORITYFLAG).SortOrder(SortOrder.Desc).SortIndex(0)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                        .Controller("COMA003WebApi").Key("SYSCODE")
+                        .LoadAction("HIGHPRIORITYFLAG_LIST"))
+                        .DisplayExpr("SYSCODENAME")
+                        .ValueExpr("SYSCODE")
+                    );
+                    columns.AddFor(m => m.STATE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                        .Controller("COMA003WebApi").Key("SYSCODE")
+                        .LoadAction("STATE_LIST"))
+                        .DisplayExpr("SYSCODENAME")
+                        .ValueExpr("SYSCODE")
+                    );
+                    columns.AddFor(m => m.ORDERNUMBER).SortOrder(SortOrder.Desc).SortIndex(1).Width(130);
+                    columns.AddFor(m => m.ORDERNUMBER_SEQ).Visible(false).SortOrder(SortOrder.Desc).SortIndex(2);
+                    columns.AddFor(m => m.CARTYPECOLOR);
+                    columns.AddFor(m => m.CARTYPE).Visible(false);
+                    columns.AddFor(m => m.COLOR).Visible(false);
+                    columns.AddFor(m => m.PARTNUMBER).Visible(false);
+                    columns.AddFor(m => m.PRODUCTNAME).Visible(false);
+                    columns.AddFor(m => m.PROCESSCODE).Visible(false);
+                    columns.AddFor(m => m.ORDERDATE).Visible(false);
+                    columns.AddFor(m => m.ORDERQUANTITY);
+                    columns.AddFor(m => m.SHIFTCODE)
+                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                        .Controller("COMA003WebApi").Key("SYSCODE")
+                        .LoadAction("SHIFT_LIST"))
+                        .DisplayExpr("SYSCODENAME")
+                        .ValueExpr("SYSCODE")
+                    );
+                    columns.AddFor(m => m.WORKER);
+                })
+                .ColumnMinWidth(50)
+                .FilterPanel(f => f.Visible(true))
+                .SearchPanel(c => c.Visible(true))
+                .RemoteOperations(true)
+                .ColumnAutoWidth(true)
+                .Paging(p => p.PageSize(25).Enabled(true))
+                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                .Selection(s => s.SelectAllMode(SelectAllMode.AllPages).ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick).Mode(SelectionMode.Single))
+                .OnCellClick("grdWorkorder_OnCellClick")
+                .Option("IGNORE_AUTOWIDTH", new object[] { "STATE", "ORDERQUANTITY", "ORDERNUMBER_SEQ", "CARTYPECOLOR", "CARTYPE", "COLOR", "PARTNUMBER", "PRODUCTNAME", "PROCESSCODE", "ORDERDATE", "SHIFTCODE", "WORKER" })
+            )
+        </div>
+        <div class="col-lg-6 col-sm-12 mt-2 mt-md-2">
+            @(Html.DevExtreme().Form<PRCC040B_LIST>()
+                .ID("form")
+                .ScrollingEnabled(false)
+                .ColCount(3)
+                .Items(items =>
+                {
+                    items.AddSimple().Template(@<text>
+                    <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> 자재 LOT </i></span></h4>
+                    </text>).ColSpan(3);
+
+                    items.AddSimpleFor(s => s.SCANBARCODE).Label(l => l.Visible(false)).Editor(e => e.TextBox().ID("txtBarcode")
+                                .Placeholder("자재 LOT를 입력하세요.")
+                            .OnEnterKey("form_txtBarcode_onEnterKey")
+                            )
+                            .ColSpan(2);
+
+                    items.AddSimple().ColSpan(1)
+                        .Template(@<text>
+                            @(Html.DevExtreme().Button()
+                                .ID("btnWip")
+                                .Text(LabelText.SELECT)
+                                .StylingMode(ButtonStylingMode.Contained)
+                                .Type(ButtonType.Normal)
+                                .OnClick("form_btnWip_onClick")
+                                .Width("100%")
+                            )
+                        </text>);
+
+                    items.AddSimple().Template(@<text>
+                    <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @LabelText.INPUT @LabelText.MATERIAL @LabelText.LIST</i></span></h4>
+                    </text>).ColSpan(3);
+
+                    items.AddSimple().Template(@<text>
+                        @(Html.DevExtreme().DataGrid<PRCC040A_LIST>()
+                            .ID("grdBOM")
+                            .DataSource(new JS("scanSerialnumberList"))
+                            //.DataSource(d => d.WebApi().Controller("PRCC040WebApi").Key("SERIALNUMBER")
+                            //.LoadAction("getBOMInfo")
+                            //.OnBeforeSend("grdBOM_OnBeforeSend"))
+                            .Columns(columns =>
+                            {
+                                columns.AddFor(m => m.PARTNUMBER).AllowEditing(false).Visible(false);
+                                columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false);
+                                columns.AddFor(m => m.SERIALNUMBER).AllowEditing(false);
+                                columns.AddFor(m => m.LOTNUMBER).AllowEditing(false);
+                                columns.AddFor(m => m.ORDERQUANTITY).AllowEditing(false).Visible(false);
+                                columns.AddFor(m => m.QUANTITY).AllowEditing(false);
+                                columns.AddFor(m => m.ISNEWROW).Visible(false);
+                                columns.Add()
+                                    .Type(GridCommandColumnType.Buttons)
+                                    .Name("BTNTRASH")
+                                    .Width(110)
+                                    .Buttons(b =>{ b.Add()
+                                                    .Hint("Delete")
+                                                    .Icon("trash")
+                                                    .Visible(new JS("iudAuth()"))
+                                                    .OnClick("delIconClick");
+                                    });
+                            })
+                            .ColumnMinWidth(100)
+                            .SearchPanel(c => c.Visible(false))
+                            .RemoteOperations(true)
+                            .ColumnAutoWidth(true)
+                            .Paging(p => p.PageSize(25).Enabled(true))
+                            .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                            .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                            .AllowColumnResizing(true)
+                            .RowAlternationEnabled(true)
+                            .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                            .Selection(s => s.ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick))
+                            .Summary(s => s
+                                .RecalculateWhileEditing(true)
+                                .GroupItems(Items =>
+                                {
+                                    Items.AddFor(m => m.QUANTITY)
+                                    .SummaryType(SummaryType.Sum)
+                                    .DisplayFormat("{0}")
+                                    .ValueFormat(Format.FixedPoint)
+                                    .AlignByColumn(true);
+                                })
+                            )
+                        )
+                    </text>).ColSpan(3);
+
+                    items.AddSimple().Template(@<text>
+                <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @LabelText.WORK @LabelText.COMPLETION @LabelText.INSERTION</i></span></h4>
+                    </text>).ColSpan(3);
+                    
+                    items.AddSimpleFor(m => m.PRODUCTQUANTITY)
+                        .Editor(e => e
+                            .NumberBox()
+                            .Placeholder(LabelText.ANSWERPLEASEINSERTQTY)
+                            .ShowSpinButtons(true)
+                            .ShowClearButton(true)
+                            .Min(0)
+                            .InputAttr("class", "largeTextboxInput")
+                            .OnValueChanged("form_nbProductQuantity_OnValueChanged")
+                    ).ColSpan(1);
+                    
+                    items.AddSimpleFor(m => m.YEONDANQUANTITY)
+                        .Editor(e => e
+                            .NumberBox()
+                            .Placeholder(LabelText.ANSWERPLEASEINSERTQTY)
+                            .ShowSpinButtons(true)
+                            .ShowClearButton(true)
+                            .Min(0)
+                            .InputAttr("class", "largeTextboxInput")
+                    ).ColSpan(1);
+
+                    items.AddSimpleFor(m => m.BOXPERQUANTITY)
+                        .Editor(e => e
+                            .NumberBox()
+                            .Placeholder(LabelText.ANSWERPLEASEINSERTQTY)
+                            .ShowSpinButtons(true)
+                            .ShowClearButton(true)
+                            .Min(0)
+                            .InputAttr("class", "largeTextboxInput")
+                    ).ColSpan(1);
+
+                    items.AddSimple()
+                        .Editor(e => e.TagBox()
+                        .Placeholder(LabelText.ANSWERPLEASESELECTHR)
+                        .DataSource(d => d.WebApi().Controller("COMA002WebApi")
+                                        .Key("EMPNAME")
+                                        .LoadAction("HR_LIST")
+                        )
+                        .DisplayExpr("EMPNAME")
+                        .ValueExpr("EMPNAME")
+                        .SearchEnabled(true)
+                        .Multiline(true)
+                        .ShowSelectionControls(true)
+                        .ApplyValueMode(EditorApplyValueMode.UseButtons)
+                        )
+                    .Name("WORKER")
+                    .Label(T => T.Text(LabelText.WORKER))
+                    .ColSpan(2);
+
+                    items.AddSimple().ColSpan(3)
+                    .Template(@<text>
+                        @(Html.DevExtreme()
+                            .DataGrid<PRCC040D_LIST>()
+                            .ID("grdResult")
+                            .DataSource(d => d.WebApi().Controller("PRCC040WebApi").Key("PARTNUMBER").LoadAction("getQuantity").OnBeforeSend("grdResult_OnBeforSend").OnLoaded("grdResult_OnLoaded"))
+                            .Height(320)
+                            .Columns(columns =>
+                            {
+                                columns.AddFor(m => m.ORDERNUMBER).AllowEditing(false).Visible(false);
+                                columns.AddFor(m => m.ORDERSEQUENCE).AllowEditing(false).Visible(false);
+                                columns.AddFor(m => m.ORDERNUMBER_SEQ).AllowEditing(false).Visible(false);
+                                columns.AddFor(m => m.PROCESSCODE).AllowEditing(false).Visible(false);
+                                columns.AddFor(m => m.PARTNUMBER).AllowEditing(false).Visible(false);
+                                columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false);
+                                columns.AddFor(m => m.GOODQUANTITY);
+                                columns.AddFor(m => m.DEFECTUPPERQUANTITY).AllowEditing(false);
+                                columns.AddFor(m => m.DEFECTLOWERQUANTITY).AllowEditing(false);
+                                columns.AddFor(m => m.TOTALQUANTITY).AllowEditing(false);
+                                columns.AddFor(m => m.UPPERDEFECTCODELIST).AllowEditing(false).Visible(false);
+                                columns.AddFor(m => m.UPPERDEFECTVALUELIST).AllowEditing(false).Visible(false);
+                                columns.AddFor(m => m.LOWERDEFECTCODELIST).AllowEditing(false).Visible(false);
+                                columns.AddFor(m => m.LOWERDEFECTVALUELIST).AllowEditing(false).Visible(false);
+                            })
+                            .ColumnMinWidth(50)
+                            .RemoteOperations(true)
+                            .ColumnAutoWidth(true)
+                            .Paging(p => p.PageSize(25).Enabled(true))
+                            .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                            .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                            .AllowColumnResizing(true)
+                            .RowAlternationEnabled(true)
+                            .NoDataText("")
+                            .Sorting(s => s.Mode(GridSortingMode.None))
+                            .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
+                            .Selection(s => s.Mode(SelectionMode.Single))
+                            .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                            .NoDataText("작업지시를 선택해주세요.")
+                            .OnToolbarPreparing("grdResult_OnToolbarPreparing")
+                            .OnEditorPrepared("grdResult_OnEditorPrepared")
+                            .OnCellClick("grdResult_OnCellClick")
+                        //.Option("KEY_FIELD", new object[] { "ORDERNUMBER", "ORDERSEQUENCE", "ORDERNUMBER_SEQ", "PROCESSCODE", "PARTNUMBER", "PRODUCTNAME", "DEFECTUPPERQUANTITY", "DEFECTLOWERQUANTITY", "TOTALQUANTITY", "UPPERDEFECTCODELIST", "UPPERDEFECTVALUELIST", "LOWERDEFECTCODELIST", "LOWERDEFECTVALUELIST" })
+                        )
+                    </text>);
+
+                    items.AddButton()
+                        .HorizontalAlignment(HorizontalAlignment.Left)
+                        .ButtonOptions(b => b.Text(string.Format("{0}{1}", LabelText.WORK, LabelText.GO))
+                            .ID("btnStart")
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .Type(ButtonType.Success)
+                            .OnClick("form_btnStart_OnClick")
+                            .Width("100%")
+                            .Disabled(new JS("!iudAuth()"))
+                        ).ColSpan(1);
+
+                    items.AddButton()
+                        .ButtonOptions(b => b.ID("btnFinish")
+                            .Text(LabelText.WORK + LabelText.COMPLETION)
+                            .Icon("check")
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .OnClick("btnFinish_OnClick")
+                            .Type(ButtonType.Success)
+                            .Width("100%")
+                            .Disabled(new JS("!iudAuth()"))
+                        ).ColSpan(1);
+
+
+                    items.AddButton()
+                        .ButtonOptions(b => b.ID("btnClear")
+                            .Text(LabelText.REFRESH)
+                            .Icon("refresh")
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .OnClick("btnClear_OnClick")
+                            .Type(ButtonType.Normal)
+                            .Width("100%")
+                            .Disabled(new JS("!iudAuth()"))
+                    ).ColSpan(1);
+
+                    items.AddSimple().Name("DEFECT_TAG")
+                    .Editor(e => e.TagBox()
+                    .Visible(false)
+                    .ReadOnly(true)
+                    .ShowClearButton(false)
+                    .Placeholder("")
+                    .ShowSelectionControls(false)
+                    .TagTemplate(new JS("function(itemData, itemElement){ return $(itemElement).html(\"<span class='label label-normal'>\"+itemData+\"</span>\"); }"))
+                    .ShowClearButton(false)
+                    );
+
+                    items.AddSimpleFor(m => m.PROCESSCODE)
+                    .Visible(false)
+                    .Editor(e => e
+                    .TextBox()
+                    .ReadOnly(true)
+                    .InputAttr("class", "largeTextboxInput")
+                    );
+                })
+            )
+        </div>
+    </div>
+</div>
+
+@*투입 자재 또는 WIP 선택 팝업창*@
+@(Html.DevExtreme().Popup()
+    .ID("form_btnWip_POPUP")
+    .ElementAttr("class", "popup")
+    .Title(string.Format("{0} {1} {2}", LabelText.INPUT, LabelText.WAIT, LabelText.LIST))
+    .DragEnabled(true)
+    .ContentTemplate(new TemplateName("EmbeddedPRCC040_Wip"))
+    .FullScreen(false)
+    .CloseOnOutsideClick(true)
+    .ShowCloseButton(true)
+    .Width("90%")
+)
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPRCC040_Wip"))
+{
+    @(Html.DevExtreme().ScrollView()
+        .ScrollByContent(true)
+        .ScrollByThumb(true)
+        .Height("95%")
+        .Content(
+        @<text>
+            @(Html.DevExtreme().DataGrid<PRCC040E_LIST>()
+            .ID("grdWip")
+            .DataSource(d => d.WebApi()
+                .Controller("PRCC040WebApi")
+                .Key("SERIALNUMBER")
+                .LoadAction("getWipReadyList")
+                .OnBeforeSend("EmbeddedPRCC040WipGrid_OnBeforeSend")
+            )
+            .Columns(columns =>
+            {
+                columns.AddFor(m => m.SERIALNUMBER).SortOrder(SortOrder.Asc);
+                columns.AddFor(m => m.LOTNUMBER);
+                columns.AddFor(m => m.PARTNUMBER).Visible(true);
+                columns.AddFor(m => m.PRODUCTNAME).Visible(true);
+                columns.AddFor(m => m.QUANTITY);
+            })
+            .Grouping(g => g.AutoExpandAll(false))
+            .SearchPanel(s => s.Visible(true))
+            .ColumnAutoWidth(true)
+            .Scrolling(s => s.ScrollByContent(true).ScrollByThumb(true))
+            .HeaderFilter(h => h.Visible(false))
+            .ColumnHidingEnabled(true)
+            .ColumnResizingMode(ColumnResizingMode.Widget)
+            .AllowColumnResizing(true)
+            .RowAlternationEnabled(true)
+            .ShowBorders(false)
+            .ShowColumnLines(false)
+            .ShowRowLines(false)
+            .ColumnAutoWidth(true)
+            .AllowColumnReordering(true)
+            .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+            .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+            .Paging(paging => paging.PageSize(25))
+            .Pager(pager =>
+            {
+                pager.ShowPageSizeSelector(true);
+                pager.AllowedPageSizes(new List<int> { 10, 25, 50, 100, 1000 });
+            })
+            .Selection(s => s.Mode(SelectionMode.Multiple)
+                .ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.Always)
+            )
+            .Option("USE_RESIZE", false)
+            .OnRowClick("form_grdWip_OnRowClick")
+        )
+        </text>
+    ))
+    @(Html.DevExtreme().Form()
+        .ID("popFrmWip")
+        .LabelLocation(FormLabelLocation.Left)
+        .ColCount(2)
+        .Items(items =>
+        {
+            items.AddButton()
+                .HorizontalAlignment(HorizontalAlignment.Left)
+                .ButtonOptions(b => b.Text(LabelText.CONFIRM)
+                    .OnClick("popFrmWip_btnSave_onClick")
+                    .Type(ButtonType.Success)
+                    .Width("100%")
+            ).ColSpan(1);
+
+            items.AddButton()
+                .HorizontalAlignment(HorizontalAlignment.Left)
+                .ButtonOptions(b => b.Text(LabelText.CANCEL)
+                    .OnClick("popFrmWip_btnCancel_onClick")
+                    .Type(ButtonType.Normal)
+                    .Width("100%")
+            ).ColSpan(1);
+        })
+    )
+}
+
+@*불량 항목 팝업창*@
+@(Html.DevExtreme().Popup()
+    .ID("popDEFECT")
+    .ElementAttr("class", "popup")
+    .Title(@LabelText.DEFECT + ' ' + LabelText.COMPLETION)
+    .DragEnabled(true)
+    .FullScreen(false)
+    .ResizeEnabled(true)
+    .ContentTemplate(new TemplateName("EmbeddedPRCD001_DEFECT_LIST"))
+    .ShowCloseButton(true)
+    .OnContentReady("popDEFECT_OnContentReady")
+    .OnShown("popDEFECT_OnShown")
+    .OnOptionChanged("function(e){console.log(e)}")
+)
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPRCD001_DEFECT_LIST"))
+{
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-9 col-sm-12">
+                <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.DEFECT @LabelText.LIST</i></span></h4>
+                @(Html.DevExtreme().ScrollView()
+                    .ScrollByThumb(true)
+                    .ScrollByContent(true)
+                    .Width("100%")
+                    .Content(@<text>
+                        <div id="defectList" style="padding:20px;" />
+                    </text>)
+                )
+            </div>
+            <div class="col-lg-3 col-sm-12 mt-lg-2">
+                <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.WORK @LabelText.ORDER @LabelText.LIST</i></span></h4>
+                @(Html.DevExtreme().Form<PRCC040B_LIST>()
+                    .ID("formDefect")
+                    .Items(items =>
+                    {
+                        items.AddSimpleFor(m => m.PRODUCTQUANTITY)
+                        .Editor(e => e
+                            .NumberBox()
+                            .StylingMode(EditorStylingMode.Outlined)
+                            .ReadOnly(true)
+                            .InputAttr("class", "largeTextboxInput")
+                            .Format(f => f.Type(Format.FixedPoint))
+                            .Value(0)
+                        );
+
+                        items.AddSimpleFor(m => m.GOODQUANTITY)
+                        .Editor(e => e
+                            .NumberBox()
+                            .ReadOnly(true)
+                            .StylingMode(EditorStylingMode.Outlined)
+                            .InputAttr("class", "largeTextboxInput")
+                            .Format(f => f.Type(Format.FixedPoint))
+                            .Value(0)
+                        ).CssClass("widgetLabelFontSize");
+
+                        items.AddSimpleFor(m => m.DEFECTQUANTITY)
+                        .Editor(e => e
+                            .NumberBox()
+                            .ReadOnly(true)
+                            .StylingMode(EditorStylingMode.Outlined)
+                            .InputAttr("class", "largeTextboxInput")
+                            .Format(f => f.Type(Format.FixedPoint))
+                            .Value(0)
+                        ).CssClass("widgetLabelFontSize");
+
+                        items.AddButton()
+                        .HorizontalAlignment(HorizontalAlignment.Left)
+                        .ButtonOptions(b => b.Text(LabelText.TOTAL + ' ' + LabelText.DEFECT + ' ' + LabelText.DELETE)
+                            .Type(ButtonType.Danger)
+                            .OnClick("formDefect_clear_onClick")
+                            .Width("100%")
+                            .Disabled(new JS("!iudAuth()"))
+                        );
+
+                        items.AddButton()
+                        .HorizontalAlignment(HorizontalAlignment.Left)
+                        .ButtonOptions(b => b.Text(LabelText.INSERT)
+                            .Type(ButtonType.Success)
+                            .OnClick("formDefect_save_onClick")
+                            .Width("100%")
+                            .Disabled(new JS("!iudAuth()"))
+                        );
+
+                        items.AddButton()
+                        .HorizontalAlignment(HorizontalAlignment.Left)
+                        .ButtonOptions(b => b.Text(LabelText.CANCEL)
+                            .Type(ButtonType.Normal)
+                            .OnClick("formDefect_cancel_onClick")
+                            .Width("100%")
+                            .Disabled(new JS("!iudAuth()"))
+                            );
+                    })
+                )
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+
+    var scanSerialnumberList = [];
+    var array = new Array();
+    var i = 0;
+    var refreshSec = 10000;
+    var grdworkorderRowIndex = 0;
+    var selectedDataField = "";
+    var workOrdernumber = "";
+    var workOrderSequence = 0;
+    var workORDERNUMBER_SEQ = 0;
+    var workerList = [];
+    var materialCutUsage = 0;
+    var usedCutUsage = 0;
+    var prevRowIndex = -1;
+
+    var interval = setInterval(grdWorkorderAutoRefresh, 100);
+    clearInterval(interval);
+
+    var delIconClick = function (e) {
+        var grid = $('#grdBOM').dxDataGrid('instance');
+        var data = grid.getVisibleRows();
+
+        ////삭제시 선입선출 확인
+        //for (var i = 0; i < data.length; i++)
+        //{
+        //    if (Number(e.row.data.LOTNUMBER) < Number(data[i].data.LOTNUMBER)) {
+        //        DevExpress.ui.dialog.confirm('삭제 대상 LOT보다 이 후에 생성된 LOT가 존재하여 삭제 할 수 없습니다.');
+        //        return;
+        //    }
+        //}
+        
+        if (e.row.data.ISNEWROW == 'Y') {
+            $('#grdBOM').dxDataGrid('instance').getDataSource().store().remove(e.row.key);
+            $('#grdBOM').dxDataGrid('instance').refresh();
+        }
+        else {
+            var result = DevExpress.ui.dialog.confirm('이미 작업중인 자재입니다. 투입 취소 하시겠습니까?');
+
+            result.done(function (dialogResult) {
+                if (!dialogResult) {
+                    return;
+                }
+                else {
+                    var data = new Object();
+                    data.SERIALNUMBER = e.row.data.SERIALNUMBER;
+                    data.LOTNUMBER = e.row.data.LOTNUMBER;
+
+                    $.ajax({
+                        url: '@Url.Action("CancelMaterialUsed", "PRCC040WebApi", new { httproute = "DefaultApi", })',
+                        type: 'POST',
+                        data: data,
+                        success: function () {
+                            DevExpress.ui.notify('@LabelText.ANSWERCANCELINPUT', 'success', globalNotificationSuccessTime);
+                            if (iudAuth()) {
+                                $('#btnStart').dxButton('instance').option('disabled', true);
+                                $('#btnFinish').dxButton('instance').option('disabled', false);
+                            }
+                            scanSerialnumberList = [];
+                            resetControls();
+                            getWipList();
+                            $('#grdBOM').dxDataGrid('instance').refresh();
+                            clearInterval(interval);
+                            interval = setInterval(grdWorkorderAutoRefresh, refreshSec);
+                        },
+
+                        error: function (e) {
+                            $('#txtBarcode').dxTextBox('instance').reset();
+                            $('#txtBarcode').dxTextBox('instance').focus();
+                            showError(this, e);
+                        }
+                    })
+                }
+            });
+        }
+    }
+
+    function WORKER_onFocusIn(e) {
+        $("#HR_POPUP").dxPopup("instance").show();
+
+        if ($('#form').dxForm('instance').getEditor("WORKER").option('value') != null) {
+            var arrayWorker = $('#form').dxForm('instance').getEditor("WORKER").option('value').split(',');
+            for (var i = 0; i < arrayWorker.length; i++) {
+                $('#grdHR').dxDataGrid('instance').selectRows([arrayWorker[i]], true);
+            }
+        }
+    }
+
+    function getMaterialCutUsage() {
+        //투입 및 대기 리스트 조회
+        var gridWO = $("#grdWorkorder").dxDataGrid('instance');
+        var dataWO = gridWO.getSelectedRowsData();
+
+        if (gridWO.getVisibleRows().length <= 0) {
+            return;
+        }
+        if (dataWO.count <= 0 || dataWO == undefined) {
+            return;
+        }
+
+        var param = $.param({
+            orderNumber: dataWO[0].ORDERNUMBER,
+            ORDERNUMBER_SEQ: dataWO[0].ORDERNUMBER_SEQ,
+        });
+
+        $.ajax({
+
+            url: '@Url.Action("getMaterialCutUsage", "PRCC040WebApi", new { httproute = "DefaultApi", })' + "?" + param,
+            type: 'GET',
+            success: function (data) {
+                if (data.data.length > 0) {
+                    materialCutUsage = data.data[0].USAGE;
+                    var cutUsage = ($('#form').dxForm('instance').getEditor('PRODUCTQUANTITY').option('value') * materialCutUsage).toFixed(3);
+                    usedCutUsage = Number(cutUsage);
+                    //$('#form').dxForm('instance').updateData('USAGE', Number(cutUsage));
+                    ////$('#form').dxForm('instance').updateData('PRODUCTQUANTITY', dataWO[0].ORDERQUANTITY);
+                }
+                else {
+                    DevExpress.ui.notify('원단 소요량 정보가 없습니다. 차종별 재단 원단 소요량 관리 정보를 등록해주세요.', 'error', globalNotificationErrorTime);
+                    usedCutUsage = 0;
+                    //$('#form').dxForm('instance').updateData('USAGE', 0);
+                    ////$('#form').dxForm('instance').updateData('PRODUCTQUANTITY', dataWO[0].ORDERQUANTITY);
+                }
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+
+    function grdWorkorderAutoRefresh() {
+        $('#grdWorkorder').dxDataGrid('instance').refresh();
+    }
+
+    // FORM 그리드 상위 버튼 제거
+    function grdResult_OnToolbarPreparing(e) {
+        var toolbarItems = e.toolbarOptions.items;
+        $.each(toolbarItems, function (_, item) {
+            if(item.name === "saveButton" || item.name=="revetButton" || item.name == "addRowButton") {
+                // Change the item options here
+                item.visible = false;
+            }
+        });
+    }
+
+    function grdResult_OnEditorPrepared(e) {
+        if (e.parentType == 'dataRow') {
+            if (e.dataField == 'GOODQUANTITY' || e.dataField == 'DEFECTLOWERQUANTITY' || e.dataField == 'DEFECTUPPERQUANTITY') {
+                $(e.editorElement).dxNumberBox("instance").on("valueChanged", function (args) {
+                    var grid = $("#grdResult").dxDataGrid("instance");
+                    var index = e.row.rowIndex;
+                    var result = args.value;
+
+                    if (e.dataField == 'GOODQUANTITY') {
+                        e.setValue(result);
+                    }
+                    else if (e.dataField == 'DEFECTLOWERQUANTITY' || e.dataField == 'DEFECTUPPERQUANTITY') {
+                        e.setValue(result);
+
+                        //UPPER, LOWER 중 불량수가 많은 쪽에 총 불량수 입력.
+                        var defectQty = grid.cellValue(index, 'DEFECTUPPERQUANTITY') > grid.cellValue(index, 'DEFECTLOWERQUANTITY') ? grid.cellValue(index, 'DEFECTUPPERQUANTITY') : grid.cellValue(index, 'DEFECTLOWERQUANTITY');
+                        grid.cellValue(index, 'TOTALQUANTITY', defectQty);
+                    }
+                    
+
+                    //var data = grid.getVisibleRows();
+                    //var goodQty = 0;
+                    //var totalQty = 0;
+                    //var productQty = 0;
+                    //data.forEach(function (e) {
+                    //    goodQty += e.data.GOODQUANTITY;
+                    //    totalQty += e.data.TOTALQUANTITY;
+                    //});
+                    //productQty = goodQty - totalQty;
+                    //$('#form').dxForm('instance').updateData('PRODUCTQUANTITY', productQty);
+                })
+            }
+        }
+    }
+
+    function form_grdWip_OnRowClick(e) {
+        var grid = e.component;
+        var rowKey = grid.getKeyByRowIndex(e.rowIndex);
+        if (!e.isSelected) {
+            grid.selectRows([rowKey], true);
+        }
+        else {
+            grid.deselectRows([rowKey]);
+        }
+    }
+
+    function getWipList() {
+
+        //투입 및 대기 리스트 조회
+        var gridWO = $("#grdWorkorder").dxDataGrid('instance');
+        var dataWO = gridWO.getSelectedRowsData();
+
+        if (gridWO.getVisibleRows().length <= 0 || dataWO.count <= 0) {
+            return;
+        }
+
+        var param = $.param({
+            orderNumber: dataWO[0].ORDERNUMBER,
+            orderSequence: dataWO[0].ORDERNUMBER_SEQ,
+        });
+        scanSerialnumberList = [];
+        $.ajax({
+
+            url: '@Url.Action("getInputMaterialInfo", "PRCC040WebApi", new { httproute = "DefaultApi", })' + "?" + param,
+            type: 'GET',
+            success: function (data) {
+                console.log("OK");
+                for (var i = 0; i < data.data.length; i++) {
+                    scanSerialnumberList.push({
+                        GROUPPARTNUMBER: data.data[i].PARTNUMBER + " (" + data.data[i].PRODUCTNAME + ")",
+                        SERIALNUMBER: data.data[i].SERIALNUMBER,
+                        LOTNUMBER: data.data[i].LOTNUMBER,
+                        ORDERNUMBER: dataWO[0].ORDERNUMBER,
+                        ORDERSEQUENCE: dataWO[0].ORDERSEQUENCE,
+                        ORDERNUMBER_SEQ: dataWO[0].ORDERNUMBER_SEQ,
+                        PROCESSCODE: dataWO[0].PROCESSCODE,
+                        EQUIPMENTCODE: dataWO[0].EQUIPMENTCODE,
+                        PARTNUMBER: data.data[i].PARTNUMBER,
+                        PRODUCTNAME: data.data[i].PRODUCTNAME,
+                        QUANTITY: data.data[i].QUANTITY,
+                        ISNEWROW: "N"
+                    })
+                }
+                console.log(scanSerialnumberList);
+                $("#grdBOM").dxDataGrid({
+                    dataSource: new DevExpress.data.DataSource({
+                        store: {
+                            type: 'array',
+                            key: 'SERIALNUMBER',
+                            data: scanSerialnumberList
+                        }
+                    })
+                });
+
+                $('#txtBarcode').dxTextBox('instance').reset();
+                $('#txtBarcode').dxTextBox('instance').focus();
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+
+    function EmbeddedPRCC040WipGrid_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            if ((workOrdernumber != null || workOrdernumber != "") && (workORDERNUMBER_SEQ != null && workORDERNUMBER_SEQ != 0)) {
+                ajaxOptions.data.orderNumber = workOrdernumber;
+                ajaxOptions.data.orderSequence = workORDERNUMBER_SEQ;
+            }
+            else {
+                ajaxOptions.data.orderNumber = "";
+                ajaxOptions.data.orderSequence = 1;
+            }
+        }
+    }
+
+    function form_txtBarcode_onEnterKey(e) {
+        //바코드 스캔 처리
+        var barcode = e.component._options.value;
+
+        //작업지시 선택 확인
+        if (barcode == null || barcode == "") {
+            DevExpress.ui.dialog.alert('@LabelText.ANSWERPLEASESCANBARCODE', 'error', globalNotificationErrorTime);
+            return;
+        }
+
+        if (checkSerialExist(barcode)) {
+            DevExpress.ui.notify('@LabelText.ANSWERALREADYINSERTBARCODE', 'error', globalNotificationErrorTime);
+            $('#txtBarcode').dxTextBox('instance').reset();
+            $('#txtBarcode').dxTextBox('instance').focus();
+            return;
+        }
+
+        var gridWO = $("#grdWorkorder").dxDataGrid('instance');
+        var dataWO = gridWO.getSelectedRowsData();
+        var gridBOM = $("#grdBOM").dxDataGrid('instance');
+
+        //작업지시 선택 확인
+        if (dataWO.length <= 0) {
+
+            DevExpress.ui.notify('@LabelText.ANSWERPLEASESELECTORDER', 'error', globalNotificationErrorTime);
+            $('#txtBarcode').dxTextBox('instance').reset();
+            $('#txtBarcode').dxTextBox('instance').focus();
+            return;
+        }
+
+        var serialNumberList = "";
+        //투입 대기 추가한 항목 리스트 생성. (선입선출 대상이 리스트에 있는지 확인 용도)
+        if (scanSerialnumberList.length > 0) {
+            scanSerialnumberList.forEach(function (e) {
+                serialNumberList += e.SERIALNUMBER + ",";
+            })
+        }
+
+        var param = $.param({
+            serialNumber: barcode,
+            orderNumber: dataWO[0].ORDERNUMBER,
+            orderSequence: dataWO[0].ORDERNUMBER_SEQ,
+            processCode: dataWO[0].PROCESSCODE,
+            serialList: serialNumberList
+        });
+
+        $.ajax({
+
+            url: '@Url.Action("CheckValidationScan", "PRCC040WebApi", new { httproute = "DefaultApi", })',
+            data: param,
+            type: 'GET',
+            success: function (data) {
+                console.log("OK");
+                scanSerialnumberList.push({
+                    GROUPPARTNUMBER: data.data[0].PARTNUMBER + " (" + data.data[0].PRODUCTNAME + ")",
+                    SERIALNUMBER: data.data[0].SERIALNUMBER,
+                    LOTNUMBER: data.data[0].LOTNUMBER,
+                    ORDERNUMBER: dataWO[0].ORDERNUMBER,
+                    ORDERSEQUENCE: dataWO[0].ORDERSEQUENCE,
+                    ORDERNUMBER_SEQ: dataWO[0].ORDERNUMBER_SEQ,
+                    PROCESSCODE: dataWO[0].PROCESSCODE,
+                    PARTNUMBER: data.data[0].PARTNUMBER,
+                    PRODUCTNAME: data.data[0].PRODUCTNAME,
+                    QUANTITY: data.data[0].QUANTITY,
+                    ISNEWROW: "Y"
+                })
+
+                $("#grdBOM").dxDataGrid({
+                    dataSource: new DevExpress.data.DataSource({
+                        store: {
+                            type: 'array',
+                            key: 'SERIALNUMBER',
+                            data: scanSerialnumberList
+                        }
+                    })
+                });
+
+                //$("#grdBOM").dxDataGrid('instance').addRow();
+                //$("#grdBOM").dxDataGrid('instance').cellValue(0, 'PARTNUMBER', data.data[0].PARTNUMBER);
+                //$("#grdBOM").dxDataGrid('instance').cellValue(0, 'PRODUCTNAME', data.data[0].PRODUCTNAME);
+                //$("#grdBOM").dxDataGrid('instance').cellValue(0, 'SERIALNUMBER', data.data[0].SERIALNUMBER);
+                //$("#grdBOM").dxDataGrid('instance').cellValue(0, 'ORDERQUANTITY', data.data[0].ORDERQUANTITY);
+                //$("#grdBOM").dxDataGrid('instance').cellValue(0, 'QUANTITY', data.data[0].QUANTITY);
+
+                $('#txtBarcode').dxTextBox('instance').reset();
+                $('#txtBarcode').dxTextBox('instance').focus();
+
+                clearInterval(interval);
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+
+    function form_btnWip_onClick(e) {
+        //투입 대기 리스트 팝업
+        var gridWO = $('#grdWorkorder').dxDataGrid('instance');
+        var dataWO = gridWO.getSelectedRowsData();
+        var gridBOM = $('#grdBOM').dxDataGrid('instance');
+
+        //작업지시 선택 확인
+        if (dataWO.length <= 0) {
+            DevExpress.ui.notify('@LabelText.ANSWERPLEASESELECTORDER', 'error', globalNotificationErrorTime);
+            return;
+        }
+
+        @*//BOM 정보 확인
+        if (gridBOM.totalCount() <= 0) {
+            DevExpress.ui.notify('@LabelText.ANSWERNOBOMINFO', 'error', globalNotificationErrorTime);
+            return;
+        }*@
+
+        $('#form_btnWip_POPUP').dxPopup('instance').show();
+        $('#grdWip').dxDataGrid('instance').refresh();
+        $('#grdWip').dxDataGrid('instance').clearSelection();
+
+        var filter = [];
+        var setFilter = ['SERIALNUMBER', 'notcontains', ''];
+        var count = scanSerialnumberList.length;
+        $('#grdWip').dxDataGrid('instance').clearFilter();
+
+        //투입 및 투입 대기 등록한 항목 Filter 추가
+        for (var i = 0; i < count; i++) {
+            var serial = scanSerialnumberList[i].SERIALNUMBER;
+            filter[i] = ['SERIALNUMBER', 'notcontains', serial];
+        }
+        if (filter.length > 0)
+            $('#grdWip').dxDataGrid('instance').filter(filter);
+
+        clearInterval(interval);
+        interval = setInterval(grdWorkorderAutoRefresh, refreshSec);
+    }
+
+     function popFrmWip_btnSave_onClick(e) {
+        //팝업 저장 (투입대기 항목 추가)
+        var gridWO = $("#grdWorkorder").dxDataGrid('instance');
+        var dataWO = gridWO.getSelectedRowsData();
+        var grid = $('#grdWip').dxDataGrid('instance');
+        var data = grid.getSelectedRowsData();
+
+        if (data.length <= 0) {
+            DevExpress.ui.dialog.alert('항목을 선택해주세요.', 'error', globalNotificationErrorTime);
+            return;
+        }
+
+        var serialNumberList = "";
+        var aJsonArray = [];
+        //투입 대기 추가한 항목 리스트 생성. (선입선출 대상이 리스트에 있는지 확인 용도)
+        if (scanSerialnumberList.length > 0) {
+            scanSerialnumberList.forEach(function (e) {
+                serialNumberList += e.SERIALNUMBER + ",";
+            })
+        }
+        data.forEach(function (row) {
+            serialNumberList += row.SERIALNUMBER + ",";
+        })
+
+        data.forEach(function (row) {
+            var aJson = new Object();
+            aJson.ORDERNUMBER = dataWO[0].ORDERNUMBER;
+            aJson.ORDERSEQUENCE = dataWO[0].ORDERSEQUENCE;
+            aJson.LOTNUMBER = row.LOTNUMBER;
+            aJson.SERIALNUMBER = row.SERIALNUMBER;
+            aJson.PROCESSCODE = dataWO[0].PROCESSCODE;
+            aJson.READSERIALNUMBERS = serialNumberList;
+            aJsonArray.push(aJson);
+        });
+
+        var ajaxData = new Object();
+        ajaxData.values = JSON.stringify(aJsonArray);
+
+        $.ajax({
+            url: '@Url.Action("CheckValidationNotScan", "PRCC040WebApi", new { httproute = "DefaultApi", })',
+            data: ajaxData,
+            type: 'POST',
+            success: function () {
+                var grid = $('#grdWip').dxDataGrid('instance');
+                var data = grid.getSelectedRowsData();
+                console.log(data);
+                console.log(scanSerialnumberList);
+                data.forEach(function (row) {
+
+                    if (!checkSerialExist(row.SERIALNUMBER)) {
+                        console.log('OK');
+                        scanSerialnumberList.push({
+                            GROUPPARTNUMBER: row.PARTNUMBER + " (" + row.PRODUCTNAME + ")",
+                            SERIALNUMBER: row.SERIALNUMBER,
+                            LOTNUMBER: row.LOTNUMBER,
+                            ORDERNUMBER: dataWO[0].ORDERNUMBER,
+                            ORDERSEQUENCE: dataWO[0].ORDERSEQUENCE,
+                            ORDERNUMBER_SEQ: dataWO[0].ORDERNUMBER_SEQ,
+                            PROCESSCODE: dataWO[0].PROCESSCODE,
+                            PARTNUMBER: row.PARTNUMBER,
+                            PRODUCTNAME: row.PRODUCTNAME,
+                            QUANTITY: row.QUANTITY,
+                            ISNEWROW: "Y"
+                        })
+
+                        $("#grdBOM").dxDataGrid({
+                            dataSource: new DevExpress.data.DataSource({
+                                store: {
+                                    type: 'array',
+                                    key: 'SERIALNUMBER',
+                                    data: scanSerialnumberList
+                                }
+                            })
+                        });
+                    }
+                    else {
+                        console.log('NG');
+                    }
+                });
+
+                $("#form_btnWip_POPUP").dxPopup("instance").hide();
+            },
+            error: function (e) {
+                showError(this, e);
+                $('#grdWip').dxDataGrid('instance').clearSelection();
+                Checkfifo = true;
+            }
+        });
+    }
+
+    function popFrmWip_btnCancel_onClick(e) {
+        //투입 취소
+        $('#grdWip').dxDataGrid('instance').clearSelection();
+        $("#form_btnWip_POPUP").dxPopup("instance").hide();
+    }
+
+    function checkSerialExist(barcode) {
+        //중복된 항목이 있는지 확인.
+        for (var i = 0; i < scanSerialnumberList.length; i++) {
+            if (scanSerialnumberList[i].SERIALNUMBER == barcode) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function grdResult_OnCellClick(e) {
+        if (e.rowType == 'data') {
+            if (e.column.dataField == 'DEFECTUPPERQUANTITY' || e.column.dataField == 'DEFECTLOWERQUANTITY') {
+                selectedDataField = e.column.dataField;
+                $('#popDEFECT').dxPopup('instance').option('title', e.data.PRODUCTNAME + ' - ' + e.column.caption);
+                $('#popDEFECT').dxPopup('instance').show();
+            }
+        }
+    }
+
+    function popDEFECT_OnShown(e) {
+        var ProductQty = 0;
+        var goodQty = 0;
+        var defectQty = 0;
+        var grid = $('#grdResult').dxDataGrid('instance');
+        var data = grid.getSelectedRowsData();
+        var rowIndex = grid.getRowIndexByKey(data[0].PARTNUMBER);
+        ProductQty = $('#form').dxForm('instance').getEditor('PRODUCTQUANTITY').option('value');
+        goodQty = data[0].GOODQUANTITY;
+        defectQty = data[0].DEFECTQUANTITY;
+
+        $('#formDefect').dxForm('instance').updateData('PRODUCTQUANTITY', ProductQty);
+        $('#formDefect').dxForm('instance').updateData('GOODQUANTITY', goodQty);
+        $('#formDefect').dxForm('instance').updateData('DEFECTQUANTITY', defectQty);
+
+        var arrNumber = $('.numberDefect');
+        var defectSum = 0;
+
+        if (selectedDataField == "DEFECTUPPERQUANTITY") {
+            var defectCodeListTemp = $('#grdResult').dxDataGrid('instance').cellValue(rowIndex, 'UPPERDEFECTCODELIST');
+            var defectValueListTemp = $('#grdResult').dxDataGrid('instance').cellValue(rowIndex, 'UPPERDEFECTVALUELIST');
+        }
+        else {
+            var defectCodeListTemp = $('#grdResult').dxDataGrid('instance').cellValue(rowIndex, 'LOWERDEFECTCODELIST');
+            var defectValueListTemp = $('#grdResult').dxDataGrid('instance').cellValue(rowIndex, 'LOWERDEFECTVALUELIST');
+        }
+
+        var defectCodeList = undefined;
+
+        if (defectValueListTemp != undefined) {
+            defectCodeList = defectCodeListTemp.split(',');
+        }
+
+        var defectValueList = undefined;
+
+        if (defectValueListTemp != undefined) {
+            defectValueList = defectValueListTemp.split(',');
+        }
+
+        for (var index = 0; arrNumber.length > index; index++) {
+             var defectNumberTemp = arrNumber[index].attributes["id"].value;
+            $('#' + defectNumberTemp).dxNumberBox('instance').option('value', 0);
+        }
+
+        if (defectCodeList != undefined) {
+            if (defectCodeList[0] != "") {
+                for (var index = 0; defectCodeList.length > index; index++) {
+                    $('#defect_' + defectCodeList[index]).dxNumberBox('instance').option('value', defectValueList[index]);
+                }
+            }
+        }
+
+        for (var index = 0; arrNumber.length > index; index++) {
+            var defectNumberTemp = arrNumber[index].attributes["id"].value;
+            var value = parseInt($('#' + defectNumberTemp).dxNumberBox('instance').option('value'));
+            defectSum = defectSum + value;
+        }
+
+        $('#formDefect').dxForm('instance').updateData('DEFECTQUANTITY', defectSum);
+    }
+
+    function grdResult_OnBeforSend(method, ajaxOptions) {
+        if (method == 'load') {
+            if (workOrdernumber != null && workOrdernumber != "") {
+                ajaxOptions.data.ordernumber = workOrdernumber;
+            }
+            else {
+                ajaxOptions.data.ordernumber = "";
+            }
+        }
+    }
+
+    function grdResult_OnLoaded(e) {
+        e.forEach(function (row) {
+            row.GOODQUANTITY = $('#form').dxForm('instance').getEditor('PRODUCTQUANTITY').option('value');
+        })
+    }
+
+    //불량 목록 조회
+    function popDEFECT_OnContentReady(e) {
+        var gridWO = $("#grdWorkorder").dxDataGrid('instance');
+        var dataWO = gridWO.getSelectedRowsData();
+
+        data = { PROCESSCODE: dataWO[0].PROCESSCODE };
+
+        $.ajax({
+            url: '@Url.Action("PROCESSDEFECT_LIST", "COMA001WebApi", new { httproute = "DefaultApi" })',
+            data: data,
+            success: function (e) {
+
+                e.data.forEach(function (element) {
+                    var html = "<div style='float:left;padding-right:15px;padding-top:8px;'>" +
+                                "<div style='text-align:center;'>" +
+                                "<h4><span class='dx-fieldset-header'>" + element.DEFECTNAME + "</span></h4>" +
+                                "</div>" +
+                                "<div style='padding-bottom:10px;'>" +
+                                "    <div class='numberDefect' id='defect_" + element.DEFECTCODE + "' defectName='" + element.DEFECTNAME + "' />" +
+                                "</div>" +
+
+                                "<div>" +
+                                "    <div>" +
+                                "        <div style='float:left;'>" +
+                                "           <div class='plusDefect' defectCode='defect_" + element.DEFECTCODE + "'/>  <div class='minusDefect'  defectCode='defect_" + element.DEFECTCODE + "'/>" +
+                                "        </div>" +
+                                "    </div>" +
+                                "</div>";
+
+                    $('#defectList').append(html);
+                });
+
+                if (e.data.length > 0) {
+                    $('.numberDefect').dxNumberBox({
+                        width: 150,
+                        value: 0,
+                        format: {
+                            type: 'FixedPoint'
+                        },
+                        onValueChanged: function (data) {
+
+                            var arrNumber = $('.numberDefect');
+                            var defectSum = 0;
+                            var productQty = ($('#formDefect').dxForm('instance').option('formData.PRODUCTQUANTITY') == null || $('#formDefect').dxForm('instance').option('formData.PRODUCTQUANTITY') == 0) ? 0 : $('#formDefect').dxForm('instance').option('formData.PRODUCTQUANTITY');
+
+                            for (index = 0; arrNumber.length > index; index++) {
+                                var defectNumberTemp = arrNumber[index].attributes["id"].value;
+                                var value = parseInt($('#' + defectNumberTemp).dxNumberBox('instance').option('value'));
+                                defectSum = defectSum + value;
+                            }
+
+                            $('#formDefect').dxForm('instance').updateData('DEFECTQUANTITY', defectSum);
+                            $('#formDefect').dxForm('instance').updateData('GOODQUANTITY', productQty - defectSum);
+                        }
+                    });
+
+                    $('.plusDefect').dxButton({
+                        stylingMode: 'contained',
+                        icon: 'fa fa-plus',
+                        type: 'normal',
+                        text: ' ',
+                        width: 75,
+                        onClick: function (e) {
+                            var defectCodeTemp = e.element.attr('defectcode');
+                            var value = parseInt($('#' + defectCodeTemp).dxNumberBox('instance').option('value'));
+
+                            if (value == undefined) {
+                                value = 0;
+                            }
+
+                            value = value + 1;
+
+                            $('#'+defectCodeTemp).dxNumberBox('instance').option('value', value)
+                        }
+                    });
+
+                    $('.minusDefect').dxButton({
+                        stylingMode: 'contained',
+                        icon: 'fa fa-minus',
+                        type: 'normal',
+                        text: ' ',
+                        width: 75,
+                        onClick: function (e) {
+                            var defectCodeTemp = e.element.attr('defectcode');
+                            var value = parseInt($('#' + defectCodeTemp).dxNumberBox('instance').option('value'));
+
+                            if (value == undefined || value - 1 == 0) {
+                                value = 0;
+                            }
+
+                            if (value - 1 > 0) {
+                                value = value - 1;
+                            }
+
+                            $('#'+defectCodeTemp).dxNumberBox('instance').option('value', value)
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    function grdWorkorder_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            clearInterval(interval);
+            interval = setInterval(grdWorkorderAutoRefresh, refreshSec);
+        }
+    }
+
+    function grdBOM_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            if ((workOrdernumber != null || workOrdernumber != "") && (workORDERNUMBER_SEQ != null && workORDERNUMBER_SEQ != 0)) {
+                ajaxOptions.data.orderNumber = workOrdernumber;
+                ajaxOptions.data.orderSequence = workORDERNUMBER_SEQ;
+            }
+            else {
+                ajaxOptions.data.orderNumber = "";
+                ajaxOptions.data.orderSequence = 0;
+            }
+        }
+    }
+
+    function grdWorkorder_OnRowClick(e) {
+        workOrdernumber = e.data.ORDERNUMBER;
+        workOrderSequence = e.data.ORDERSEQUENCE;
+        workORDERNUMBER_SEQ = e.data.ORDERNUMBER_SEQ;
+        if (prevRowIndex != e.rowIndex) {
+            $('#grdResult').dxDataGrid('instance').cancelEditData();
+        }
+
+        var workerTagBox = $('#form').dxForm('instance').getEditor('WORKER');
+        var workerList = e.data.WORKER;
+
+        if (workerList != null) {
+            workerTagBox.option('value', workerList.split(','));
+        }
+        else {
+            workerTagBox.option('value', null);
+        }
+
+        var grid = $('#grdBOM').dxDataGrid('instance');
+        grid.refresh();
+        getWipList();
+        setRefresh();
+        getQuantity();
+        getMaterialCutUsage();
+        grdworkorderRowIndex = e.rowIndex;
+        if (iudAuth()) {
+            if (e.data.STATE == '@STATE.W01') {
+                $('#btnStart').dxButton('instance').option('disabled', false);
+                $('#btnFinish').dxButton('instance').option('disabled', true);
+            }
+            else {
+                $('#btnStart').dxButton('instance').option('disabled', true);
+                $('#btnFinish').dxButton('instance').option('disabled', false);
+            }
+        }
+
+        if ($('#form').dxForm('instance').updateData('BOXPERQUANTITY', e.data.BOXPERQUANTITY) == 0) {
+            $('#form').dxForm('instance').getEditor('BOXPERQUANTITY').option('readOnly', false);
+        }
+        else {
+            $('#form').dxForm('instance').getEditor('BOXPERQUANTITY').option('readOnly', true);
+        }
+        $('#form').dxForm('instance').updateData('BOXPERQUANTITY', e.data.BOXPERQUANTITY);
+        $('#form').dxForm('instance').updateData('PRODUCTQUANTITY', e.data.ORDERQUANTITY);
+
+        clearInterval(interval);
+        interval = setInterval(grdWorkorderAutoRefresh, refreshSec);
+        prevRowIndex = e.rowIndex;
+    }
+
+    function getQuantity() {
+        $('#grdResult').dxDataGrid('instance').refresh();
+        //var gridResult = $('#grdResult').dxDataGrid('instance');
+        //var dataResult = gridResult.getVisibleRows();
+        //dataResult.forEach(function (row) {
+        //    gridResult.cellValue(row.rowIndex, 'GOODQUANTITY', $('#form').dxForm('instance').getEditor('PRODUCTQUANTITY').option('value') - row.data.TOTALQUANTITY);
+        //})
+    }
+
+    //작업 시작
+    function form_btnStart_OnClick(e) {
+        var gridWO = $("#grdWorkorder").dxDataGrid('instance');
+        var dataWO = gridWO.getSelectedRowsData();
+        if (dataWO.length <= 0) {
+            DevExpress.ui.dialog.alert('@LabelText.ANSWERSELECTWORKORDER', 'error', globalNotificationErrorTime);
+            return;
+        }
+
+        if ($('#form').dxForm('instance').getEditor("WORKER").option('value') == null ||
+            $('#form').dxForm('instance').getEditor("WORKER").option('value') == "") {
+
+            DevExpress.ui.dialog.alert('@LabelText.ANSWERPLEASESELECTHR', 'error', globalNotificationErrorTime);
+            return;
+        }
+
+        var workerList = $('#form').dxForm('instance').getEditor("WORKER").option('value');
+        if (scanSerialnumberList.length > 0) {
+
+            var result = DevExpress.ui.dialog.confirm('@LabelText.QUESTIONRUNSTART');
+
+            result.done(function (dialogResult) {
+                if (!dialogResult) {
+                    return;
+                }
+                else {
+
+                    var requests = [];
+                    var aJsonArray = new Array();
+                    var orderDate;
+                    scanSerialnumberList.forEach(function (e) {
+                        if (e.ISNEWROW == "Y") {
+                            var aJson = new Object();
+                            aJson.ORDERNUMBER = e.ORDERNUMBER;
+                            aJson.ORDERSEQUENCE = e.ORDERSEQUENCE;
+                            aJson.ORDERNUMBER_SEQ = e.ORDERNUMBER_SEQ;
+                            aJson.LOTNUMBER = e.LOTNUMBER;
+                            aJson.SERIALNUMBER = e.SERIALNUMBER;
+                            aJson.PROCESSCODE = e.PROCESSCODE;
+                            aJson.WORKER = workerList == null ? null : workerList.toString();
+                            orderDate = e.ORDERDATE;
+                            aJsonArray.push(aJson);
+                        }
+                    });
+
+                    var data = new Object();
+                    data.values = JSON.stringify(aJsonArray);
+                    data.ORDERNUMBER = workOrdernumber;
+                    data.ORDERNUMBER_SEQ = workORDERNUMBER_SEQ;
+                    data.ORDERDATE = orderDate;
+                    data.WORKER = workerList == null ? null : workerList.toString();
+
+                    $.ajax({
+                        url: '@Url.Action("WorkStart", "PRCC040WebApi", new { httproute = "DefaultApi", })',
+                        type: 'POST',
+                        data: data,
+                        success: function () {
+                            DevExpress.ui.notify('@LabelText.ANSWERWORKSTART', 'success', globalNotificationSuccessTime);
+                            if (iudAuth()) {
+                                $('#btnStart').dxButton('instance').option('disabled', true);
+                                $('#btnFinish').dxButton('instance').option('disabled', false);
+                            }
+                            scanSerialnumberList = [];
+                            resetControls();
+                            getWipList();
+                            $('#grdBOM').dxDataGrid('instance').refresh();
+                            clearInterval(interval);
+                            interval = setInterval(grdWorkorderAutoRefresh, refreshSec);
+                        },
+
+                        error: function (e) {
+                            $('#txtBarcode').dxTextBox('instance').reset();
+                            $('#txtBarcode').dxTextBox('instance').focus();
+                            showError(this, e);
+                        }
+                    })
+                }
+            });
+        } else {
+            var result = DevExpress.ui.dialog.confirm('@LabelText.QUESTIONRUNSTART');
+
+            result.done(function (dialogResult) {
+                if (!dialogResult) {
+                    return;
+                }
+                else {
+                    //투입 자재 없이 작업시작 시 작업지시 상태만 변경.
+                    var source = {};
+                    source.ORDERNUMBER = workOrdernumber;
+                    source.ORDERSEQUENCE = workORDERNUMBER_SEQ;
+                    source.WORKER = workerList == null ? null : workerList.toString();
+
+                    var data = new Object();
+                    data.values = JSON.stringify(source);
+
+                    $.ajax({
+                        url: '@Url.Action("WorkStartNotInput", "PRCC040WebApi", new { httproute = "DefaultApi", })',
+                        type: 'POST',
+                        data: data,
+                        success: function () {
+                            DevExpress.ui.notify('@LabelText.ANSWERWORKSTART', 'success', globalNotificationSuccessTime);
+                            if (iudAuth()) {
+                                $('#btnStart').dxButton('instance').option('disabled', true);
+                                $('#btnFinish').dxButton('instance').option('disabled', false);
+                            }
+                            scanSerialnumberList = [];
+                            $('#grdBOM').dxDataGrid('instance').refresh();
+                            resetControls();
+                            getWipList();
+                            clearInterval(interval);
+                            interval = setInterval(grdWorkorderAutoRefresh, refreshSec);
+                        },
+
+                        error: function (e) {
+                            $('#txtBarcode').dxTextBox('instance').reset();
+                            $('#txtBarcode').dxTextBox('instance').focus();
+                            showError(this, e);
+                        }
+                    })
+                }
+            })
+        }
+    }
+
+    function form_nbProductQuantity_OnValueChanged(e) {
+        var cutUsage = (e.value * materialCutUsage).toFixed(3);
+        usedCutUsage = Number(cutUsage);
+        //$('#form').dxForm('instance').updateData('USAGE', Number(cutUsage));
+
+        var gridResult = $('#grdResult').dxDataGrid('instance');
+        var dataResult = gridResult.getVisibleRows();
+        var goodQuantity = 0;
+        var upperQuantity = 0;
+        var lowerQuantity = 0;
+        var defectQuantity = 0;
+        dataResult.forEach(function (row) {
+            upperQuantity = row.UPPERDEFECTQUANTITY == undefined ? (row.data.DEFECTUPPERQUANTITY == undefined ? 0 : row.data.DEFECTUPPERQUANTITY) : row.UPPERDEFECTQUANTITY;
+            lowerQuantity = row.LOWERDEFECTQUANTITY == undefined ? (row.data.DEFECTLOWERQUANTITY == undefined ? 0 : row.data.DEFECTLOWERQUANTITY) : row.LOWERDEFECTQUANTITY;
+            defectQuantity = upperQuantity >= lowerQuantity ? upperQuantity : lowerQuantity;
+            goodQuantity = e.value - defectQuantity;
+            gridResult.cellValue(row.rowIndex, 'GOODQUANTITY', goodQuantity);
+        })
+        getMaterialCutUsage();
+
+    }
+
+    //작업(공정)완료
+    function btnFinish_OnClick(e) {
+        var form = $('#form').dxForm('instance');
+        var gridWO = $('#grdWorkorder').dxDataGrid('instance');
+        var dataWO = gridWO.getSelectedRowsData();
+
+        form.updateData("PROCESSCODE", dataWO[0].PRODCESSCODE);
+
+        if ((workOrdernumber == null || workOrdernumber == "") || (workORDERNUMBER_SEQ == null || workORDERNUMBER_SEQ == 0))
+        {
+            //작업지시를 선택해주세요.
+            DevExpress.ui.dialog.alert('@LabelText.ANSWERPLEASESELECTORDER', "warning");
+            return;
+        }
+
+        var gridMat = $('#grdBOM').dxDataGrid('instance');
+        var dataMat = gridMat.getVisibleRows();
+        var materialQuantity = 0;
+        dataMat.forEach(function (e) {
+            materialQuantity += e.data.QUANTITY;
+        });
+
+        //if (materialQuantity < form.getEditor('USAGE').option('value')) {
+        if (materialQuantity < usedCutUsage) {
+            DevExpress.ui.dialog.alert('자재가 부족합니다.', "warning");
+            return;
+        }
+
+        if (form.getEditor('PRODUCTQUANTITY').option().value == 0 || form.getEditor('PRODUCTQUANTITY').option().value == null) {
+            //생산수량을 입력하세요.
+            //var validate = form.validate();
+
+            //if (validate.brokenRules.length > 0) {
+            //    validate.brokenRules.forEach(function (e) {
+            //        e.validator.reset();
+            //    });
+            //}
+            DevExpress.ui.dialog.alert('생산 수량을 입력하세요.', "warning");
+            return;
+        }
+
+        if (form.getEditor('BOXPERQUANTITY').option().value == 0 || form.getEditor('BOXPERQUANTITY').option().value == null) {
+            //박스당량을 입력하세요.
+            //var validate = form.validate();
+
+            //if (validate.brokenRules.length > 0) {
+            //    validate.brokenRules.forEach(function (e) {
+            //        e.validator.reset();
+            //    });
+            //}
+            DevExpress.ui.dialog.alert('박스당량을 입력하세요.', "warning");
+            return;
+        }
+
+        if (form.getEditor('YEONDANQUANTITY').option().value == 0 || form.getEditor('YEONDANQUANTITY').option().value == null) {
+            //연단 매수를 입력하세요.
+            //var validate = form.validate();
+
+            //if (validate.brokenRules.length > 0) {
+            //    validate.brokenRules.forEach(function (e) {
+            //        e.validator.reset();
+            //    });
+            //}
+            DevExpress.ui.dialog.alert('연단 매수를 입력하세요.', "warning");
+            return;
+        }
+
+        //if (form.getEditor('USAGE').option().value == 0 || form.getEditor('USAGE').option().value == null) {
+        if (usedCutUsage == 0 || usedCutUsage == null) {
+            //차종별 재단 원단소요량 정보를 입력하세요.
+            //var validate = form.validate();
+
+            //if (validate.brokenRules.length > 0) {
+            //    validate.brokenRules.forEach(function (e) {
+            //        e.validator.reset();
+            //    });
+            //}
+            DevExpress.ui.dialog.alert('원단 소요량 정보를 알 수 없습니다. 차종별 재단 원단소요량 정보를 등록해주세요.', "warning");
+            return;
+        }
+
+        if ($('#grdBOM').dxDataGrid('instance').totalCount() <= 0) {
+            DevExpress.ui.dialog.alert('투입된 자재가 없습니다. 자재를 투입해주세요.', "warning");
+            return;
+        }
+
+        var productQuantity = form.getEditor('PRODUCTQUANTITY').option().value.toString();
+        var yeondanQuantity = form.getEditor('YEONDANQUANTITY').option().value.toString();
+        //var wondanUsage = form.getEditor('USAGE').option().value.toString();
+        var wondanUsage = usedCutUsage;
+
+        var mUsedMaterial = $('#grdResult').dxDataGrid('instance').getVisibleRows();
+        var worker = $('#form').dxForm('instance').getEditor("WORKER").option('value');
+        var msg = "";
+        mUsedMaterial.forEach(function (e) {
+            msg += e.data.PRODUCTNAME + '(양품수량 / 불량수량) : ' + e.data.GOODQUANTITY + " / " + e.data.TOTALQUANTITY + '<br>'
+        });
+        console.log(msg);
+        var confirmMessage = DevExpress.ui.dialog.confirm('@LabelText.QUESTIONRUNCOMPLETE' + '<br><br>' +
+                                                            '<--' + '@LabelText.COMPLETION' + '@LabelText.INFORMATION' + '--> <br><br>' +
+                                                            '@LabelText.PRODUCTQUANTITY' + ' : ' + productQuantity + '<br><br>' +
+                                                            '@LabelText.YEONDANQUANTITY' + ' : ' + yeondanQuantity + '<br><br>' +
+                                                            '@LabelText.WONDANUSAGE' + ' : ' + wondanUsage + '<br><br>' +
+                                                            msg + '<br>' +
+                                                            '@LabelText.WORKER' + ' : ' + worker + '<br><br>' 
+                                                        );
+
+        confirmMessage.done(function (dialogResult) {
+            if (!dialogResult) {
+                return;
+            }
+            else {
+                console.log(scanSerialnumberList);
+                //완료시 투입한 자재가 있으면 등록.
+                if (scanSerialnumberList.length > 0) {
+
+                    var view = $('#grdResult').dxDataGrid('instance').getVisibleRows();
+                    var mWip = $('#grdBOM').dxDataGrid('instance').getVisibleRows();
+
+                    var aJsonMatWipArray = new Array();
+                    scanSerialnumberList.forEach(function (e) {
+                        if (e.ISNEWROW == "Y") {
+                            var aJson = new Object();
+                            if ((e.ORDERNUMBER != null && e.ORDERNUMBER != "") && (e.ORDERNUMBER_SEQ != null && e.ORDERNUMBER_SEQ != 0)) {
+                                aJson.MWIP_ORDERNUMBER = e.ORDERNUMBER;
+                                aJson.MWIP_ORDERSEQUENCE = e.ORDERSEQUENCE;
+                                aJson.MWIP_ORDERNUMBER_SEQ = e.ORDERNUMBER_SEQ;
+                                aJson.MWIP_LOTNUMBER = e.LOTNUMBER;
+                                aJson.MWIP_SERIALNUMBER = e.SERIALNUMBER;
+                                aJson.MWIP_PROCESSCODE = e.PROCESSCODE;
+                                var workerList = $('#form').dxForm('instance').getEditor("WORKER").option('value');
+                                aJson.MWIP_WORKER = workerList == null ? null : workerList.toString();
+                                scanSerialnumberList.push(aJson);
+                            }
+                        }
+                    });
+
+                    var aJsonWorkResultArray = new Array();
+                    view.forEach(function (e) {
+                        var aJson = new Object();
+                        if ((workOrdernumber != null && workOrdernumber != "") && (workORDERNUMBER_SEQ != null && workORDERNUMBER_SEQ != 0)) {
+                            aJson.ORDERNUMBER = workOrdernumber;
+                            aJson.ORDERSEQUENCE = e.data.ORDERSEQUENCE;
+                            aJson.ORDERNUMBER_SEQ = e.data.ORDERNUMBER_SEQ;
+                            aJson.PROCESSCODE = e.data.PROCESSCODE;
+                            aJson.YEONDANQUANTITY = form.getEditor('YEONDANQUANTITY').option('value');
+                            aJson.USAGE = usedCutUsage;// form.getEditor('USAGE').option('value');
+                            aJson.LOTNUMBER = mWip[0].data.LOTNUMBER;
+                            aJson.SERIALNUMBER = mWip[0].data.SERIALNUMBER;
+                            aJson.PARTNUMBER = e.data.PARTNUMBER;
+                            aJson.BOXPERQUANTITY = form.getEditor('BOXPERQUANTITY').option('value');
+                            aJson.GOODQUANTITY = e.data.GOODQUANTITY;
+                            aJson.TOTALDEFECTQUANTITY = e.data.DEFECTUPPERQUANTITY + e.data.DEFECTLOWERQUANTITY;
+                            aJson.DEFECTQUANTITY = e.data.TOTALQUANTITY;
+                            aJson.PRODUCTQUANTITY = form.getEditor('PRODUCTQUANTITY').option('value');
+                            aJson.DEFECTUPPERQUANTITY = e.data.DEFECTUPPERQUANTITY;
+                            aJson.DEFECTLOWERQUANTITY = e.data.DEFECTLOWERQUANTITY;
+                            aJson.UPPERDEFECTCODELIST = e.data.UPPERDEFECTCODELIST;
+                            aJson.UPPERDEFECTVALUELIST = e.data.UPPERDEFECTVALUELIST;
+                            aJson.LOWERDEFECTCODELIST = e.data.LOWERDEFECTCODELIST;
+                            aJson.LOWERDEFECTVALUELIST = e.data.LOWERDEFECTVALUELIST;
+                            aJson.NEEDTOTALUSAGE = usedCutUsage;//form.getEditor('USAGE').option('value');
+                            var workerList = $('#form').dxForm('instance').getEditor("WORKER").option('value');
+                            aJson.WORKER = workerList == null ? null : workerList.toString();
+                            aJsonWorkResultArray.push(aJson);
+                        }
+                    });
+
+                    var workerList = $('#form').dxForm('instance').getEditor("WORKER").option('value');
+                    var data = new Object();
+                    data.matWipData = JSON.stringify(scanSerialnumberList);
+                    data.workResultData = JSON.stringify(aJsonWorkResultArray);
+                    data.WORKER = workerList == null ? null : workerList.toString();
+
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("WorkFinish", "PRCC040WebApi", new { httproute = "DefaultApi" })',
+                        data: data,
+                        success: function (data) {
+                            DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+
+                            workOrdernumber = "";
+                            workOrderSequence = 0;
+                            workORDERNUMBER_SEQ = 0;
+
+                            var form = $('#form').dxForm('instance');
+                            form.updateData("ORDERNUMBER", null);
+                            form.updateData("ORDERSEQUENCE", null);
+                            form.updateData("YEONDANQUANTITY", 0);
+                            form.updateData("PRODUCTQUANTITY", 0);
+                            form.updateData("BOXPERQUANTITY", 0);
+                            form.updateData("USAGE", 0);
+
+                            $("#grdBOM").dxDataGrid('instance').option('dataSource', []);
+                            $('#form').dxForm('instance').getEditor("WORKER").option('value', null);
+                            setRefresh();
+                            $("#grdResult").dxDataGrid('instance').refresh();
+                            var gridResult = $('#grdResult').dxDataGrid('instance');
+                            var dataResult = gridResult.getVisibleRows();
+                            dataResult.forEach(function (row) {
+                                gridResult.cellValue(row.rowIndex, 'GOODQUANTITY', $('#form').dxForm('instance').getEditor('PRODUCTQUANTITY').option('value'));
+                            })
+                            prevRowIndex = -1;
+                            //var validate = form.validate();
+
+                            //if (validate.brokenRules.length > 0) {
+                            //    validate.brokenRules.forEach(function (e) {
+                            //        e.validator.reset();
+                            //    });
+                            //}
+                        },
+                        error: function (e) {
+                            showError(this, e);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    function btnClear_OnClick(e) {
+        setRefresh();
+
+        var form = $('#form').dxForm('instance');
+        $("#grdBOM").dxDataGrid('instance').option('dataSource', []);
+        $('#grdBOM').dxDataGrid('instance').refresh();
+        $("#grdResult").dxDataGrid('instance').refresh();
+        //var validate = form.validate();
+
+        //if (validate.brokenRules.length > 0) {
+        //    validate.brokenRules.forEach(function (e) {
+        //        e.validator.reset();
+        //    });
+        //}
+        scanSerialnumberList = [];
+        $('#form').dxForm('instance').updateData('YEONDANQUANTITY', 0);
+        //$('#form').dxForm('instance').updateData('USAGE', 0);
+        usedCutUsage = 0;
+        $('#form').dxForm('instance').updateData('PRODUCTQUANTITY', 0);
+        $('#form').dxForm('instance').getEditor("WORKER").option('value', null);
+        getWipList();
+        var gridResult = $('#grdResult').dxDataGrid('instance');
+        var dataResult = gridResult.getVisibleRows();
+        dataResult.forEach(function (row) {
+            gridResult.cellValue(row.rowIndex, 'GOODQUANTITY', $('#form').dxForm('instance').getEditor('PRODUCTQUANTITY').option('value'));
+        })
+        clearInterval(interval);
+        interval = setInterval(grdWorkorderAutoRefresh, refreshSec);
+    }
+
+    function setRefresh() {
+        $("#grdWorkorder").dxDataGrid('instance').refresh();
+        $("#grdBOM").dxDataGrid('instance').refresh();
+
+        var form = $('#form').dxForm('instance');
+        form.updateData("YEONDANQUANTITY", 0);
+        form.updateData("USAGE", 0);
+        form.updateData("TOTALQUANTITY", 0);
+        form.updateData("DEFECTQUANTITY", 0);
+        form.updateData("BOXPERQUANTITY", 0);
+        form.updateData("DEFECT_TAG", null);
+        form.getEditor("DEFECT_TAG").option('visible', false);
+        array = [];
+    }
+
+    //생산수량 = 양품수량 + 불량수량
+    function GoodDefectQTY_onValueChanged(e) {
+        var form = $('#form').dxForm('instance');
+        var ProductQTY = 0;
+        var GoodQTY = 0;
+        var DefectQTY = 0;
+
+        //생산수량에 따른 원단소요량 조회 - 입력
+    }
+
+    //불량 등록 popup show
+    function DEFECT_onFocusIn(e) {
+        var form = $('#form').dxForm('instance');
+        var popform = $('#Popform').dxForm('instance');
+        var grid = $('#grdResult').dxDataGrid('instance');
+        var grdData = grid.getSelectedRowsData();
+
+        var goodQty = grdData[0].GOODQUANTITY;
+
+        if (goodQty > 0) {
+            $('#popDEFECT').dxPopup('instance').show();
+        } else {
+            //양품 수량을 먼저 입력하세요.
+            DevExpress.ui.notify('@LabelText.ANSWERPLEASEENTERGOODQTY', 'error', globalNotificationErrorTime);
+            var goodQtyEditor = form.getEditor('GOODQUANTITY');
+            goodQtyEditor.focus();
+        }
+    }
+
+    //불량등록pop - 전체 불량 지우기
+    function formDefect_clear_onClick(e) {
+        var arrNumber = $('.numberDefect');
+
+        for (var index = 0; arrNumber.length > index; index++) {
+            var defectNumberTemp = arrNumber[index].attributes["id"].value;
+            $('#' + defectNumberTemp).dxNumberBox('instance').option('value', 0);
+        }
+    }
+
+    //불량등록pop - 저장
+    function formDefect_save_onClick(e) {
+        var formDefect = $('#formDefect').dxForm('instance');
+        var form = $('#form').dxForm('instance');
+        var grid = $('#grdResult').dxDataGrid('instance');
+        var grdData = grid.getSelectedRowsData();
+        var rowIndex = grid.getRowIndexByKey(grdData[0].PARTNUMBER);
+
+        var data = {};
+        data.values = JSON.stringify(formDefect.option('formData'));
+
+        var arrNumber = $('.numberDefect');
+        var defectSum = 0;
+        var defectCodeListTemp = [];
+        var defectValueListTemp = [];
+        var defectTagbox = [];
+
+        for (index = 0; arrNumber.length > index; index++) {
+            var defectNumberTemp = arrNumber[index].attributes["id"].value;
+            var defectName = arrNumber[index].attributes["defectName"].value;
+            var defectCode = defectNumberTemp.slice(7);
+            var value = parseInt($('#' + defectNumberTemp).dxNumberBox('instance').option('value'));
+
+            if (value > 0) {
+                defectCodeListTemp.push(defectCode);
+                defectValueListTemp.push(value);
+                defectSum = defectSum + value;
+                defectTagbox.push(defectName + ':' + value);
+            }
+        }
+
+        if (selectedDataField == 'DEFECTUPPERQUANTITY') {
+            grid.cellValue(rowIndex, 'UPPERDEFECTCODELIST', defectCodeListTemp.join(','));
+            grid.cellValue(rowIndex, 'UPPERDEFECTVALUELIST', defectValueListTemp.join(','));
+        }
+        else {
+            grid.cellValue(rowIndex, 'LOWERDEFECTCODELIST', defectCodeListTemp.join(','));
+            grid.cellValue(rowIndex, 'LOWERDEFECTVALUELIST', defectValueListTemp.join(','));
+        }
+
+        @*//불량 총 수량
+        if (defectSum > $('#form').dxForm('instance').option('formData.PRODUCTQUANTITY')) {
+            //생산수량보다 불량수량이 많습니다.
+            DevExpress.ui.notify('@LabelText.ANSWERMOREDEFECTIVEQTY', 'error', globalNotificationErrorTime);
+            return;
+        }*@
+
+        grid.cellValue(rowIndex, selectedDataField, defectSum);
+
+        form.updateData('DEFECTQUANTITY', defectSum);
+
+        //UPPER + LOWER 합산 총 불량수.
+        var totalDefectQty = grid.cellValue(rowIndex, 'DEFECTUPPERQUANTITY') + grid.cellValue(rowIndex, 'DEFECTLOWERQUANTITY');
+        grid.cellValue(rowIndex, 'TOTALQUANTITY', totalDefectQty);
+
+        //UPPER, LOWER 중 불량수가 많은 쪽의 불량수만큼 차감.
+        var defectQty = grid.cellValue(rowIndex, 'DEFECTUPPERQUANTITY') > grid.cellValue(rowIndex, 'DEFECTLOWERQUANTITY') ? grid.cellValue(rowIndex, 'DEFECTUPPERQUANTITY') : grid.cellValue(rowIndex, 'DEFECTLOWERQUANTITY');
+        grid.cellValue(rowIndex, 'GOODQUANTITY', $('#form').dxForm('instance').getEditor('PRODUCTQUANTITY').option('value') - defectQty);
+
+        var tagBox = form.getEditor('DEFECT_TAG');
+
+        if (defectTagbox.length > 0) {
+            tagBox.option('visible', false);
+            tagBox.option('value', defectTagbox);
+        } else {
+            tagBox.option('visible', false);
+        }
+
+        $("#popDEFECT").dxPopup("instance").hide();
+    }
+
+    //불량등록pop - 취소
+    function formDefect_cancel_onClick(e) {
+        $("#popDEFECT").dxPopup("instance").hide();
+    }
+
+    function grdWorkorder_OnCellClick(e) {
+
+    }
+
+    function resetControls() {
+        //새로고침
+        $('#txtBarcode').dxTextBox('instance').reset();
+        $('#txtBarcode').dxTextBox('instance').focus();
+        $("#grdWorkorder").dxDataGrid('instance').refresh();
+        $("#grdWorkorder").dxDataGrid('instance').option('focusedRowIndex', grdworkorderRowIndex);
+        $("#grdBOM").dxDataGrid('instance').refresh();
+    }
+
+</script>

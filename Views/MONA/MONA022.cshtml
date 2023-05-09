@@ -1,0 +1,292 @@
+﻿@using JSMES.WebUI.Alpha.App_GlobalResources
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MON.MONA
+
+@{
+    ViewBag.Title = "Main";
+}
+@*<style>
+    .dx-toast-message {
+        white-space: pre-line;
+    }
+</style>*@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().Form()
+                                     .ID("formInfo")
+                                     .ColCount(8)
+                                     //.OnContentReady("formInfo_OnContentReady")
+                                     .ScrollingEnabled(false)
+                                     .Items(items =>
+                                     {
+                                         items.AddSimple()
+                                             .Editor(e => e
+                                                 .NumberBox()
+                                                 .Min(0)
+                                                 .Format("#0 초")
+                                                 .Value(30)
+                                             )
+                                             .Name("uptime")
+                                             .Label(T => T.Text("갱신시간"))
+                                             .ColSpan(1);
+
+                                         items.AddEmpty()
+                                             .ColSpan(5);
+
+                                         items.AddSimple()
+                                             .Editor(e => e
+                                                 .Switch()
+                                                 .SwitchedOffText("작게보기")
+                                                 .SwitchedOnText("크게보기")
+                                                 .Width("100%")
+                                                 .Value(false)
+                                             )
+                                             .Name("zoomcheck")
+                                             .Label(T => T.Text(""))
+                                             .ColSpan(1);
+
+                                         items.AddSimple()
+                                             .Editor(e => e
+                                                 .NumberBox()
+                                                 .Min(10)
+                                                 .Format("#0 초")
+                                                 .Value(30)
+                                             )
+                                             .Name("interval")
+                                             .Label(T => T.Text("시간설정"))
+                                             .ColSpan(1);
+                                     })
+            )
+            @(Html.DevExtreme().DataGrid<MONA021A_LIST>()
+                          .ID("grdProductPlan")
+                          .DataSource(d => d.WebApi().Controller("MONA021WebApi").Key("PARTNUMBER"))
+                          .Columns(columns =>
+                          {
+                              columns.AddFor(m => m.PARTNUMBER).Caption(LabelText.MATERIALCODE);
+                              columns.AddFor(m => m.PRODUCTNAME).Caption(LabelText.MATERIALNAME);
+                          //columns.AddFor(m => m.MATERIALTYPE)
+                          //    .Lookup(lookup => lookup
+                          //        .DataSource(d => d.WebApi()
+                          //            .Controller("COMA003WebApi").Key("SYSCODE")
+                          //            .LoadAction("MATERIALTYPE_LIST"))
+                          //        .DisplayExpr("SYSCODENAME")
+                          //        .ValueExpr("SYSCODE")
+                          //    );
+                          columns.AddFor(m => m.SAFETYINVENTQUANTITY).Format("#,##0.###");
+                          columns.AddFor(m => m.INVENTQUANTITY).Format("#,##0.###").Width(200);
+                          //columns.AddFor(m => m.USAGEDAY).Format(f => f.Type(Format.FixedPoint).Precision(0)).Width(100).Caption("재고일수");
+                          columns.AddFor(m => m.UNITCODE)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                          .LoadAction("UNITCODE_LIST"))
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  ).AllowEditing(false);
+                              columns.AddFor(m => m.STATUS);
+                          })
+                          .RemoteOperations(true)
+                          .FilterPanel(f => f.Visible(false))
+                          .ColumnAutoWidth(true)
+                          .Paging(p => p.PageSize(25).Enabled(true))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .SearchPanel(searchPanel => searchPanel
+                              .Visible(false)
+                              .Width(180)
+                              .Placeholder("Search...")
+                          )
+                          .FilterRow(filterRow => filterRow
+                              .Visible(false)
+                              .ApplyFilter(GridApplyFilterMode.Auto)
+                          )
+                          .ShowBorders(true)
+                          .AllowColumnResizing(true)
+                          //.Editing(e =>
+                          //    e.Mode(GridEditMode.Batch)
+                          //        .AllowUpdating(new JS("iudAuth()"))
+                          //        .AllowAdding(new JS("iudAuth()"))
+                          //        .AllowDeleting(new JS("iudAuth()"))
+                          //)
+                          .RowAlternationEnabled(true)
+                          //.Export(e => e.Enabled(true))
+                          .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                          .ShowRowLines(true)
+                          .OnRowPrepared("grdProductPlan_OnRowPrepared")
+                  .OnCellPrepared("grdProductPlan_OnCellPrepared")
+                          //.Export(e => e.Enabled(true).FileName(@LabelText.PLANT + @LabelText.MANAGEMENT).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                          //.OnInitialized("grdProductPlan_OnInitialized")
+                          //.Option("KEY_FIELD", new object[] { "WAREHOUSECODE" })
+                          //.Option("INIT_FIELD", new object[] { "USEYN", "PLANTCODE" })
+                          //.Option("USE_REQUIRED_HEADER", true)
+            )
+        </div>
+    </div>
+</div>
+
+<style>
+    .useClass01 {
+        font-size: xx-large;
+        font-weight: bold;
+        height: 60px;
+        vertical-align: middle;
+        padding: 10px;
+    }
+
+    .useClass02 {
+        padding: 10px;
+        font-size: xx-large;
+        height: 60px;
+    }
+</style>
+
+<script>
+    var cnt = 0;
+    var pageIndex = 0;
+    var timerId;
+    var interval = 10000;
+    var lastChk = true;
+
+    $(function () {
+        //set();
+        var form = $('#formInfo').dxForm('instance');
+        var setInterval = form.getEditor('interval').option('value');
+        form.getEditor('uptime').option('value', setInterval);
+        cnt = setInterval;
+
+        set();
+        //StartTimer();
+    });
+
+    function StartTimer() {
+
+        var form = $('#formInfo').dxForm('instance');
+        var setInterval = form.getEditor('interval').option('value');// $("#interval").dxNumberBox("instance").option('value');
+        var chk = form.getEditor('zoomcheck').option('value');// $("#zoomcheck").dxNumberBox("instance").option('value');
+        form.getEditor('uptime').option('value', setInterval);
+        cnt = setInterval;
+
+        form.getEditor('uptime').option('value', setInterval)
+        search(chk);
+
+        //if (setInterval != undefined || setInterval == null)
+        //    timerId = setTimeout(StartTimer, setInterval * 1000);
+        //else
+        //    timerId = setTimeout(StartTimer, interval);
+    }
+
+    function set() {// $("#interval").dxNumberBox("instance").option('value');
+        if (cnt < 1) {
+            StartTimer();
+        } else {
+            cnt--;
+            var form = $('#formInfo').dxForm('instance');
+            form.getEditor('uptime').option('value', cnt);
+        }
+        
+        timerId = setTimeout(set, 1000);
+
+    }
+
+    function StopTimer() {
+        if (timerId != null) {
+            clearTimeout(timerId);
+        }
+    }
+
+    function search(check) {
+        var grd = $('#grdProductPlan').dxDataGrid('instance');
+        var maxIndex = grd.pageCount();
+        var nowIndex = grd.pageIndex();
+
+        if (grd.totalCount() < 1) {
+            grd.refresh();
+            return;
+        }
+
+        if (pageIndex < maxIndex) {
+            grd.pageIndex(pageIndex);
+            pageIndex++;
+        } else {
+            pageIndex = 0;
+            grd.pageIndex(pageIndex);
+            grd.refresh();
+        }
+        //$(".dx-datagrid-text-content").css("vertical-align", "middle");
+
+        if (check) {
+            $("#grdProductPlan").dxDataGrid('instance').pageSize(10);
+            //$("#grdProductPlan").dxDataGrid('instance').he
+            //$(".dx-datagrid-table.dx-datagrid-table-fixed").addClass("TEST");
+            //$(".dx-row.dx-column-lines.dx-header-row").addClass("useClass01");
+            //$(".dx-datagrid-action.dx-cell-focus-disabled").addClass("useClass01");
+            $(".dx-datagrid-text-content").addClass("useClass01");
+            //$(".dx-row > td").addClass("useClass01");
+            //$(".dx-datagrid .dx-row").addClass("useClass02");
+            //$(".dx-widget.dx-visibility-change-handler").addClass("TEST");
+            
+
+        } else {
+            $("#grdProductPlan").dxDataGrid('instance').pageSize(25);
+            //$(".dx-datagrid-table.dx-datagrid-table-fixed").removeClass("TEST");
+            //$(".dx-row.dx-column-lines.dx-header-row").removeClass("useClass01");
+            $(".dx-datagrid-text-content").removeClass("useClass01");
+            //$(".dx-row > td").removeClass("useClass01");
+            //$(".dx-datagrid .dx-row").removeClass("useClass02");
+            //$(".dx-row dx-data-row.dx-row-lines.dx-column-lines").removeClass("TEST");
+            //$(".dx-widget.dx-visibility-change-handler").removeClass("TEST");
+        }
+
+        //if (nowIndex < maxIndex -1) {
+        //    grd.pageIndex(nowIndex + 1);
+        //} else {
+        //    grd.refresh();
+        //    grd.pageIndex(1);
+        //}
+    }
+    function grdProductPlan_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+    function grdProductPlan_OnCellPrepared(e) {
+        if (e.rowType == "data") {
+            if (e.column.dataField == "STATUS" || e.column.dataField == "INVENTQUANTITY") {
+                if (e.data.STATUS != "양호") {
+                    e.cellElement.css("color", "red");
+                }
+                else {
+                    e.cellElement.css("color", "");
+                }
+            } 
+            var chk = $('#formInfo').dxForm('instance').getEditor('zoomcheck').option('value');
+            if (chk) {
+                e.cellElement.css("height", '70px');
+                e.cellElement.css("font-size", "xx-large");
+                e.cellElement.css("padding", "10px");
+                e.cellElement.css("vertical-align", "middle");
+                //e.cellElement.css("font-weight", "bold");
+
+            } else {
+                e.cellElement.css("height", '');
+                e.cellElement.css("font-size", "");
+                e.cellElement.css("padding", "");
+                //e.cellElement.css("font-weight", "");
+            }
+        }
+    }
+    function grdProductPlan_OnRowPrepared(e) {
+        if (e.rowType !== "data") {
+            e.rowElement.css("padding", "30px");
+            return;
+        }
+        if (e.data.STATUS == "양호") {
+            //e.rowElement.css("color", "");
+            e.rowElement.css("font-weight", 'nomal');
+
+        } else {
+            //e.rowElement.css("color", "red");
+            e.rowElement.css("font-weight", 'bold');
+
+        }
+    }
+</script>

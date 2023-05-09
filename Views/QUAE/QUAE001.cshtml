@@ -1,0 +1,637 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAE;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+@*<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<QUAE001A_LIST>()
+                                          .DataSource(d => d.WebApi().Controller("QUAE001WebApi").Key("ROWSKEY").OnBeforeSend("grdShippingDefectHistory_OnBeforeSend"))
+                                          .ID("grdShippingDefectHistory")
+                                          .Columns(columns =>
+                                          {
+                                              columns.AddFor(m => m.SHIPPINGDATE)
+                                                  .Format(f => f.Type(Format.ShortDate))
+                                                  .SelectedFilterOperation(FilterOperations.Between)
+                                                  .FilterValue(new object[] { DateTime.Now.Date, DateTime.Now.AddDays(+7).Date });
+
+                                              columns.AddFor(m => m.VENDORCODE)
+                                                  .Lookup(lookup => lookup
+                                                      .DataSource(d => d.WebApi()
+                                                          .Controller("COMA001WebApi").Key("VENDORCODE")
+                                                          .LoadAction("VENDOR_LIST"))
+                                                      .DisplayExpr("VENDORNAME")
+                                                      .ValueExpr("VENDORCODE")
+                                                  );
+
+                                              columns.AddFor(m => m.PARTNUMBER).Width(250).SortIndex(1).SortOrder(SortOrder.Asc)
+                                                  .Lookup(lookup => lookup
+                                                      .DataSource(d => d.WebApi()
+                                                          .Controller("COMA001WebApi").Key("PARTNUMBER")
+                                                          .LoadAction("PARTNUM_LIST"))
+                                                      .ValueExpr("PARTNUMBER")
+                                                      .DisplayExpr("PARTNUMBER").AllowClearing(true)
+                                                  )
+                                                  .EditCellTemplate(new TemplateName("EmbeddedPART"))
+                                              .SetCellValue("function(newData , value , currentRowData)" +
+                                                            "{newData.CUSTOMERPARTNUMBER = value.CUSTOMERPARTNUMBER;" +
+                                                            "newData.PRODUCTNAME = value.PRODUCTNAME;" +
+                                                            "newData.PARTNUMBER = value.PARTNUMBER;" +
+                                                            "newData.UNITCODE = value.UNITCODE;" +
+                                                            " if(value.PARTNUMBER != currentRowData.PARTNUMBER) $('#grdShippingDefectHistory').dxDataGrid('instance').closeEditCell();}");
+
+                                              columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false);
+
+                                              
+
+                                              columns.AddFor(m => m.SERIALNUMBER).Width(250).SortIndex(1).SortOrder(SortOrder.Asc)
+                                                  .Lookup(lookup => lookup
+                                                      .DataSource(d => d.WebApi()
+                                                          .Controller("QUAE001WebApi").Key("SERIALNUMBER")
+                                                          .LoadAction("getProductStock"))
+                                                      .ValueExpr("SERIALNUMBER")
+                                                      .DisplayExpr("SERIALNUMBER").AllowClearing(true)
+                                                  )
+                                                  .EditCellTemplate(new TemplateName("nameTempPartSerialNumber"))
+                                                  .SetCellValue("function(newData , value , currentRowData)" +
+                                                                "{newData.LOTNUMBER = value.LOTNUMBER;" +
+                                                                "newData.OUTPARTNUMBER = value.PARTNUMBER;" +
+                                                                "newData.SERIALNUMBER = value.SERIALNUMBER;" +
+                                                                "newData.OUTPRODUCTNAME = value.PRODUCTNAME;" +
+                                                                "newData.UNITCODE = value.UNITCODE;" +
+                                                                " if(value.PARTNUMBER != currentRowData.PARTNUMBER) $('#grdShippingDefectHistory').dxDataGrid('instance').closeEditCell();}").Visible(false);
+
+
+
+                                              columns.AddFor(m => m.LOTNUMBER).Visible(false);
+                                              columns.AddFor(m => m.OUTPARTNUMBER).Visible(false);
+                                              columns.AddFor(m => m.OUTPRODUCTNAME).Visible(false);
+
+
+                                              columns.AddFor(m => m.DEFECTCODE)
+                                                  .Lookup(lookup => lookup
+                                                      .DataSource(d => d.WebApi()
+                                                          .Controller("COMA001WebApi").Key("DEFECTCODE")
+                                                          .LoadAction("DEFECT_LIST"))
+                                                      .DisplayExpr("DEFECTNAME")
+                                                      .ValueExpr("DEFECTCODE")
+                                                  );
+                                              columns.AddFor(m => m.DEFECTQUANTITY);
+                                              columns.AddFor(m => m.UNITCODE)
+                                                  .Lookup(lookup => lookup
+                                                      .DataSource(d => d.WebApi()
+                                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                                          .LoadAction("UNITCODE_LIST"))
+                                                      .DisplayExpr("SYSCODENAME")
+                                                      .ValueExpr("SYSCODE")
+                                                  ).AllowEditing(false);
+                                              columns.AddFor(m => m.CREATEUSER);
+                                              columns.AddFor(m => m.CREATEDATE).Visible(true);
+
+                                          })
+                                          .AllowColumnResizing(true)
+                                          .RemoteOperations(true)
+                                          .FilterPanel(f => f.Visible(true))
+                                          .ColumnAutoWidth(true)
+                                          .Paging(p => p.PageSize(25).Enabled(true))
+                                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                          //.StateStoring(s => s.Enabled(true).StorageKey("MSTD001_grdPartNumber").Type(StateStoringType.LocalStorage))
+                                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                          .ShowRowLines(true)
+                                          .SearchPanel(searchPanel => searchPanel
+                                              .Visible(true)
+                                              .Width(180)
+                                              .Placeholder("Search...")
+                                          )
+                                          .FilterRow(filterRow => filterRow
+                                              .Visible(true)
+                                              .ApplyFilter(GridApplyFilterMode.Auto)
+                                          )
+                                          .ShowBorders(true)
+                                          .Editing(e =>
+                                              e.Mode(GridEditMode.Batch)
+                                                  .AllowUpdating(new JS("iudAuth()"))
+                                                  .AllowAdding(new JS("iudAuth()"))
+                                                  .AllowDeleting(new JS("iudAuth()"))
+                                          )
+                                          .RowAlternationEnabled(true)
+                                  .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                                  .OnInitialized("grdPartNumber_OnInitialized")
+                                  .Option("KEY_FIELD", new object[] { "SHIPDEFECTHISSEQ" })
+                                  .Option("INIT_FIELD", new object[] { "USEYN", "SHIPDEFECTHISSEQ" })
+                                    .OnToolbarPreparing("grdShippingDefectHistory_OnToolbarPreparing")
+                  .OnInitNewRow("grdShippingDefectHistory_OnInitNewRow").OnRowUpdating("dd").OnRowInserting("dddd")
+
+            )
+        </div>
+    </div>
+</div>*@
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            <div id="tabs" class="animated">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs ">
+                        <li>
+                            <a class="nav-link active" data-toggle="tab" href="#tab-side-1">
+                                <i class="fa fa-calendar"> 사내 불량 등록</i>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" data-toggle="tab" href="#tab-side-2">
+                                <i class="fa fa-wrench"> 사외 불량 등록</i>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content onlyHeader">
+                        <div id="tab-side-1" class="tab-pane active">
+                            @(Html.DevExtreme().DataGrid<QUAE001A_LIST>()
+                                                                  .DataSource(d => d.WebApi().Controller("QUAE001WebApi").Key("ROWSKEY").LoadAction("getINDEFECT").InsertAction("postINDEFECT")
+                                                                      //.OnBeforeSend("grdShippingDefectHistory_OnBeforeSend")
+                                )
+                                                                  .ID("grdShippingDefectHistoryIN")
+                                                                  .Columns(columns =>
+                                                                  {
+
+                                                                      columns.AddFor(m => m.SERIALNUMBER).Width(250).SortIndex(1).SortOrder(SortOrder.Asc)
+                                                                          .Lookup(lookup => lookup
+                                                                              .DataSource(d => d.WebApi()
+                                                                                  .Controller("QUAE001WebApi").Key("SERIALNUMBER")
+                                                                                  .LoadAction("getProductStock"))
+                                                                              .ValueExpr("SERIALNUMBER")
+                                                                              .DisplayExpr("SERIALNUMBER").AllowClearing(true)
+                                                                          )
+                                                                          .EditCellTemplate(new TemplateName("nameTempPartSerialNumber"))
+                                                                          .SetCellValue("function(newData , value , currentRowData)" +
+                                                                                        "{newData.LOTNUMBER = value.LOTNUMBER;" +
+                                                                                        "newData.PARTNUMBER = value.PARTNUMBER;" +
+                                                                                        "newData.SERIALNUMBER = value.SERIALNUMBER;" +
+                                                                                        "newData.PRODUCTNAME = value.PRODUCTNAME;" +
+                                                                                        "newData.UNITCODE = value.UNITCODE;" +
+                                                                                        " if(value.PARTNUMBER != currentRowData.PARTNUMBER) $('#grdShippingDefectHistoryIN').dxDataGrid('instance').closeEditCell();}");
+                                                                      columns.AddFor(m => m.LOTNUMBER);
+                                                                      columns.AddFor(m => m.PARTNUMBER);
+                                                                      columns.AddFor(m => m.PRODUCTNAME);
+
+
+                                                                      columns.AddFor(m => m.DEFECTCODE)
+                                                                          .Lookup(lookup => lookup
+                                                                              .DataSource(d => d.WebApi()
+                                                                                  .Controller("COMA001WebApi").Key("DEFECTCODE")
+                                                                                  .LoadAction("DEFECT_LIST"))
+                                                                              .DisplayExpr("DEFECTNAME")
+                                                                              .ValueExpr("DEFECTCODE")
+                                                                          );
+                                                                      columns.AddFor(m => m.DEFECTQUANTITY);
+                                                                      columns.AddFor(m => m.UNITCODE)
+                                                                          .Lookup(lookup => lookup
+                                                                              .DataSource(d => d.WebApi()
+                                                                                  .Controller("COMA003WebApi").Key("SYSCODE")
+                                                                                  .LoadAction("UNITCODE_LIST"))
+                                                                              .DisplayExpr("SYSCODENAME")
+                                                                              .ValueExpr("SYSCODE")
+                                                                          ).AllowEditing(false);
+                                                                      columns.AddFor(m => m.CREATEUSER).AllowEditing(false);
+                                                                      columns.AddFor(m => m.CREATEDATE).AllowEditing(false)
+                                                                          .Format(f => f.Type(Format.ShortDate))
+                                                                          .SelectedFilterOperation(FilterOperations.Between)
+                                                                          .FilterValue(new object[] { DateTime.Now.Date, DateTime.Now.AddDays(+7).Date });
+
+                                                                  })
+                                                                  .AllowColumnResizing(true)
+                                                                  .RemoteOperations(true)
+                                                                  .FilterPanel(f => f.Visible(true))
+                                                                  .ColumnAutoWidth(true)
+                                                                  .Paging(p => p.PageSize(25).Enabled(true))
+                                                                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                                                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                                                  .ShowRowLines(true)
+                                                                  .SearchPanel(searchPanel => searchPanel
+                                                                      .Visible(true)
+                                                                      .Width(180)
+                                                                      .Placeholder("Search...")
+                                                                  )
+                                                                  .FilterRow(filterRow => filterRow
+                                                                      .Visible(true)
+                                                                      .ApplyFilter(GridApplyFilterMode.Auto)
+                                                                  )
+                                                                  .ShowBorders(true)
+                                                                  .Editing(e =>
+                                                                      e.Mode(GridEditMode.Row)
+                                                                          //.AllowUpdating(new JS("iudAuth()"))
+                                                                          .AllowAdding(new JS("iudAuth()"))
+                                                                          //.AllowDeleting(new JS("iudAuth()"))
+                                                                  )
+                                                                  .RowAlternationEnabled(true)
+                                                          .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                                                          .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                                                          //.OnInitialized("grdShippingDefectHistoryIN_OnInitialized")
+                                                          .Option("KEY_FIELD", new object[] { "ROWSKEY" })
+                                                          .Option("INIT_FIELD", new object[] { "USEYN", "ROWSKEY" })
+                            //.OnToolbarPreparing("grdShippingDefectHistory_OnToolbarPreparing")
+                            .OnInitNewRow("grdShippingDefectHistoryIN_OnInitNewRow")
+                                  .OnContentReady("grdShippingDefectHistoryIN_OnContentReady")
+
+                            )
+                        </div>
+                        <div id="tab-side-2" class="tab-pane">
+                            @(Html.DevExtreme().DataGrid<QUAE001A_LIST>()
+                                              .DataSource(d => d.WebApi().Controller("QUAE001WebApi").Key("ROWSKEY").LoadAction("getOUTDEFECT").InsertAction("postOUTDEFECT").UpdateAction("putOUTDEFECT"))
+                                              .ID("grdShippingDefectHistoryOUT")
+                                              .Columns(columns =>
+                                              {
+                                                  columns.AddFor(m => m.SHIPPINGDATE)
+                                                      .Format(f => f.Type(Format.ShortDate))
+                                                      .SelectedFilterOperation(FilterOperations.Between)
+                                                      .FilterValue(new object[] { DateTime.Now.Date, DateTime.Now.AddDays(+7).Date });
+
+                                                  columns.AddFor(m => m.VENDORCODE)
+                                                      .Lookup(lookup => lookup
+                                                          .DataSource(d => d.WebApi()
+                                                              .Controller("COMA001WebApi").Key("VENDORCODE")
+                                                              .LoadAction("VENDOR_LIST"))
+                                                          .DisplayExpr("VENDORNAME")
+                                                          .ValueExpr("VENDORCODE")
+                                                      );
+
+                                                  columns.AddFor(m => m.PARTNUMBER).Width(250).SortIndex(1).SortOrder(SortOrder.Asc)
+                                                      .Lookup(lookup => lookup
+                                                          .DataSource(d => d.WebApi()
+                                                              .Controller("COMA001WebApi").Key("PARTNUMBER")
+                                                              .LoadAction("PARTNUM_LIST"))
+                                                          .ValueExpr("PARTNUMBER")
+                                                          .DisplayExpr("PARTNUMBER").AllowClearing(true)
+                                                      )
+                                                      .EditCellTemplate(new TemplateName("EmbeddedPART"))
+                                                  .SetCellValue("function(newData , value , currentRowData)" +
+                                                                "{newData.CUSTOMERPARTNUMBER = value.CUSTOMERPARTNUMBER;" +
+                                                                "newData.PRODUCTNAME = value.PRODUCTNAME;" +
+                                                                "newData.PARTNUMBER = value.PARTNUMBER;" +
+                                                                "newData.UNITCODE = value.UNITCODE;" +
+                                                                " if(value.PARTNUMBER != currentRowData.PARTNUMBER) $('#grdShippingDefectHistoryOUT').dxDataGrid('instance').closeEditCell();}");
+
+                                                  columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false);
+
+                                                  columns.AddFor(m => m.DEFECTCODE)
+                                                      .Lookup(lookup => lookup
+                                                          .DataSource(d => d.WebApi()
+                                                              .Controller("COMA001WebApi").Key("DEFECTCODE")
+                                                              .LoadAction("DEFECT_LIST"))
+                                                          .DisplayExpr("DEFECTNAME")
+                                                          .ValueExpr("DEFECTCODE")
+                                                      );
+                                                  columns.AddFor(m => m.DEFECTQUANTITY);
+                                                  columns.AddFor(m => m.UNITCODE)
+                                                      .Lookup(lookup => lookup
+                                                          .DataSource(d => d.WebApi()
+                                                              .Controller("COMA003WebApi").Key("SYSCODE")
+                                                              .LoadAction("UNITCODE_LIST"))
+                                                          .DisplayExpr("SYSCODENAME")
+                                                          .ValueExpr("SYSCODE")
+                                                      ).AllowEditing(false);
+                                                  columns.AddFor(m => m.CREATEUSER);
+                                                  columns.AddFor(m => m.CREATEDATE).Visible(true);
+
+                                              })
+                                              .AllowColumnResizing(true)
+                                              .RemoteOperations(true)
+                                              .FilterPanel(f => f.Visible(true))
+                                              .ColumnAutoWidth(true)
+                                              .Paging(p => p.PageSize(25).Enabled(true))
+                                              .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                              //.StateStoring(s => s.Enabled(true).StorageKey("MSTD001_grdPartNumber").Type(StateStoringType.LocalStorage))
+                                              .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                              .ShowRowLines(true)
+                                              .SearchPanel(searchPanel => searchPanel
+                                                  .Visible(true)
+                                                  .Width(180)
+                                                  .Placeholder("Search...")
+                                              )
+                                              .FilterRow(filterRow => filterRow
+                                                  .Visible(true)
+                                                  .ApplyFilter(GridApplyFilterMode.Auto)
+                                              )
+                                              .ShowBorders(true)
+                                              .Editing(e =>
+                                                  e.Mode(GridEditMode.Batch)
+                                                      .AllowUpdating(new JS("iudAuth()"))
+                                                      .AllowAdding(new JS("iudAuth()"))
+                                                      .AllowDeleting(new JS("iudAuth()"))
+                                              )
+                                              .RowAlternationEnabled(true)
+                                      .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                                      .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                                      .OnInitialized("grdShippingDefectHistoryOUT_OnInitialized")
+                                      .Option("KEY_FIELD", new object[] { "ROWSKEY" })
+                                      .Option("INIT_FIELD", new object[] { "USEYN", "ROWSKEY" })
+                                        //.OnToolbarPreparing("grdShippingDefectHistory_OnToolbarPreparing")
+                      //.OnInitNewRow("grdShippingDefectHistory_OnInitNewRow")
+
+
+        )
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*사외불량 품번 조회*@
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPART"))
+{
+    @(Html.DevExtreme().DropDownBox()
+                .ID("ddbPart")
+                .Value(new JS("data.PARTNUMBER"))
+                .ValueExpr("PARTNUMBER")
+                .DisplayExpr("PRODUCTNAME")
+                .DropDownOptions(d=>d.Width(500))
+                .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("PARTNUM_LIST").Key("PARTNUMBER")
+                .OnBeforeSend(@<text>
+                    function(method, ajaxOptions){
+                    if(data.VENDORCODE != null || data.VENDORCODE == ""){
+                    ajaxOptions.data.customer = data.VENDORCODE;
+                    }
+                    else{
+                    ajaxOptions.data.customer = "";
+                    }
+                    }
+                </text>))
+                            .AcceptCustomValue(true)
+                            .OnValueChanged(@<text>
+                                function(e){
+                                setValue(e.value);
+                                }
+                            </text>)
+                .ContentTemplate(new TemplateName("EmbeddedPARTSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPARTSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                .ID("grdPartSingle")
+                .DataSource(new JS(@"component.option(""dataSource"")"))
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+                    columns.AddFor(m => m.UNITCODE).Visible(false);
+                })
+                .HoverStateEnabled(true)
+                .Paging(p => p.PageSize(10))
+                .FilterRow(f => f.Visible(true))
+                .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                .Height(345)
+                .Selection(s => s.Mode(SelectionMode.Single))
+                .SelectedRowKeys(new JS(@"component.option(""value"")"))
+                .OnSelectionChanged(@<text>
+                    function(selectedItems) {
+                    var haskey;
+                    var keys = selectedItems.selectedRowKeys;
+
+                    if(typeof keys !== undefined && keys.length > 0)
+                    {
+                    haskey = true;
+                    }
+
+                    if(typeof keys !== 'undefined' && keys.length > 0){
+                    if(!(selectedItems.currentDeselectedRowKeys.length > 1)){
+                    component.close();
+                    }
+                    }
+
+                    if (haskey != undefined){
+                    component.option("value", selectedItems.selectedRowsData[0])
+                    }
+                    }
+                </text>)
+    )
+}
+
+@*사외불량 시리얼 정보 조회*@
+@using (Html.DevExtreme().NamedTemplate("nameTempPartSerialNumber"))
+{
+    @(Html.DevExtreme().DropDownBox()
+          .ID("ddbSerialNumber")
+          .Value(new JS("data.SERIALNUMBER"))
+          .ValueExpr("SERIALNUMBER")
+          .DisplayExpr("SERIALNUMBER")
+          .DropDownOptions(d=>d.Width(700))
+          .DataSource(d => d.WebApi().Controller("QUAE001WebApi").LoadAction("getProductStock2").Key("SERIALNUMBER"))
+          .AcceptCustomValue(true)
+          .OnValueChanged(@<text>
+                              function(e){
+                              setValue(e.value);
+                              }
+                           </text>)
+          .ContentTemplate(new TemplateName("tempPartSerialNumber"))
+          )
+}
+
+@using (Html.DevExtreme().NamedTemplate("tempPartSerialNumber"))
+{
+    @(Html.DevExtreme().DataGrid<QUAE001B_LIST>()
+          .ID("grdSerialNumber")
+          .DataSource(new JS(@"component.option(""dataSource"")"))
+          .Columns(columns =>
+          {
+              columns.AddFor(m => m.SERIALNUMBER);
+              columns.AddFor(m => m.LOTNUMBER);
+              columns.AddFor(m => m.PARTNUMBER);
+              columns.AddFor(m => m.PRODUCTNAME);
+              columns.AddFor(m => m.QUANTITY);
+              columns.AddFor(m => m.UNITNAME);
+              columns.AddFor(m => m.UNITCODE).Visible(false);
+          })
+          .HoverStateEnabled(true)
+          .Paging(p => p.PageSize(10))
+          .FilterRow(f => f.Visible(true))
+          .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+          .Height(345)
+          .Selection(s => s.Mode(SelectionMode.Single))
+          .SelectedRowKeys(new JS(@"component.option(""value"")"))
+          .OnSelectionChanged(@<text>
+                                  function(selectedItems) {
+                                  var haskey;
+                                  var keys = selectedItems.selectedRowKeys;
+
+                                  if(typeof keys !== undefined && keys.length > 0)
+                                  {
+                                  haskey = true;
+                                  }
+
+                                  if(typeof keys !== 'undefined' && keys.length > 0){
+                                  if(!(selectedItems.currentDeselectedRowKeys.length > 1)){
+                                  component.close();
+                                  }
+                                  }
+
+                                  if (haskey != undefined){
+                                  component.option("value", selectedItems.selectedRowsData[0])
+                                  }
+                                  }
+                               </text>)
+          )
+}
+
+<script>
+    function grdShippingDefectHistoryIN_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdShippingDefectHistoryOUT_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    //function grdShippingDefectHistory_OnBeforeSend(method, ajaxOptions) {
+    //    if (method == "load") {
+
+    //        var dxRadioGroup = $('#INOUTDEFECTTYPE').dxRadioGroup('instance');
+    //        var selectedINOUTDEFECTTYPE;
+
+    //        if (dxRadioGroup != undefined) {
+    //            selectedINOUTDEFECTTYPE = dxRadioGroup.option('value');
+    //        }
+    //        else {
+    //            selectedINOUTDEFECTTYPE = "";
+    //        }
+
+    //        ajaxOptions.data.INOUTDEFECTTYPE = selectedINOUTDEFECTTYPE;
+    //    }
+    //    else if (method == "insert") {
+    //        var dxRadioGroup = $('#INOUTDEFECTTYPE').dxRadioGroup('instance');
+    //        var selectedINOUTDEFECTTYPE;
+
+    //        if (dxRadioGroup != undefined) {
+    //            selectedINOUTDEFECTTYPE = dxRadioGroup.option('value');
+    //        }
+    //        else {
+    //            selectedINOUTDEFECTTYPE = "";
+    //        }
+
+    //        ajaxOptions.data.INOUTDEFECTTYPE = selectedINOUTDEFECTTYPE;
+    //    }
+    //    else if (method == "update") {
+    //        var dxRadioGroup = $('#INOUTDEFECTTYPE').dxRadioGroup('instance');
+    //        var selectedINOUTDEFECTTYPE;
+
+    //        if (dxRadioGroup != undefined) {
+    //            selectedINOUTDEFECTTYPE = dxRadioGroup.option('value');
+    //        }
+    //        else {
+    //            selectedINOUTDEFECTTYPE = "";
+    //        }
+
+    //        ajaxOptions.data.INOUTDEFECTTYPE = selectedINOUTDEFECTTYPE;
+    //    }
+    //}
+
+    //var priorities = [{
+    //    "CODE": "INDEFECT",
+    //    "NAME": "사내 불량"
+    //}, {
+    //    "CODE": "OUTDEFECT",
+    //    "NAME": "사외 불량"
+    //}];
+
+
+    @*function grdShippingDefectHistory_OnToolbarPreparing(e) {
+
+
+        e.toolbarOptions.items.unshift(
+            {
+                widget: "dxRadioGroup",
+                //html: "<div class='dx-datagrid dx-toolbox-custom-label'> " + '@LabelText.LABELTYPE' +"</div> ",
+                location: "before",
+                options: {
+                    items: priorities,
+                    elementAttr: { "id": "INOUTDEFECTTYPE" },
+                    value: "INDEFECT",
+                    valueExpr: "CODE",
+                    displayExpr: "NAME",
+                    layout: "horizontal",
+                    onValueChanged: function(e) {
+                        if (e.value == "INDEFECT") {
+
+                            $('#grdShippingDefectHistory').dxDataGrid('instance').beginUpdate();
+
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'SERIALNUMBER', 'visible', false);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'LOTNUMBER', 'visible', false);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'OUTPARTNUMBER', 'visible', false);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'OUTPRODUCTNAME', 'visible', false);
+
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'SHIPPINGDATE', 'visible', true);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'VENDORCODE', 'visible', true);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'PARTNUMBER', 'visible', true);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'PRODUCTNAME', 'visible', true);
+
+                            //$('#grdShippingDefectHistory').dxDataGrid('columnOption', 'SHIPPINGDATE', 'caption', '출하일자');
+
+                            //$('#grdShippingDefectHistory').dxDataGrid('columnOption', 'SHIPPINGDATE', 'allowEditing', true);
+
+                            $('#grdShippingDefectHistory').dxDataGrid('instance').option("editing.allowUpdating", true);
+
+                            $('#grdShippingDefectHistory').dxDataGrid('instance').endUpdate();
+
+                            $('#grdShippingDefectHistory').dxDataGrid('instance').refresh();
+
+
+                        } else if (e.value == "OUTDEFECT") {
+
+                            $('#grdShippingDefectHistory').dxDataGrid('instance').beginUpdate();
+
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'SERIALNUMBER', 'visible', true);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'LOTNUMBER', 'visible', true);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'OUTPARTNUMBER', 'visible', true);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'OUTPRODUCTNAME', 'visible', true);
+
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'SHIPPINGDATE', 'visible', false);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'VENDORCODE', 'visible', false);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'PARTNUMBER', 'visible', false);
+                            $('#grdShippingDefectHistory').dxDataGrid('columnOption', 'PRODUCTNAME', 'visible', false);
+
+                            //$('#grdShippingDefectHistory').dxDataGrid('columnOption', 'SHIPPINGDATE', 'caption', '등록일자');
+
+                            //$('#grdShippingDefectHistory').dxDataGrid('columnOption', 'SHIPPINGDATE', 'allowEditing', false);
+
+                            $('#grdShippingDefectHistory').dxDataGrid('instance').option("editing.allowUpdating", false);
+
+                            $('#grdShippingDefectHistory').dxDataGrid('instance').endUpdate();
+
+                            $('#grdShippingDefectHistory').dxDataGrid('instance').refresh();
+                        }
+                    }
+                }
+            }
+        )
+    }*@
+
+    function grdShippingDefectHistoryIN_OnInitNewRow(e) {
+        var dd = e;
+    }
+
+    function grdShippingDefectHistoryIN_OnContentReady(e) {
+        var dfd = e;
+
+        e.element.find(".dx-datagrid-addrow-button").click(function (e) {
+            var afaff = e;
+        });  
+    }
+
+
+</script>
+
+
+@Html.Partial("_DropdownPartial")

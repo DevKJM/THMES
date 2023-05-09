@@ -1,0 +1,145 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.MAT.MATD;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<MATD002_LIST>
+                  ()
+                  .ID("grdMatStock")
+                  .DataSource(d => d.WebApi().Controller("MATD002WebApi").Key("SERIALNUMBER"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.PARTNUMBER).GroupIndex(0).AutoExpandGroup(false);
+                      columns.AddFor(m => m.MATERIALNAME);
+                      columns.AddFor(m => m.LOTNUMBER);
+                      columns.AddFor(m => m.SERIALNUMBER);
+                      columns.AddFor(m => m.PRODUCTTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("PRODUCTTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          ).Visible(false);
+                      columns.AddFor(m => m.MATERIALTYPE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("MATERIALTYPE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+                      columns.AddFor(m => m.WAREHOUSECODE).Visible(false)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA001WebApi").Key("WAREHOUSECODE")
+                              .LoadAction("WAREHOUSE_LIST"))
+                              .DisplayExpr("WAREHOUSENAME")
+                              .ValueExpr("WAREHOUSECODE")
+                          );
+
+                      columns.AddFor(m => m.UNITCODE)
+                          .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                              .Controller("COMA003WebApi").Key("SYSCODE")
+                              .LoadAction("UNITCODE_LIST"))
+                              .DisplayExpr("SYSCODENAME")
+                              .ValueExpr("SYSCODE")
+                          );
+
+                      columns.AddFor(m => m.INVENTQUANTITY)
+                          .Format(f => f.Type(Format.FixedPoint).Precision(3));
+
+                  })
+
+                  .Summary(s => s.GroupItems(items =>
+                  {
+                      items.AddFor(m => m.INVENTQUANTITY)
+                          .SummaryType(SummaryType.Sum)
+                          .Column("INVENTQUANTITY")
+
+                          //.CustomizeText("{0}")
+                          .ValueFormat(f => f.Type(Format.FixedPoint).Precision(3))
+                          .DisplayFormat("{0}")
+                          .ShowInGroupFooter(false)
+                          .AlignByColumn(true);
+
+                      //items.AddFor(m => m.UNITCODE)
+                      //    //.SummaryType(SummaryType.Custom)
+                      //    .Column("UNITCODE")
+                      ////.ValueFormat(Format.)
+                      //.DisplayFormat("{0}")
+                      //.ShowInGroupFooter(false)
+                      //.AlignByColumn(true);
+                  })//.CalculateCustomSummary("AA")
+                )
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowAdding(false)
+                          .AllowUpdating(false)
+                          .AllowDeleting(false)
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .ShowRowLines(true)
+                  .OnInitialized("grdMatStock_OnInitialized")
+                  .Option("KEY_FIELD", new object[]
+                  {
+                      "PLANTCODE", "PARTNUMBER", "MATERIALNAME", "LOTNUMBER", "SERIALNUMBER", "PRODUCTTYPE",
+                      "TRANSCODE", "WAREHOUSECODE", "INVENTQUANTITY", "CREATEDATE", "CREATEUSER", "RECENTUSER", "RECENTDATE"
+                  })
+                )
+        </div>
+    </div>
+</div>
+<script>
+
+    function AA(options) {
+        // Calculating "customSummary1"
+        if(options.name == "customSummary1") {
+            switch(options.summaryProcess) {
+            case "start":
+                // Initializing "totalValue" here
+                break;
+            case "calculate":
+                // Modifying "totalValue" here
+                break;
+            case "finalize":
+                // Assigning the final value to "totalValue" here
+                break;
+            }
+        }
+ 
+        // Calculating "customSummary2"
+        if(options.name == "customSummary2") {
+            // ...
+            // Same "switch" statement here
+        }
+    }
+
+    function grdMatStock_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

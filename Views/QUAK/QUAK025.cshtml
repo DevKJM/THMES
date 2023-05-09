@@ -1,0 +1,113 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct.Mapping;
+@using JSMES.WebUI.Alpha.Models.MasterStruct
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAK;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-lg-12 col-sm-12">
+            @(Html.DevExtreme().DataGrid<QUAK025_LIST>
+                  ()
+                  .ID("grdOcap")
+                  .DataSource(d => d.WebApi().Controller("QUAK025WebApi"))
+                  //.DataSource(d => d.WebApi().Controller("RPTA007WebApi"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.ISSUESEQUENCE).Visible(false);
+                      columns.AddFor(m => m.SAMPLEINGINSPSEQUENCE).Visible(false).Caption(@LabelText.SEQUENCE);
+                      columns.AddFor(m => m.ISSUEDATE).Format(f => f.Type(Format.ShortDate))
+                          .SelectedFilterOperation(FilterOperations.Between)
+                          .FilterValue(new object[] { DateTime.Now.AddDays(-7).Date, DateTime.Now.Date })
+                          .SortOrder(SortOrder.Desc).SortIndex(0);
+                      columns.AddFor(m => m.PARTNUMBER).AllowEditing(false).Visible(true);
+                      columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false).Visible(true);
+                      columns.AddFor(m => m.PROCESSCODE).AllowEditing(false).Visible(false);
+                      columns.AddFor(m => m.PROCESSNAME).AllowEditing(false).Visible(true);
+                      columns.AddFor(m => m.EQUIPMENTCODE).AllowEditing(false).Visible(false);
+                      columns.AddFor(m => m.EQUIPMENTNAME).AllowEditing(false).Visible(true);
+                      columns.AddFor(m => m.INSPECTNO).AllowEditing(false).Caption("검사회차");
+                      columns.AddFor(m => m.INSPECTCODE).AllowEditing(false).Visible(false);
+                      columns.AddFor(m => m.INSPECTNAME).AllowEditing(false).Visible(true);
+                      //.Lookup(l => l.DataSource(d => d.WebApi()
+                      //    .Controller("MSTL002WebApi")
+                      //    .LoadAction("getInspectItem")
+                      //    .Key("INSPECTCODE")
+                      //    )
+                      //    .ValueExpr("INSPECTCODE")
+                      //    .DisplayExpr("INSPECTNAME")
+                      //);
+                      columns.AddFor(m => m.CASECODE).AllowEditing(true).Width(200)
+                          .Lookup(lookup => lookup
+                              .DataSource(d => d.WebApi()
+                                  .Controller("COMA001WebApi").Key("CASEID")
+                                  .LoadAction("OCAPCASE_LIST"))
+                              .DisplayExpr("CASENAME")
+                              .ValueExpr("CASECODE")
+                          );
+                      columns.AddFor(m => m.OCCURETIME).AllowEditing(false).Format(f => f.Type(Format.ShortTime)).Width(150);
+                      columns.AddFor(m => m.ACTIONCODE).AllowEditing(true).Width(200)
+                          .Lookup(lookup => lookup
+                              .DataSource(d => d.WebApi()
+                                  .Controller("COMA001WebApi").Key("ACTIONID")
+                                  .LoadAction("OCAPACTION_LIST"))
+                              .DisplayExpr("ACTIONCOMMENT")
+                              .ValueExpr("ACTIONCODE")
+                          );
+                      columns.AddFor(m => m.ACTIONTIME).AllowEditing(false).Format(f => f.Type(Format.ShortTime)).Width(150);
+                      columns.AddFor(m => m.MEMO).AllowEditing(true).Width(200);
+
+                  })
+                  //.Summary(s => s.GroupItems(items =>
+                  //{
+                  //    items.AddFor(m => m.INVENTQUANTITY)
+                  //        .SummaryType(SummaryType.Sum)
+                  //        .Column("INVENTQUANTITY")
+                  //        .ValueFormat(Format.FixedPoint)
+                  //        .DisplayFormat("{0}")
+                  //        .ShowInGroupFooter(false)
+                  //        .AlignByColumn(true);
+                  //}))
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] {10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowAdding(false)
+                          .AllowUpdating(false)
+                          .AllowDeleting(false)
+                  )
+                  .RowAlternationEnabled(true)
+                  .Export(e=>e.Enabled(true))
+                  .OnInitialized("grdOcap_OnInitialized")
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '') ;}")
+                  .Option("IGNORE_AUTOWIDTH", new object[] { })
+                  .ShowRowLines(true)
+                  )
+        </div>
+    </div>
+</div>
+<script>
+    function grdOcap_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>

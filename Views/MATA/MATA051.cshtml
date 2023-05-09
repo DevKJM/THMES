@@ -1,0 +1,520 @@
+﻿@using JSMES.WebUI.Alpha.ViewModels.MAT.MATA;
+@using Microsoft.AspNet.Identity;
+@using DevExtreme.AspNet.Data.Aggregation;
+@using DevExtreme.AspNet.Data.Helpers;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.Models.TestStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @string.Format("{0} {1} {2}", LabelText.RECEIVING, LabelText.WAIT, LabelText.LIST) </i></span></h4>
+            @(Html.DevExtreme().DataGrid<MATA051_LIST>()
+                        .ID("grdReceiving")
+                        .DataSource(d => d.WebApi()
+                            .Controller("MATA051WebApi")
+                            .OnBeforeSend("grdReceiving_OnBeforeSend")
+                            .Key("RECEIVINGSEQUENCE")
+                        )
+                        .Columns(columns =>
+                        {
+                        columns.AddFor(m => m.RECEIVINGSEQUENCE).Visible(false);
+                        columns.AddFor(m => m.RECEIVINGDATE).AllowEditing(false).SortOrder(SortOrder.Desc);
+                        columns.AddFor(m => m.VENDORCODE).AllowEditing(false)
+                            .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                .Controller("COMA001WebApi")
+                                .Key("VENDORCODE")
+                                .LoadAction("VENDOR_PURCHASE_LIST")
+                                )
+                                .DisplayExpr("VENDORNAME")
+                                .ValueExpr("VENDORCODE")
+                            );
+                        //columns.AddFor(m => m.PARTNUMBER).AllowEditing(false);
+                        columns.AddFor(m => m.PRODUCTNAME).AllowEditing(false);
+                        columns.AddFor(m => m.BOXPERQUANTITY).AllowEditing(false).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                        columns.AddFor(m => m.QUANTITY).AllowEditing(false).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                            columns.AddFor(m => m.UNITCODE)
+                                .Lookup(lookup => lookup
+                                    .DataSource(d => d.WebApi()
+                                        .Controller("COMA003WebApi").Key("SYSCODE")
+                                        .LoadAction("UNITCODE_LIST"))
+                                    .DisplayExpr("SYSCODENAME")
+                                    .ValueExpr("SYSCODE")
+                                );
+
+                        columns.AddFor(m => m.INSPECTOR).AllowEditing(false).Visible(false)
+                            .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                    .Controller("COMA001WebApi")
+                                    .Key("EMPCODE")
+                                    .LoadAction("HR_LIST")
+                                )
+                                .DisplayExpr("EMPNAME")
+                                .ValueExpr("EMPCODE")
+                            );
+                        columns.AddFor(m => m.PLANTCODE).AllowEditing(false).Visible(false);
+                        columns.AddFor(m => m.MEMO).EditCellTemplate(@<text>@( Html.DevExtreme().TextArea().Height(100))</text>).AllowEditing(false);
+                        columns.AddFor(m => m.CREATECOUNT).Width(50);
+                        columns.AddFor(m => m.PRINTCOUNT).Width(50);
+                        })
+                        .MasterDetail(md =>
+                                {
+                                    md.Enabled(true);
+                                    md.Template(@<text>
+                                    @(Html.DevExtreme().DataGrid<MATA051D_LIST>()
+                                            .ColumnAutoWidth(true)
+                                            .ShowBorders(true)
+                                            .ID(new JS("'grdReceiving_' + data.RECEIVINGSEQUENCE"))
+                                            .Columns(columns =>
+                                            {
+                                                columns.AddFor(m => m.SERIALNUMBER).AllowEditing(false);
+                                                columns.AddFor(m => m.SERIALNUMBER_SEQ).AllowEditing(false);
+                                                columns.AddFor(m => m.QUANTITY).DataType(GridColumnDataType.Number)
+                                                    .ValidationRules(
+                                                        v=> {
+                                                            v.AddCustom()
+                                                                .Message("입고 수량 보다 많습니다.")
+                                                                .ValidationCallback("function(e) { return grdReceiving_detail_QUANTITY_ValidationCallback(e, data); }");
+
+                                                            v.AddCustom()
+                                                                .Message("박스당량보다 크게 입력 할 수 없습니다.")
+                                                                .ValidationCallback("function(e) { if (e.data.BOXPERQUANTITY >= e.value) { return true; } else { return false; } }");
+                                                        }
+                                                    );
+                                                columns.AddFor(m => m.PRINTYN).Width(100).AllowEditing(false);
+                                                columns.AddFor(m => m.CREATEDATE);
+                                                columns.AddFor(m => m.CREATEUSER);
+                                            })
+                                            .ElementAttr(new Dictionary<string, object>(){ { "RECEIVINGSEQUENCE",new JS("data.RECEIVINGSEQUENCE") },
+                                                                                            { "BOXPERQUANTITY", new JS("data.BOXPERQUANTITY") },
+                                                                                            { "RECEIVINGQUANTITY", new JS("data.QUANTITY") },
+                                                                                            { "PRODUCTTYPE", new JS("data.PRODUCTTYPE") },
+                                                                                            { "RECEIVINGDATE", new JS("data.RECEIVINGDATE") },
+                                                                                            { "PARTNUMBER", new JS("data.PARTNUMBER") },
+                                                                                            { "VENDORCODE", new JS("data.VENDORCODE") },
+                                                                                            { "PLANTCODE", new JS("data.PLANTCODE") },
+                                                                                        })
+                                            .OnInitNewRow("grdReceiving_detail_OnInitNewRow")
+                                            .Editing(e => e.AllowUpdating(true).Mode(GridEditMode.Batch))
+                                            .DataSource(d => d.WebApi()
+                                                .Controller("MATA051WebApi")
+                                                .LoadAction("getDetail")
+                                                .Key("SNSEQUENCE")                                                
+                                                .InsertAction("post_Detail")
+                                                .UpdateAction("put_Detail")
+                                                .LoadParams(new { RECEIVINGSEQUENCE = new JS("data.RECEIVINGSEQUENCE") })
+                                            )
+                                            .FilterPanel(f => f.Visible(true))
+                                            .ColumnAutoWidth(true)
+                                            .Paging(p => p.PageSize(1000).Enabled(false))                                            
+                                            .Selection(s => s.Mode(SelectionMode.Multiple))
+                                            .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                            .Export(e => e.Enabled(true))
+                                            .ShowRowLines(true)
+                                            //.Editing(e => e.Mode(GridEditMode.Batch).AllowAdding(true).AllowUpdating(true).AllowDeleting(true))
+                                            .Editing(e => e.Mode(GridEditMode.Cell).AllowAdding(true).AllowUpdating(true))
+                                            .ShowBorders(true)
+                                            .AllowColumnResizing(true)
+                                            .RepaintChangesOnly(true)
+                                            .ShowRowLines(true)
+                                            .RowAlternationEnabled(true)
+                                             .Summary(s => s
+                                                .RecalculateWhileEditing(true)
+                                                .TotalItems(items =>
+                                                {
+                                                    items.AddFor(m => m.QUANTITY).SummaryType(SummaryType.Sum);
+                                                    items.AddFor(m => m.QUANTITY).SummaryType(SummaryType.Count);
+                                                })
+                                            )
+                                            .OnInitialized("function(e){userCustomGrid(e);}")
+                                            .OnToolbarPreparing("grdReceiving_detail_OnToolbarPreparing")
+                                            .OnRowPrepared("grdReceiving_detail_OnRowPrepared")
+                                    )
+                                </text>);
+                            })
+                        .RemoteOperations(true)
+                        .FilterPanel(f => f.Visible(true))
+                        .ColumnAutoWidth(true)
+                        .Paging(p => p.PageSize(25).Enabled(true))
+                        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                        .Selection(s => s.Mode(SelectionMode.Multiple).AllowSelectAll(false))
+                        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                        .Export(e => e.Enabled(true))
+                        .OnSelectionChanged("grdReceiving_onSelectionChanged")
+                        .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + string.Format("{0} {1} {2}", LabelText.RECEIVING, LabelText.WAIT, LabelText.LIST) + "') ;}")
+                        .SearchPanel(searchPanel => searchPanel
+                            .Visible(true)
+                            .Width(180)
+                            .Placeholder("Search...")
+                        )
+                        .FilterRow(filterRow => filterRow
+                            .Visible(true)
+                            .ApplyFilter(GridApplyFilterMode.Auto)
+                        )
+                        .Summary(s => s
+                            .TotalItems(items =>
+                            {
+                                items.AddFor(m => m.QUANTITY).SummaryType(SummaryType.Sum);
+                            })
+                        )
+                        .ShowRowLines(true)
+                        .Editing(e => e.Mode(GridEditMode.Cell))
+                        .ShowBorders(true)
+                        .AllowColumnResizing(true)
+                        .RowAlternationEnabled(true)
+                        .Option("KEY_FIELD", new object[] { "RECEIVINGSEQUENCE", "RECEIVINGDATE", "VENDORCODE", "PRODUCTTYPE", "PARTNUMBER", "PRODUCTNAME", "QUANTITY", "BOXQUANTITY", "INSPECTOR" })
+                        .OnInitialized("grdReceiving_OnInitialized")
+                        .OnToolbarPreparing("grdReceiving_OnToolbarPreparing")
+                        .OnRowPrepared("grdReceiving_OnRowPrepared")
+                        //.OnCellClick("grdReceiving_OnCellClick")
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    var selectWarehouse = "";
+    var warehouseData;
+
+    function grdReceiving_OnBeforeSend(method, ajaxOptions){
+        if (method == "load") {
+            var chkAll = $('#chkAll').dxCheckBox('instance');            
+            ajaxOptions.data.ISALL = chkAll.option('value');
+        }
+    }
+        
+    function grdReceiving_detail_OnRowPrepared(e) {
+        if (e.rowType == "data") { 
+            if (e.data.PRINTYN == "Y") {
+                e.rowElement.css("font-weight", "bold");
+            }            
+        }
+    }
+    
+    function grdReceiving_OnRowPrepared(e) {
+        if (e.rowType == "data") { 
+            if (e.data.CREATECOUNT > 0) {
+                e.rowElement.css("font-weight", "bold");                
+
+                if (e.data.CREATECOUNT ==  e.data.PRINTCOUNT) {
+                    e.rowElement.css("color", "silver");
+                    e.rowElement.css("font-style", "italic");
+                }                    
+            }            
+        }
+    }
+    
+    function grdReceiving_onSelectionChanged(e) {  
+      var selectedRows = e.selectedRowKeys;  
+      $.each(selectedRows, function(i, v) {  
+        if (e.component.cellValue(e.component.getRowIndexByKey(v), "CREATECOUNT") > 0){  
+            DevExpress.ui.notify('이미 입고 처리 된 항목 입니다.', 'error', globalNotificationErrorTime);
+            e.component.deselectRows([v]); return;
+        }  
+      })  
+    }
+
+
+    $(function(){
+        $("#selWarehouse").dxSelectBox("instance").option("value", "W02");
+    })
+
+    function grdReceiving_detail_QUANTITY_ValidationCallback(e, data) {
+        
+        var gridData = $('#grdReceiving_' + 31).dxDataGrid('instance').getVisibleRows();
+        var totalQuantity = 0;
+
+        for (var rowIndex = 0; gridData.length > rowIndex; rowIndex++) {
+            totalQuantity = totalQuantity + (gridData[rowIndex].data.QUANTITY == undefined ? 0 : parseInt(gridData[rowIndex].data.QUANTITY));
+        }
+
+        if (parseInt(e.data.RECEIVINGQUANTITY) >= totalQuantity) { 
+            return true; 
+        } else { 
+            return false;
+        }
+    }
+    
+    function grdReceiving_detail_OnInitNewRow(e) {
+        e.data.BOXPERQUANTITY = e.element[0].attributes["BOXPERQUANTITY"].value; 
+        e.data.PRESEQUENCE = e.element[0].attributes["RECEIVINGSEQUENCE"].value; 
+        e.data.RECEIVINGQUANTITY = e.element[0].attributes["RECEIVINGQUANTITY"].value; 
+        e.data.PRODUCTTYPE = e.element[0].attributes["PRODUCTTYPE"].value; 
+        e.data.RECEIVINGDATE = e.element[0].attributes["RECEIVINGDATE"].value; 
+        e.data.PARTNUMBER = e.element[0].attributes["PARTNUMBER"].value;
+        e.data.VENDORCODE = e.element[0].attributes["VENDORCODE"].value;        
+    }
+
+    function grdReceiving_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdReceiving_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                location: "before",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'>처리 완료된 목록만 제외</div>",
+                widget: "dxCheckBox",
+                options: {
+                    elementAttr: { "id": "chkAll" },                                          
+                    value: true,
+                    onValueChanged: function(e) {
+                        $("#grdReceiving").dxDataGrid('instance').refresh();
+                    }
+                }
+            },
+            {
+                location: "after",
+                html: "<div class='dx-datagrid dx-toolbox-custom-label'> " +
+                    '@LabelText.RECEIVING' +
+                    '@LabelText.WAREHOUSE' +
+                    "</div>",
+                widget: "dxSelectBox",
+                options: {
+                    elementAttr: { "id": "selWarehouse" },  
+                    dataSource: new DevExpress.data.AspNet.createStore({
+                        key: "WAREHOUSECODE",
+                        loadUrl: '@Url.Action("getWarehouse", "MATA051WebApi", new { httproute = "DefaultApi", })'
+                    }),
+                    displayExpr: "WAREHOUSENAME",
+                    valueExpr: "WAREHOUSECODE",
+                    //value: "WH01",
+                    onValueChanged: function(e) {
+                        selectWarehouse = e.value;
+                    }
+                }
+            },
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    icon: "save",
+                    visible: iudAuth(),
+                    onClick: function() {
+
+                        if (selectWarehouse == null || selectWarehouse == "") {
+                            DevExpress.ui.dialog.alert("입고 창고를 선택해주세요.", "Confirm changes");
+                            return;
+                        }
+
+                        var grid = $("#grdReceiving").dxDataGrid('instance');
+
+                        if (grid.getSelectedRowKeys().length > 0) {
+
+                            var rowData = grid.getSelectedRowsData();
+                            var validation = true;
+
+                            if (rowData.length > 0) {
+                                grid.getSelectedRowsData().forEach(function(e) {
+                                    //if (e.BOXPERQUANTITY <= 0) {
+                                    //    DevExpress.ui.dialog.alert("박스 당량은 0 보다 커야합니다. 선택한 항목의 박스 당량을 확인해주세요.",
+                                    //        "Confirm changes");
+                                    //    validation = false;
+                                    //}
+                                });
+                                if (validation) {
+                                    var result =
+                                        DevExpress.ui.dialog.confirm('@LabelText.QUESTIONSELECTEDVALUEWAREHOUSING',
+                                            "Confirm changes");
+                                    result.done(function(dialogResult) {
+                                        if (!dialogResult) {
+                                            grid.refresh();
+                                            return;
+                                        } else {
+                                            var requests = [];
+
+                                            var aJsonArray = new Array();
+                                            grid.getSelectedRowsData().forEach(function(e) {
+
+                                                var aJson = new Object();
+                                                aJson.SERIALNUMBER = "-";
+                                                aJson.LOTNUMBER = "-";
+                                                aJson.RECEIVINGSEQUENCE = e.RECEIVINGSEQUENCE;
+                                                aJson.PRODUCTTYPE = e.PRODUCTTYPE;
+                                                aJson.PARTNUMBER = e.PARTNUMBER;
+                                                aJson.VENDORCODE = e.VENDORCODE;
+                                                aJson.QUANTITY = e.QUANTITY;
+                                                aJson.PLANTCODE = e.PLANTCODE;
+                                                aJson.WAREHOUSECODE = selectWarehouse;
+                                                aJson.RECEIVINGDATE = e.RECEIVINGDATE;
+                                                aJson.INSPECTDATE = e.INSPECTDATE;
+                                                aJson.INVENTQUANTITY = e.UNITCODE == "U02" ? Math.round(e.QUANTITY * 1000) : Math.round(e.QUANTITY);
+                                                aJson.BOXPERQUANTITY = e.BOXPERQUANTITY;
+                                                aJson.BOXQUANTITY = e.BOXQUANTITY;
+                                                aJsonArray.push(aJson);
+                                            });
+                                            var data = {};
+                                            data.values = JSON.stringify(aJsonArray);
+                                            data.partnumber = e.PARTNUMBER;
+                                            console.log(data.values);
+                                            $.ajax({
+                                                    url:
+                                                        '@Url.Action("post", "MATA051WebApi", new { httproute = "DefaultApi", })',
+                                                    type: 'POST',
+                                                    data: data,
+                                                    success: function() {
+                                                        grid.refresh();
+                                                        DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS',
+                                                            'success',
+                                                            globalNotificationSuccessTime);
+                                                    },
+                                                    error: function(e) {
+                                                        grid.refresh();
+                                                        showError(this, e);
+                                                    }
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    }
+    
+    function grdReceiving_detail_OnToolbarPreparing(e) {
+        var toolbarItems = e.toolbarOptions.items;  
+        
+        $.each(toolbarItems, function (_, item) {  
+            if (item.name == "saveButton") {  
+                item.visible = false;  
+            }  
+        });  
+        
+        e.toolbarOptions.items.unshift(
+        { 
+            location: "after",
+            widget: "dxButton",
+            options: {
+                icon: "fa fa-print",
+                    onClick: function () {                        
+
+                        var grid = e.component;
+
+                        if (grid.getSelectedRowsData().length == 0) {
+                            DevExpress.ui.notify("발행할 데이터를 선택해주세요.", 'warning', globalNotificationWarningTime);
+                            return;
+                        }
+                        
+                        if (grid.hasEditData()) {
+                            DevExpress.ui.notify("수정 중인 데이터가 있습니다. 저장 후 발행 해주세요.", 'warning', globalNotificationWarningTime);
+                        } else {                            
+                            var aJsonArray = [];
+                            grid.getSelectedRowsData().forEach(function(e) {
+                                aJsonArray.push(e.SERIALNUMBER);
+                            });
+
+                            var data = {};
+                            data.values = JSON.stringify(aJsonArray);
+                        
+                            $.ajax({
+                                url: '@Url.Action("getLabelPrint", "MATA051WebApi", new { httproute = "DefaultApi", })',
+                                type: 'POST',
+                                data: data,
+                                success: function (data) {
+
+                                    if (zebraBrowserSelected_device != null) {
+
+                                        var offset = 0;
+
+                                        data.forEach(function(e) {
+                                            setTimeout(function(){
+                                                console.log(e);
+                                                writeToSelectedPrinter(e);
+                                            }, 500 + offset);
+                                            offset += 500;
+                                        });
+                                    }
+
+                                    DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+                                },
+                                error: function (e) {
+                                    showError(this, e);
+                                }
+                            });
+                        }
+                    }
+                }
+            },
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    icon: "save",
+                    visible: iudAuth(),
+                    onClick: function() {                        
+                        var grid = e.component;
+
+                        if (grid.getVisibleRows().length > 0) {
+
+                            var rowData = grid.getVisibleRows();
+                            var validation = true;
+
+                            if (rowData.length > 0) {
+                                if (validation) {
+                                    var result =
+                                        DevExpress.ui.dialog.confirm('@LabelText.QUESTIONSELECTEDVALUEWAREHOUSING',
+                                            "Confirm changes");
+                                        result.done(function(dialogResult) {
+                                        if (!dialogResult) {
+                                            grid.refresh();
+                                            return;
+                                        } else {
+                                            grid.beginCustomLoading("@LabelText.PROCESSING")
+                                            var aJsonArray = new Array();
+                                            grid.getVisibleRows().forEach(function(e) {
+                                                
+                                                var aJson = new Object();
+                                                aJson.SERIALNUMBER = e.data.SERIALNUMBER;
+                                                aJson.SERIALNUMBER_SEQ = e.data.SERIALNUMBER_SEQ;
+                                                aJson.QUANTITY = e.data.QUANTITY;
+                                                aJson.PRINTYN = e.data.PRINTYN;
+                                                aJson.PRODUCTTYPE = e.data.PRODUCTTYPE;
+                                                aJson.RECEIVINGQUANTITY = e.data.RECEIVINGQUANTITY;
+                                                aJson.RECEIVINGDATE = e.data.RECEIVINGDATE;
+                                                aJson.PARTNUMBER = e.data.PARTNUMBER;
+                                                aJson.VENDORCODE = e.data.VENDORCODE;
+                                                aJson.PLANTCODE = e.data.PLANTCODE;
+                                                aJson.BOXPERQUANTITY = e.data.BOXPERQUANTITY;
+                                                aJson.PRESEQUENCE = e.data.PRESEQUENCE;
+                                                aJsonArray.push(aJson);
+                                            });
+
+                                            var data = {};
+                                            data.values = JSON.stringify(aJsonArray);
+                                            $.ajax({
+                                                url:
+                                                    '@Url.Action("post_detail", "MATA051WebApi", new { httproute = "DefaultApi", })',
+                                                type: 'POST',
+                                                data: data,
+                                                success: function() {
+                                                    grid.endCustomLoading();
+                                                    grid.clearSelection();
+                                                    grid.cancelEditData();
+                                                    grid.refresh();
+                                                    DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS',
+                                                        'success',
+                                                        globalNotificationSuccessTime);
+                                                },
+                                                error: function(e) {
+                                                    grid.endCustomLoading();
+                                                    showError(this, e);
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    }
+</script>

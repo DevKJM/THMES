@@ -1,0 +1,487 @@
+﻿@model JSMES.WebUI.Alpha.ViewModels.SetupStatusViewModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>XApplication Setup</title>
+
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet">
+    <link href="~/Fonts/font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="~/Content/animate.css" rel="stylesheet">
+    <link href="~/Content/style.css" rel="stylesheet">
+    <link href="~/Content/plugins/steps/jquery.steps.css" rel="stylesheet">
+    <link href="~/Content/plugins/ladda/ladda-themeless.min.css" rel="stylesheet">
+
+    <script src="~/Scripts/jquery-3.1.1.min.js"></script>
+
+    <!-- input mask -->
+    <script type="text/javascript" src="~/Scripts/plugins/jQuery-Mask-Plugin/jquery.mask.js"></script>
+
+    <script type="text/javascript" src="~/Scripts/plugins/ladda/spin.min.js"></script>
+
+    <script type="text/javascript" src="~/Scripts/plugins/ladda/ladda.min.js"></script>
+
+    <script type="text/javascript" src="~/Scripts/plugins/ladda/ladda.jquery.min.js"></script>
+
+</head>
+
+<body>
+    <div class="card" style="margin-top:30px;margin-left:50px;margin-right:50px;">
+        <h4 class="card-header"><i class="fa fa-check-circle"></i> XApplication 시작 정보 등록</h4>
+        <div class="card-body">
+            <!--<h5 class="card-title"></h5>-->
+            <p class="card-text">
+                <form id="form" action="#">
+                    <div>
+                        <h1>라이센스 활성화</h1>
+                        <section>
+                            <h2>라이센스 활성화</h2>
+                            <div class="row">
+                                <div class="col-lg-7 col-md-12">
+                                    <div class="form-group">
+                                        <dl class="row" style="margin-left:1px;">
+                                            <dt class="col-sm-3">시스템 명</dt>
+                                            <dd class="col-sm-9">@Model.SystemName</dd>
+                                            <dt class="col-sm-3">제품 버전</dt>
+                                            <dd class="col-sm-9">@Model.Version</dd>
+                                            <dt class="col-sm-3">라이센스 유형</dt>
+                                            <dd class="col-sm-9">@Model.LicenseType</dd>
+                                            <dt class="col-sm-3">시리얼 번호</dt>
+                                            <dd class="col-sm-9">
+                                                <textarea id="copy-input" class="form-control" style="float:left;margin-right:5px;" rows="5" readonly>@Model.LicenseCode</textarea>
+                                                <button id="copySerialNo" class="btn btn-default btn-lg fa fa-copy" type="button" data-toggle="tooltip" data-placement="button" title="Copy to Clipboard" onclick="copySerialNo_Click();">복사하기</button>
+                                            </dd>
+                                            <dt class="col-sm-3">활성화 번호</dt>
+                                            <dd class="col-sm-9">
+                                                <textarea id="actionvation-input" class="form-control bg-warning" style="float:left;margin-right:5px;" rows="5">@Model.ActivationCode</textarea>
+                                                <button id="pasteSerialNo" class="btn btn-default btn-lg fa fa-paste" type="button" data-toggle="tooltip" data-placement="button" title="Copy to Clipboard" onclick="pasteActivationNo_Click();">붙여넣기</button>
+                                                <button id="activationNo" class="btn btn-info btn-lg fa fa-check-circle" type="button" data-toggle="tooltip" data-placement="button" title="Copy to Clipboard" onclick="ActivationNo_Click();">활성화 하기</button>
+                                            </dd>
+                                            <dt class="col-sm-3">활성화 일</dt>
+                                            <dd class="col-sm-9"><span id="activationDate" class="badge badge-secondary">활성화 되지 않음</span></dd>
+                                            <dt class="col-sm-3">생성일</dt>
+                                            <dd class="col-sm-9">@Model.CreateDate</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                        </section>
+                        <h1>서버 정보</h1>
+                        <section>
+                            <h2>서버 정보</h2>
+                            <div class="row" style="margin-left:1px;">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <dl class="row">
+                                            <dt class="col-sm-5">서버 PC 명</dt>
+                                            <dd class="col-sm-7">@System.Security.Principal.WindowsIdentity.GetCurrent().Name.Split('\\')[1]</dd>
+                                            <dt class="col-sm-5">윈도우 버전</dt>
+                                            <dd class="col-sm-7">@Environment.OSVersion.ToString()</dd>
+                                            <dt class="col-sm-5">시스템 종류</dt>
+                                            <dd class="col-sm-7">@Model.BitOperatingSystem</dd>
+                                            <dt class="col-sm-5">설치 된 위치</dt>
+                                            <dd class="col-sm-7">@Environment.CurrentDirectory</dd>
+                                            <dt class="col-sm-5">메모리</dt>
+                                            <dd class="col-sm-7">@Model.TotalMemoryGb Gb</dd>
+                                            <dt class="col-sm-5">설치 된 드라이버 남은 용량</dt>
+                                            <dd class="col-sm-7">@Model.SetupDriverSizeGb Gb</dd>
+                                            <dt class="col-sm-5">활성화 된 MAC 주소</dt>
+                                            <dd class="col-sm-7">@Model.MACAddress</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <h1>데이터베이스 정보</h1>
+                        <section>
+                            <h2>데이터베이스 정보</h2>
+                            <div class="row" style="margin-left:1px;">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <dl class="row">
+                                            <dt class="col-sm-5">종류 *</dt>
+                                            <dd class="col-sm-7">
+                                                <select class="form-control" id="databaseType" onchange="setTablespaceforOracle(this);">
+                                                    <option value="Oracle">Oracle</option>
+                                                    <option value="MySql">MySQL</option>
+                                                    <option value="MsSql">MsSQL</option>
+                                                </select>
+                                            </dd>
+                                            <dt class="col-sm-5">Data Tablespace</dt>
+                                            <dd class="col-sm-7"><input id="dataTablespace" type="text" class="form-control" value="XAPP_DATA"></dd>
+                                            <dt class="col-sm-5">Index Tablespace</dt>
+                                            <dd class="col-sm-7"><input id="indexTablespace" type="text" class="form-control" value="XAPP_INDEX"></dd>
+                                            <dt class="col-sm-5">경로 *</dt>
+                                            <dd class="col-sm-7"><input id="databasePath" type="text" class="form-control required" value="localhost"></dd>
+                                            <dt class="col-sm-5">포트 </dt>
+                                            <dd class="col-sm-7"><input id="databasePort" type="text" class="form-control form-inline required" value="1521"></dd>
+                                            <dt class="col-sm-5">카탈로그 *</dt>
+                                            <dd class="col-sm-7"><input id="databaseCatalog" type="text" class="form-control required" value="GAHTERINGDB"></dd>
+                                            <dt class="col-sm-5">아이디 *</dt>
+                                            <dd class="col-sm-7"><input id="databaseId" type="text" class="form-control required" value="GATHERINGUSER"></dd>
+                                            <dt class="col-sm-5">비밀번호 *</dt>
+                                            <dd class="col-sm-7"><input id="databasePwd" type="password" class="form-control required" value="GATHERINGUSER"></dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <button id="databaseCheck" type="button" class="ladda-button ladda-button-demo btn btn-info fa fa-check-circle" data-style="zoom-in">연결 테스트 및 데이터 베이스 생성</button>
+                                    <textarea id="databaseCreateLog" class="form-control bg-light" style="float:left;margin-right:5px;" rows="10" readonly></textarea>
+                                </div>
+                            </div>
+                        </section>
+                        <h1>관리자 계정 생성</h1>
+                        <section>
+                            <h2>관리자 계정 생성</h2>
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6">
+                                    <div class="form-group">
+                                        <label>관리자 아이디 *</label>
+                                        <input id="name" name="name" type="text" class="form-control required">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>패스워드 *</label>
+                                        <input id="surname" name="surname" type="text" class="form-control required">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-md-6">
+                                    <div class="form-group">
+                                        <label>관리자 명 *</label>
+                                        <input id="email" name="email" type="text" class="form-control required email">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>패스워드 확인 *</label>
+                                        <input id="address" name="address" type="text" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <h1>완료</h1>
+                        <section>
+                            <h2>Terms and Conditions</h2>
+                            <input id="acceptTerms" name="acceptTerms" type="checkbox" class="required"> <label for="acceptTerms">I agree with the Terms and Conditions.</label>
+                        </section>
+                    </div>
+                </form>
+            </p>
+        </div>
+    </div>
+
+    <p class="m-t text-center"> <small>Copyright 2019 JS-SYSTEM Corp All Rights Reserved</small> </p>
+
+    <!-- Steps -->
+    <script src="~/Scripts/plugins/steps/jquery.steps.min.js"></script>
+
+    <!-- Jquery Validate -->
+    <script src="~/Scripts/plugins/validate/jquery.validate.min.js"></script>
+
+
+    <script src="~/Scripts/popper.min.js"></script>
+
+    <script src="~/Scripts/bootstrap.min.js"></script>
+
+
+    <script>
+        function setTablespaceforOracle(sel) {
+            if (sel.value == 'Oracle') {
+                $('#indexTablespace').prop("disabled", false);
+                $('#dataTablespace').prop("disabled", false);
+            }
+            else {
+                $('#indexTablespace').prop("disabled", true);
+                $('#dataTablespace').prop("disabled", true);
+            }
+        }
+
+        function copySerialNo_Click() {
+            var input = document.querySelector('#copy-input');
+            input.focus();
+            input.setSelectionRange(0, input.value.length + 1);
+            try{
+                var success = document.execCommand('copy');
+                if (success) {
+                    alert('복사 되었습니다.');
+                } else {
+                    $('#copy-button').trigger('copied', ['Copy with Ctrl-c']);
+                }
+            } catch (err) {
+                $('#copy-button').trigger('copied', ['Copy with Ctrl-c']);
+            }
+        }
+
+        function pasteActivationNo_Click() {
+            var paste = document.querySelector('#paste-input');
+            paste.focus();
+            document.execCommand('paste');
+        }
+
+        function ActivationNo_Click() {
+
+            var data = {
+                SystemName: '@Model.SystemName',
+                SystemVersion: '@Model.Version',
+                LicenseType: '@Model.LicenseType',
+                SerialNo: '@Model.LicenseCode',
+                ActivationNo: $('#actionvation-input').val()
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "/api/LICA001WebApi/ACTIVATION_CHECK",
+                content: "application/json; charset=utf-8",
+                dataType: "json",
+                data: data,
+                success: function (result) {
+                    if (result.resultCode == 0) {
+                        alert(result.resultMessage);
+                        location.reload();
+                    }
+                    else
+                    {
+                        alert(result.resultMessage);
+                    }
+                },
+                error: function (dataresult) {
+
+                }
+            });
+        }
+
+        function DatabaseCheck_Click() {
+
+            var data = {
+                DatabaseType: $('#databaseType').val(),
+                DatabasePath: $('#databasePath').val(),
+                DatabasePort: $('#databasePort').val(),
+                DatabaseCatalog: $('#databaseCatalog').val(),
+                DatabaseId: $('#databaseId').val(),
+                DatabasePwd: $('#databasePwd').val()
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "/api/LICA001WebApi/DATABASE_CHECK",
+                content: "application/json; charset=utf-8",
+                dataType: "json",
+                data: data,
+                success: function (result) {
+                    if (result.resultCode == 0) {
+                        alert(result.resultMessage);
+                    }
+                    else
+                    {
+                        alert(result.resultMessage);
+                    }
+                }
+            });
+        }
+
+        function replace(inum) {
+            inum = inum.replace(/&/g, "%26");
+            inum = inum.replace(/\+/g, "%2B");
+            return inum;
+        }
+
+        $(document).ready(function () {
+            var form = $("#form");
+            /*
+            form.validate({
+                errorPlacement: function errorPlacement(error, element) { element.before(error); },
+                rules: {
+                    confirm: {
+                        equalTo: "#password"
+                    }
+                }
+            });
+            */
+
+            form.children("div").steps({
+                headerTag: "h1",
+                bodyTag: "section",
+                transitionEffect: "slideLeft",
+                onStepChanging: function (event, currentIndex, newIndex) {
+                    form.validate().settings.ignore = ":disabled,:hidden";
+                    return form.valid();
+                },
+                onFinishing: function (event, currentIndex) {
+                    form.validate().settings.ignore = ":disabled";
+                    return form.valid();
+                },
+                onFinished: function (event, currentIndex) {
+                    alert("Submitted!");
+                }
+            });
+
+            // Bind normal buttons
+            Ladda.bind('.ladda-button', { timeout: 30000 });
+            /*
+            // Bind progress buttons and simulate loading progress
+            Ladda.bind('.progress-demo .ladda-button', {
+                callback: function (instance) {
+                    var progress = 0;
+                    var interval = setInterval(function () {
+                        progress = Math.min(progress + Math.random() * 0.1, 1);
+                        instance.setProgress(progress);
+
+                        if (progress === 1) {
+                            instance.stop();
+                            clearInterval(interval);
+                        }
+                    }, 200);
+                }
+            });
+            */
+
+            var l = $('.ladda-button-demo').ladda();
+
+            l.click(function () {
+                // Start loading
+                l.ladda('start');
+                $('#databaseCreateLog').val('');
+
+                var data = {
+                    DatabaseType: $('#databaseType').val(),
+                    DatabasePath: $('#databasePath').val(),
+                    DatabasePort: $('#databasePort').val(),
+                    DatabaseCatalog: $('#databaseCatalog').val(),
+                    DatabaseId: $('#databaseId').val(),
+                    DatabasePwd: $('#databasePwd').val()
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "/api/LICA001WebApi/DATABASE_CHECK",
+                    content: "application/json; charset=utf-8",
+                    dataType: "json",
+                    data: data,
+                    success: function (result) {
+                        if (result.resultCode == 0) {
+                            l.ladda('stop');
+                            $('#databaseCreateLog').val(result.resultMessage);
+                        }
+                        else {
+                            l.ladda('stop');
+                            $('#databaseCreateLog').val(result.resultMessage);
+                        }
+                    },
+                    error: function (dataresult) {
+
+                    }
+                });
+            });
+
+            if (!document.queryCommandSupported('paste')) {
+                $('#pasteSerialNo').hide();
+            }
+
+            if ('@Model.ActivationCode' != '' && '@Model.ActivationCode' != undefined) {
+                $('#activationDate').text('@Model.ActivationDate');
+                $('#activationDate').removeClass('badge-secondary').addClass('badge-success');
+            }
+
+            $('#copySerialNo').tooltip();
+
+            $('#copySerialNo').bind('onclick', function () {
+                var input = document.querySelector('#copy-input');
+                input.setSelectionRange(0, input.value.length + 1);
+                try {
+                    var success = document.execCommand('copy');
+                    if (success) {
+                        $('#copy-button').trigger('copied', ['Copied!']);
+                    } else {
+                        $('#copy-button').trigger('copied', ['Copy with Ctrl-c']);
+                    }
+                } catch (err) {
+                    $('#copy-button').trigger('copied', ['Copy with Ctrl-c']);
+                }
+            });
+
+            $('#copySerialNo').bind('copied', function (event, message) {
+                $(this).attr('title', message)
+                    .tooltip('fixTitle')
+                    .tooltip('show')
+                    .attr('title', "Copy to Clipboard")
+                    .tooltip('fixTitle');
+            });
+
+            /*
+            $("#form").steps({
+                bodyTag: "fieldset",
+                onStepChanging: function (event, currentIndex, newIndex) {
+                    // Always allow going backward even if the current step contains invalid fields!
+                    if (currentIndex > newIndex) {
+                        return true;
+                    }
+
+                    // Forbid suppressing "Warning" step if the user is to young
+                    if (newIndex === 3 && Number($("#age").val()) < 18) {
+                        return false;
+                    }
+
+                    var form = $(this);
+
+                    // Clean up if user went backward before
+                    if (currentIndex < newIndex) {
+                        // To remove error styles
+                        $(".body:eq(" + newIndex + ") label.error", form).remove();
+                        $(".body:eq(" + newIndex + ") .error", form).removeClass("error");
+                    }
+
+                    // Disable validation on fields that are disabled or hidden.
+                    form.validate().settings.ignore = ":disabled,:hidden";
+
+                    // Start validation; Prevent going forward if false
+                    return form.valid();
+                },
+                onStepChanged: function (event, currentIndex, priorIndex) {
+                    // Suppress (skip) "Warning" step if the user is old enough.
+                    if (currentIndex === 2 && Number($("#age").val()) >= 18) {
+                        $(this).steps("next");
+                    }
+
+                    // Suppress (skip) "Warning" step if the user is old enough and wants to the previous step.
+                    if (currentIndex === 2 && priorIndex === 3) {
+                        $(this).steps("previous");
+                    }
+                },
+                onFinishing: function (event, currentIndex) {
+                    var form = $(this);
+
+                    // Disable validation on fields that are disabled.
+                    // At this point it's recommended to do an overall check (mean ignoring only disabled fields)
+                    form.validate().settings.ignore = ":disabled";
+
+                    // Start validation; Prevent form submission if false
+                    return form.valid();
+                },
+                onFinished: function (event, currentIndex) {
+                    var form = $(this);
+
+                    // Submit form input
+                    form.submit();
+                }
+            }).validate({
+                errorPlacement: function (error, element) {
+                    element.before(error);
+                },
+                rules: {
+                    confirm: {
+                        equalTo: "#password"
+                    }
+                }
+            });
+            */
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,133 @@
+﻿@using Microsoft.AspNet.Identity
+@using JSMES.WebUI.Alpha.App_GlobalResources
+@if (Request.IsAuthenticated)
+{
+    using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <ul class="nav navbar-top-links navbar-right">
+            @if(System.Configuration.ConfigurationManager.AppSettings["optionLanguage"] == "true")
+            {
+                <li class="dropdown">
+                <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
+                    <i class="fa fa-language"></i>@LabelText.LANG_CHANGE <img id="currentLang" src="~/Content/Images/South-Korea_flat_24.png"/>
+                </a>
+                <ul class="dropdown-menu dropdown-messages" style="width: 200px;">
+                    <li>
+                        <div class="dropdown-messages-box">
+                            <div class="media-body">
+                                <img alt="South-Korea" src="~/Content/Images/Flag/KR.png">
+                                <a id="ko" href="javascript:changeLang('ko-KR');"><strong>Korea</strong></a>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="dropdown-messages-box">
+                            <div class="media-body ">
+                                <img alt="United-States" src="~/Content/Images/Flag/US.png">
+                                <a id="en" href="javascript:changeLang('en-US');"><strong>USA</strong></a>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="dropdown-messages-box">
+                            <div class="media-body ">
+                                <img alt="China" src="~/Content/Images/Flag/CN.png">
+                                <a id="zh" href="javascript:changeLang('zh-CN');"><strong>China</strong></a>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="divider"></li>
+                    <li>
+                        <div class="dropdown-messages-box">
+                            <div class="media-body ">
+                                <img alt="Germany" src="~/Content/Images/Flag/DE.png">
+                                <a id="de" href="javascript:changeLang('de-DE');"><strong>Germany</strong></a>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="divider"></li>
+                    <li>
+                        <div class="dropdown-messages-box">
+                            <div class="media-body ">
+                                <img alt="Japan" src="~/Content/Images/Flag/JP.png">
+                                <a id="ja" href="javascript:changeLang('ja-JP');"><strong>Japan</strong></a>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="divider"></li>
+                    <li>
+                        <div class="dropdown-messages-box">
+                            <div class="media-body ">
+                                <img alt="Vietnam" src="~/Content/Images/Flag/VN.png">
+                                <a id="vi" href="javascript:changeLang('vi-VN');"><strong>Vietnam</strong></a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            }
+            <li>
+                <a href="javascript:document.getElementById('logoutForm').submit()"><i class="fa fa-sign-out"></i>@LabelText.LOGOUT</a>
+            </li>
+            <li>
+                <a class="right-sidebar-toggle">
+                    <i class="fa fa-tasks"></i>
+                </a>
+            </li>
+        </ul>
+    }
+}
+else
+{
+    <ul class="nav navbar-top-links navbar-right">
+        <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+    </ul>
+}
+
+<script>
+
+    var locale = getLocale();
+
+    var globalize = Globalize.locale(locale);
+
+    function getLocale() {
+        var locale = Cookies.get("Culture");
+        return locale != null ? locale : "ko-KR";
+    }
+
+    if (iudAuth()) {
+        $('#systemSetting').show();
+    }
+    else {
+        $('#systemSetting').hide();
+    }
+
+    $('a#ko').text(Globalize.locale(getLocale()).main('localeDisplayNames/languages/ko'));
+    $('a#en').text(Globalize.locale(getLocale()).main('localeDisplayNames/languages/en'));
+    $('a#zh').text(Globalize.locale(getLocale()).main('localeDisplayNames/languages/zh'));
+    $('a#de').text(Globalize.locale(getLocale()).main('localeDisplayNames/languages/de'));
+    $('a#ja').text(Globalize.locale(getLocale()).main('localeDisplayNames/languages/ja'));
+    $('a#vi').text(Globalize.locale(getLocale()).main('localeDisplayNames/languages/vi'));
+
+    if (Cookies.get("Culture") === "en-US") {
+        $("#currentLang").attr("src", rootURL + "Content/Images/Flag/US.png");
+    } else if (Cookies.get("Culture") === "zh-CN") {
+        $("#currentLang").attr("src", rootURL + "Content/Images/Flag/CN.png");
+    } else if (Cookies.get("Culture") === "de-DE") {
+        $("#currentLang").attr("src", rootURL + "Content/Images/Flag/DE.png");
+    } else if (Cookies.get("Culture") === "ja-JP") {
+        $("#currentLang").attr("src", rootURL + "Content/Images/Flag/JP.png");
+    } else if (Cookies.get("Culture") === "vi-VN") {
+        $("#currentLang").attr("src", rootURL + "Content/Images/Flag/VN.png");
+    } else {
+        $("#currentLang").attr("src", rootURL + "Content/Images/Flag/KR.png");
+    }
+
+    function changeLang(lang) {
+        Cookies.set("Culture", lang, { expires: 99999 });
+        Globalize.locale(lang);
+        location.reload();
+    }
+</script>

@@ -1,0 +1,20 @@
+﻿@using JSMES.WebUI.Alpha.App_GlobalResources
+@{
+    Layout = "~/Views/Shared/_SingleLayout.cshtml";
+    ViewBag.Title = "Confirm Email";
+}
+<div class="card-body">
+    <h2>@LabelText.CONFIRM_EMAIL</h2>
+    <hr />
+    <div >
+        <br />
+        <p>
+            @LabelText.THANKS_CONFIRM_EMAIL
+        </p>
+        <p>
+            @LabelText.LOGIN_INFO
+        </p>
+        <br />
+        <button class="btn btn-primary" onclick="location.href ='Login'">@LabelText.LOGIN</button>
+    </div>
+</div>

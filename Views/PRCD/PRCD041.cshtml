@@ -1,0 +1,725 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.ViewModels.PRC.PRCD;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-5 col-sm-12">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> 용입 성적서 목록 </i></span></h4>
+            @(Html.DevExtreme().DataGrid<PRCD041B_LIST>()
+                                .ID("grdReportHis")
+                                .DataSource(d => d.WebApi()
+                                       .Controller("PRCD041WebApi")
+                                       .LoadAction("getReportHis")
+                                       .OnBeforeSend("grdReportHis_OnBeforeSend")
+                                       .Key("REPORTSEQUENCE")
+                                )
+                                .Editing(e => e.Mode(GridEditMode.Row).AllowAdding(false).AllowUpdating(new JS("iudAuth()")))
+                                .Columns(columns =>
+                                {
+                                    columns.AddFor(m => m.REPORTSEQUENCE).Visible(false);
+                                    columns.AddFor(m => m.WORKDATE).DataType(GridColumnDataType.Date).Format(Format.MonthAndYear).Caption("년월");
+                                    ;
+
+                                    columns.AddFor(m => m.FOLDERID).Visible(false).Width(200)
+                                        .ShowEditorAlways(true)
+                                        .EditCellTemplate(new JS("grd_EditCellTemplate"));
+
+                                    columns.Add().Visible(true).Width(200)
+                                        .ShowEditorAlways(true)
+                                        .EditCellTemplate(new JS("grd_EditCellTemplate")).Caption("파일받기").Alignment(HorizontalAlignment.Center);
+
+                                    columns.AddFor(m => m.CREATEDATE);
+                                    columns.AddFor(m => m.CREATEUSER);
+
+                                    columns.AddFor(m => m.FOLDERID).Type(GridCommandColumnType.Buttons).Caption("").Alignment(HorizontalAlignment.Center)
+                                        .Buttons(b => b.Add().Text("성적서 수정").OnClick("EditReport")).Visible(true);
+                                })
+                                .RemoteOperations(true)
+                                .FilterPanel(f => f.Visible(true))
+                                .FilterRow(f => f.Visible(true))
+                                .ColumnAutoWidth(false)
+                                .Paging(p => p.PageSize(10).Enabled(true))
+                                .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                                .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                                .SearchPanel(searchPanel => searchPanel
+                                    .Visible(true)
+                                    .Width(180)
+                                    .Placeholder("Search...")
+                                )
+                                .ShowBorders(true)
+                                .AllowColumnResizing(true)
+                                .RowAlternationEnabled(true)
+                                //.Export(e => e.Enabled(true))
+                                .ShowRowLines(true)
+                                .OnToolbarPreparing("grdReportHis_OnToolbarPreparing")
+                                .OnRowClick("grdReportHis_onRowClick")
+            )
+        </div>
+        <div class="col-lg-7 col-sm-12">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> 이미지 </i></span></h4>
+            @(Html.DevExtreme().Gallery()
+                                .ID("gallery")
+                                .Width("90%")
+                                .Height("100%")
+                                .Loop(false)
+                                .ShowNavButtons(true)
+                                .ShowIndicator(true)
+                                .OnContentReady("gallery_OnContentReady")
+                                .StretchImages(false)
+ 
+            )
+        </div>
+    </div>
+</div>
+
+@(Html.DevExtreme().Popup()
+        .ID("uploader-popup")
+        .Width(400)
+        .Height(400)
+        .ShowTitle(true)
+        .Title("용입성적서 등록")
+        .DragEnabled(false)
+        .CloseOnOutsideClick(false)
+        .ShowCloseButton(false)
+        .ContentTemplate(new TemplateName("uploader-popup-template"))
+        .ToolbarItems(barItems =>
+        {
+            barItems.Add()
+                .Toolbar(Toolbar.Bottom)
+                .Location(ToolbarItemLocation.After)
+                .Widget(widget => widget.Button()
+                    .Text("닫기")
+                    .StylingMode(ButtonStylingMode.Outlined)
+                    .OnClick(@<text>
+                        function hideInfo(data) {
+                        $('#uploader-popup').dxPopup('instance').hide();
+                        }
+                    </text>)
+                           );
+                })
+)
+
+
+@using (Html.DevExtreme().NamedTemplate("uploader-popup-template"))
+{
+    @(Html.DevExtreme().Form()
+                .ID("vendor-register-form")
+                .ShowColonAfterLabel(false)
+                .ElementAttr("class", "p-1")
+                .ColCount(1)
+                .Items(i =>
+                {
+
+                    i.AddSimple().Editor(m => m.DateBox().ID("db_Date").DisplayFormat(Format.MonthAndYear)
+                        .CalendarOptions(options => options.MaxZoomLevel(CalendarZoomLevel.Year).MinZoomLevel(CalendarZoomLevel.Decade).ZoomLevel(CalendarZoomLevel.Year))
+                        .OnValueChanged("db_Date_OnValueChanged")).Label(l => l.Text("년월")).IsRequired(true).ColSpan(2);
+
+
+                    i.AddSimple().Template(@<text>
+                        @(Html.DevExtreme().List()
+                                    .ID("lueUploadFileList")
+                                    .DataSource(d => d.WebApi().Controller("COMA004WebApi")
+                                        .LoadAction("getFileList")
+                                        .DeleteAction("delete")
+                                        .Key("FILEID")
+                                        .OnBeforeSend("lueUploadFileList_OnBeforeSend")
+
+                                    )
+                                    .ElementAttr("class", "mb-2")
+                                    .AllowItemDeleting(true)
+                                    .KeyExpr("FLODERID")
+                                    .OnItemClick("lupFileList_OnItemClick")
+                                    .OnItemDeleted("lupFileList_OnItemDeleted")
+                                    .ItemTemplate(new JS("lupFileList_ItemTemplate"))
+                        )
+
+
+                        @(Html.DevExtreme()
+                                    .FileUploader()
+                                    .Name("attachmentFile")
+                                    .ID("attachmentFolderUploader")
+                                    .Accept("*")
+                                    .UploadMode(FileUploadMode.Instantly)
+                                    .Multiple(false)
+                                    .UploadUrl(Url.Action("UploadFiles", "Attachment"))
+                                    .OnValueChanged("attachmentFileUploader_OnValueChanged")
+                                    .OnUploadAborted("attachmentFolderUploader_removeFile")
+                                    .OnUploaded("attachmentFileUploader_OnUploaded")
+                                    .OnUploadStarted("attachmentFolderUploader_pushFile")
+                                    .OnUploadError("attachmentFolderUploader_removeFile")
+                                    .Visible(true)
+                        )
+                    </text>).Label(l => l.Text("용입성적서 시험성적서")).IsRequired(false).ColSpan(2);
+
+                            })
+    );
+}
+
+
+
+<style>
+    .image-container {
+        background-color: white;
+        border: 4px solid #ddd;
+        position: absolute;
+        left: 100px;
+        top: 100px;
+        width: auto;
+        height: 900px;
+        padding: 0.5em;
+        z-index: 9999999;
+        /*overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;*/
+    }
+
+        .image-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: auto;
+            height: 900px;
+        }
+
+    #layerPopup button {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        z-index: 9999999;
+    }
+</style>
+
+<script>
+
+    var FileGUID;
+
+
+
+    function db_Date_OnValueChanged(e) {
+
+        //$("#inspectImage").attr("src", '');
+
+        getReportFolderGUID();
+
+    }
+
+    function gallery_OnContentReady(e) {
+        $('.dx-gallery-item-image')
+            .on('dxpinch', function (args) {
+                this._currentScale = this._currentScale ? this._currentScale * args.deltaScale : args.scale;
+                var currentscale = this._currentScale;
+                if (currentscale >= 1) { $(this).css('transform', 'scale(' + this._currentScale + ')'); }
+            })
+    }
+
+    function getReportFolderGUID() {
+
+        var dxDateBox = $('#db_Date').dxDateBox('instance');
+        var selectDate;
+
+
+        if (dxDateBox != undefined) {
+            selectDate = dxDateBox.option('value');
+        }
+        else {
+            selectDate = new Date();
+        }
+
+        var date = selectDate.toUTCString();
+        var param = $.param({ date: date });
+
+        $.ajax({
+            url: '@Url.Action("getReportFolderGUID", "PRCD041WebApi", new {httproute = "DefaultApi",})' + "?" + param,
+            type: 'GET',
+            success: function(data) {
+                if (data != undefined) {
+                    FileGUID = { _value: data.FOLDERID };
+
+                } else {
+                    FileGUID = new DevExpress.data.Guid();
+                }
+
+                var dataSource = $("#lueUploadFileList").dxList("instance").getDataSource();
+                dataSource.reload();
+
+
+
+            },
+            error: function(e) {
+                showError(this, e);
+            }
+        });
+
+    }
+  
+
+    function grdReportHis_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+
+            //var dxDateBox = $('#searchDate').dxDateBox('instance');
+            //var selectDate;
+
+            //if (dxDateBox != undefined) {
+            //    selectDate = dxDateBox.option('value');
+            //}
+            //else {
+            //    selectDate = new Date();
+            //}
+            //ajaxOptions.data.date = selectDate != null ? Globalize.dateFormatter({ date: "short" })(selectDate) : selectDate;
+            //ajaxOptions.data.flag = "S";
+
+        }
+    }
+
+    function grdReportHis_onRowClick(e) {
+        getHisImg(e);
+    }
+
+
+    function getHisImg(e) {
+
+
+        $("#inspectImage").attr("src", '');
+
+
+        var date = e.data.WORKDATE;
+        var param = $.param({ date: date, rootURL: rootURL}); // , processcode: proc
+
+        $.ajax({
+            url: '@Url.Action("getReportImg", "PRCD041WebApi", new {httproute = "DefaultApi",})' + "?" + param,
+            type: 'GET',
+            success: function (data) {
+
+                if (data != null) {
+
+                    $("#gallery").dxGallery('instance').option('dataSource', data);
+
+
+                }
+
+
+            },
+            error: function(e) {
+                showError(this, e);
+            }
+        });
+        $("#grdReportHis").dxDataGrid("instance").refresh();
+    }
+
+    function lueUploadFileList_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+
+            var FoloderId = "";
+            if (FileGUID == undefined || FileGUID == null)
+                FoloderId = new DevExpress.data.Guid();
+            else
+                FoloderId = FileGUID;
+
+            ajaxOptions.data.folderId = FoloderId._value;
+        }
+    }
+
+    function attachmentFileUploader_OnValueChanged(e) {
+
+
+        var url = e.component.option("uploadUrl");
+        if (FileGUID != undefined) {
+            url = updateQueryStringParameter(url, "FolderGuid", FileGUID._value);
+
+            e.component.option("uploadUrl", url);
+        }
+
+
+    }
+
+    function updateQueryStringParameter(uri, key, value) {
+        var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+        var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+        if (uri.match(re)) {
+            return uri.replace(re, '$1' + key + "=" + value + '$2');
+        }
+        else {
+            return uri + separator + key + "=" + value;
+        }
+    }
+
+    function attachmentFileUploader_OnUploadError(e) {
+        //$('#uploaderScrollView').dxScrollView('instance').option('height', 380);
+        $('#fileuploadWarningMessage').show();
+    }
+
+
+    function attachmentFileUploader_OnUploaded(e) {
+        //$("#grdFileList").dxDataGrid("instance").refresh();
+        //$('#uploaderScrollView').dxScrollView('instance').option('height', 455);
+        //$('#fileuploadWarningMessage').hide();
+        //console.log(e.request.getResponseHeader('fileid'));
+        const obj = JSON.parse(e.request.response);
+
+        var dxDateBox = $('#db_Date').dxDateBox('instance');
+        var selectDate;
+
+        if (dxDateBox.option('value') == null)
+            return;
+
+        if (dxDateBox != undefined) {
+            selectDate = dxDateBox.option('value');
+        }
+        else {
+            selectDate = new Date();
+        }
+        var date = selectDate.toUTCString();
+
+        var param = $.param({ date: date, folderid: obj.ATTACHMENTFOLDERID });
+
+
+        $.ajax({
+            url: '@Url.Action("SetEntranceReport", "PRCD041WebApi", new {httproute = "DefaultApi",})' + "?" + param,
+            type: 'GET',
+            success: function (data) {
+
+                var index = attachmentFolderUploader_files.indexOf(e.file.name);
+                if (index >= 0) {
+                    attachmentFolderUploader_files.splice(index, 1);
+                }
+                if (attachmentFolderUploader_files.length === 0) {
+                    var dataSource = $("#lueUploadFileList").dxList("instance").getDataSource();
+                    dataSource.reload();
+                }
+
+                $("#grdReportHis").dxDataGrid('instance').refresh();
+
+            },
+            error: function(e) {
+                showError(this, e);
+            }
+        });
+
+
+    }
+
+
+    function grd_EditCellTemplate(container, options) {
+        $("<div />").dxSelectBox({
+            dataSource: DevExpress.data.AspNet.createStore({
+                key: "FILEID",
+                loadUrl: rootURL + "api/COMA004WebApi/getFileList",
+                loadParams: { folderId: options.data.FOLDERID, fileid: options.data.FILEID },
+            }),
+            valueExpr: 'FILEID',
+            displayExpr: 'FILENAME',
+            onItemClick: function (e) {
+                var path = rootURL + 'Content/Files/Attachments/' + e.itemData.ATTACHMENTFOLDERID + '/' + e.itemData.FILEID + '/' + e.itemData.REVISIONNO + '/' + e.itemData.FILENAME;
+                var x=new XMLHttpRequest();
+                x.open("GET", path, true);
+                x.responseType = 'blob';
+                x.onload=function(o){download(x.response, e.itemData.FILENAME, e.itemData.FILEEXTENSION ); }
+                x.send();
+            },
+            buttons: [{
+                    name: "download",
+                    location: "after",
+                    options: {
+                        icon: "download",
+                        type: "normal",
+                        FOLDERID: options.data.FOLDERID,
+                        onClick: function() {
+                            var data = {};
+                            var aJson = new Object();
+                            aJson.ATTACHMENTFOLDERID = this.option('FOLDERID');
+                            data.values = JSON.stringify(aJson);
+
+                            $.ajax({
+                                url: '@Url.Action("getAllZipFileList", "COMA004WebApi", new { httproute = "DefaultApi", })',
+                                type: 'POST',
+                                data: data,
+                                success: function (param) {
+                                    if (param.ZipFileName == '') {
+                                        DevExpress.ui.notify('등록된 파일이 없습니다.', 'warning', globalNotificationErrorTime);
+                                    } else {
+                                        window.location = rootURL + 'Attachment/DownloadFile?TempZipGuid=' + param.TempZipGuid
+                                            + '&ZipFileName=' + param.ZipFileName;
+                                    }
+                                },
+                                error: function (e) {
+                                    showError(this, e);
+                                }
+                            });
+                        }
+                    }
+                }
+                // , {
+                //name: "upload",
+                //location: "after",
+                //options: {
+                //    icon: "upload",
+                //    type: "normal",
+                //    INSPECTIMAGEID: options.data.INSPECTIMAGEID,
+                //    onClick: function() {
+                //        var fileUploadGuid = this.option('INSPECTIMAGEID');
+
+                //        if (fileUploadGuid == null || fileUploadGuid == undefined) {
+                //            DevExpress.ui.notify('업로드 정보가 없습니다. 관리자에게 문의하세요.', 'error', globalNotificationErrorTime);
+                //        } else {
+                //            $('#ATTACHMENTS_POPUP').dxPopup('instance').option('fileUploadGuid', fileUploadGuid);
+                //            $('#ATTACHMENTS_POPUP').dxPopup('instance').show();
+                //            $('#attachmentFileUploader').dxFileUploader('instance').option('accept', 'image/*');
+                //        }
+                //    }
+                //}
+                //}
+            ],
+            itemTemplate: function (itemData, itemIndex, itemElement) {
+                var className = '';
+
+                if (itemData.FILEEXTENSION == "image/png" || itemData.FILEEXTENSION == "image/jpeg") {
+                    className = "fa-file-image-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "audio") {
+                    className = "fa-file-audio-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "video") {
+                    className = "fa-file-movie-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/pdf") {
+                    className = "fa-file-pdf-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/msword" ||
+                    itemData.FILEEXTENSION == "application/vnd.ms-word" ||
+                    itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.text" ||
+                    itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml") {
+                    className = "fa-file-pdf-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.ms-excel" ||
+                    itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml" ||
+                    itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.spreadsheet") {
+                    className = "fa-file-excel-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.ms-powerpoint" ||
+                    itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml" ||
+                    itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.presentation") {
+                    className = "fa-file-powerpoint-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "text/plain") {
+                    className = "fa-file-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "text/html" || options.value == "application/json") {
+                    className = "fa-file-text-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+                    className = "fa-file-word-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+                    className = "fa-file-excel-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml.presentation") {
+                    className = "fa-file-powerpoint-o fa-lg";
+                } else if (itemData.FILEEXTENSION == "application/gzip" ||
+                    itemData.FILEEXTENSION == "application/zip" ||
+                    itemData.FILEEXTENSION == "application/x-zip-compressed" ||
+                    itemData.FILEEXTENSION == "application/octet-stream" ||
+                    itemData.FILEEXTENSION == "application/x-msdownload") {
+                    className = "fa-file-archive-o fa-lg";
+                }
+
+                content = "<div><i class='fa " + className + "'></i>" + itemData.FILENAME + "</div>";
+                return content;
+            }
+        }).appendTo(container);
+    }
+
+
+    function grdReportHis_OnToolbarPreparing(e) {
+
+        var dataGrid = e.component;
+
+        var items = e.toolbarOptions.items;
+
+        //for (var idx = 0; items.length > idx; idx++) {
+        //    if (items[idx].showText) {
+        //        items[idx].showText = "always";
+
+        //        if (items[idx].name == "editButton") {
+        //            /*items[idx].visible = false;*/
+        //            items[idx].options.onClick = function (arg) {
+
+        //                var grid = $("#grdReportHis").dxDataGrid('instance');
+        //                var add = false;
+
+        //                for (var idx = 0; idx <= grid.getVisibleRows().length - 1; idx++) {
+        //                    if (typeof (grid.getKeyByRowIndex(idx)) == "object") {
+        //                        add = true;
+        //                        break;
+        //                    }
+
+        //                }
+        //                $("#uploader-popup").dxPopup("instance").show();
+        //            }
+        //        }
+
+        //    }
+        //}
+         e.toolbarOptions.items.unshift(
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    text: "용입성적서 등록",
+                    //icon: "fas fa-add",
+                    visible: iudAuth(),
+                    onClick: function (e) {
+                        $("#uploader-popup").dxPopup("instance").show();
+
+                        $("#db_Date").dxDateBox('instance').option('value', new Date());
+
+                        var dataSource = $("#lueUploadFileList").dxList("instance").getDataSource();
+                        dataSource.reload();
+
+                        $("#attachmentFolderUploader").dxFileUploader("instance").reset();
+                    }
+                }
+            }
+        )
+    }
+
+    function EditReport(e) {
+
+        $("#uploader-popup").dxPopup("instance").show();
+
+        FileGUID = { _value: e.row.data.FOLDERID };
+
+        var date = new Date(e.row.data.WORKDATE);
+
+        $("#db_Date").dxDateBox('instance').option('value', date);
+        
+
+        getReportFolderGUID();
+        
+    }
+
+    function form_OnEditorEnterKey(e) {
+        var inputFrom = e.component;
+
+        var currentFied = e.dataField;
+        var formItemList = inputFrom.option('items');
+        var findItem = false;
+
+        for (itemIndex = 0; formItemList.length > itemIndex; itemIndex++) {
+            if (findItem) {
+                inputFrom.getEditor(formItemList[itemIndex].dataField).focus();
+                inputFrom.getEditor(formItemList[itemIndex].dataField).element().find('input').select();
+                break;
+            }
+
+            if (formItemList[itemIndex].dataField == currentFied) {
+                findItem = true;
+            }
+        }
+    }
+
+
+    var attachmentFolderUploader_files = [];
+
+    function attachmentFolderUploader_valueChanged(e) {
+        attachmentFolderUploader_files = [];
+        var url = e.component.option("uploadUrl");
+        var ATTACHMENTFILEID = e.component.option("ATTACHMENTFILEID");
+        url = updateQueryStringParameter(url, "FolderGuid", ATTACHMENTFILEID);
+        e.component.option("uploadUrl", url);
+    }
+
+    function attachmentFolderUploader_pushFile(e) {
+        attachmentFolderUploader_files.push(e.file.name);
+    }
+
+    function attachmentFolderUploader_removeFile(e) {
+        var index = attachmentFolderUploader_files.indexOf(e.file.name);
+        if (index >= 0) {
+            attachmentFolderUploader_files.splice(index, 1);
+        }
+        if (attachmentFolderUploader_files.length === 0) {
+            var dataSource = $("#lueUploadFileList").dxList("instance").getDataSource();
+            dataSource.reload();
+        }
+    }
+
+    function updateQueryStringParameter(uri, key, value) {
+        var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+        var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+
+        if (uri.match(re)) {
+            return uri.replace(re, '$1' + key + "=" + value + '$2');
+        }
+        else {
+            return uri + separator + key + "=" + value;
+        }
+    }
+
+    function lupFileList_OnItemClick(e) {
+        var params = new Object();
+
+        params.key = e.itemData.FILEID;
+        $.ajax({
+            url: '@Url.Action("GetExistsFile", "Attachment")',
+            data: params,
+            param: params,
+            success: function (e) {
+                var params = { key: this.param.key };
+                var param = jQuery.param(params);
+                window.location.href = '@Url.Action("GetDownload", "Attachment")' + "?" + param;
+            },
+            error: function (e) {
+                showError(this, e);
+            }
+        });
+    }
+
+    function lupFileList_OnItemDeleted(e) {
+        $(e.element).dxList("instance").reload();
+    }
+
+    function lupFileList_ItemTemplate(itemData, itemIndex, itemElement) {
+        var className = '';
+        if (itemData.FILEEXTENSION == "image/png" || itemData.FILEEXTENSION == "image/jpeg") {
+            className = "fa-file-image fa-lg";
+        } else if (itemData.FILEEXTENSION == "audio") {
+            className = "fa-file-audio fa-lg";
+        } else if (itemData.FILEEXTENSION == "video") {
+            className = "fa-file-movie fa-lg";
+        } else if (itemData.FILEEXTENSION == "application/pdf") {
+            className = "fa-file-pdf fa-lg";
+        } else if (itemData.FILEEXTENSION == "application/msword" ||
+            itemData.FILEEXTENSION == "application/vnd.ms-word" ||
+            itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.text" ||
+            itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml") {
+            className = "fa-file-word fa-lg";
+        } else if (itemData.FILEEXTENSION == "application/vnd.ms-excel" ||
+            itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml" ||
+            itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.spreadsheet") {
+            className = "fa-file-excel fa-lg";
+        } else if (itemData.FILEEXTENSION == "application/vnd.ms-powerpoint" ||
+            itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml" ||
+            itemData.FILEEXTENSION == "application/vnd.oasis.opendocument.presentation") {
+            className = "fa-file-powerpointfa-lg";
+        } else if (itemData.FILEEXTENSION == "text/plain") {
+            className = "fa-file fa-lg";
+        } else if (itemData.FILEEXTENSION == "text/html" || itemData.FILEEXTENSION == "application/json") {
+            className = "fa-file-text fa-lg";
+        } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+            className = "fa-file-word fa-lg";
+        } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+            className = "fa-file-excel fa-lg";
+        } else if (itemData.FILEEXTENSION == "application/vnd.openxmlformats-officedocument.presentationml.presentation") {
+            className = "fa-file-powerpoint fa-lg";
+        } else if (itemData.FILEEXTENSION == "application/gzip" ||
+            itemData.FILEEXTENSION == "application/zip" ||
+            itemData.FILEEXTENSION == "application/x-zip-compressed" ||
+            itemData.FILEEXTENSION == "application/octet-stream" ||
+            itemData.FILEEXTENSION == "application/x-msdownload") {
+            className = "fa-file-archive fa-lg";
+        }
+
+        content = "<div style='white-space:pre-wrap'><i class='far " + className + "'></i> " + itemData.FILENAME + "   <small class='text-muted'> <i class='far fa-clock mr-1'></i>" + Globalize.dateFormatter({ datetime: "short" })(new Date(itemData.CREATEDATE)) + "</small></div>";
+        return content;
+    }
+
+
+
+</script>

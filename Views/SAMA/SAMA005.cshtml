@@ -1,0 +1,122 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTA
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        <div class="col-12">
+            기본 정보 {설비 호기, 작업자, }
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12">
+            진행중 자기 정보 {작지 번호, 작지 정보 기타 ... }
+            <div class="form">
+                <div class="dx-fieldset">
+                    <div class="dx-fieldset-header">진행 중인 작업 지시</div>
+                    <div class="dx-field">
+                        <div class="dx-field-label">작업 지시 번호</div>
+                        <div class="dx-field-value">
+                            <div id="address">W1906190001</div>
+                        </div>
+                    </div>
+                    <div class="dx-field">
+                        <div class="dx-field-label">품목 번호</div>
+                        <div class="dx-field-value">0K410-38641</div>
+                    </div>
+                    <div class="dx-field">
+                        <div class="dx-field-label">차종</div>
+                        <div class="dx-field-value">BU</div>
+                    </div>
+                </div>
+                <div class="dx-fieldset" id="notes-container">
+                    <div class="dx-fieldset-header">소요 자재 정보</div>
+                    <div class="dx-field">
+                        <div class="dx-field-value">
+                                @(Html.DevExtreme().List()
+                                .ID("lis2t")
+                                .SelectionMode(ListSelectionMode.None)
+                                .DataSource(new JS("jsonc"))
+                                .ItemTemplate(@<text>
+                                    <div>
+                                        <div class="hotel">
+                                            <div class="name"><%= PART_CODE %></div>
+                                            <div class="address"><%= PART_NAME %></div>
+                                        </div>
+                                    </div>
+                                </text>)
+                            )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12">
+            <div class="buttongroups-container">
+                명령어 버튼 {시생산 시작, 작업 시작, 작업 종료, 공정 중지}
+                @(Html.DevExtreme().ButtonGroup()
+                    .KeyExpr("alignment")
+                    .StylingMode(ButtonStylingMode.Outlined)
+                    .Width("100%")
+                    .Items(items => {
+                        items.Add().Option("alignment", "left").Text("시생산 시작").Type(ButtonType.Default);
+                        items.Add().Option("alignment", "center").Text("양산 시작").Type(ButtonType.Default);
+                        items.Add().Option("alignment", "right").Text("공정 완료").Type(ButtonType.Success);
+                        items.Add().Option("alignment", "justify").Text("공정 중지").Type(ButtonType.Danger);
+                    })
+                )
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12">
+            <div class="buttongroups-container">
+                
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<EmpMaster>()
+              .ID("grdPlantMaster")
+              .DataSource(d => d.WebApi().Controller("MSTA001WebApi").Key("EMPID"))
+              .Columns(columns =>
+              {
+                  columns.AddFor(m => m.EMPID);
+                  columns.AddFor(m => m.EMPCODE);
+                  columns.AddFor(m => m.EMPNAME);
+              })
+              .ColumnMinWidth(50)
+              .RemoteOperations(true)
+              .ColumnAutoWidth(true)
+              .Paging(p=>p.PageSize(25).Enabled(true))
+              .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+              .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+              .AllowColumnResizing(true)
+              .RowAlternationEnabled(true)
+              .Scrolling(s=>s.ScrollByThumb(true).ScrollByContent(true))
+              .Selection(s=>s.SelectAllMode(SelectAllMode.AllPages).ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick).Mode( SelectionMode.Multiple))
+            )
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            부가 명령어 버튼 {생산 정보, 비가동 정보, 작업자 변경, 원자재 등록}
+        </div>
+    </div>
+</div>
+
+<script>
+    var jsonc = [{ "PART_CODE": "29136-2T000", "PART_NAME": "HOSE ASSY-RADIATOR UPR-TF FEM" },
+                { "PART_CODE": "11253-06206B", "PART_NAME": "BOLT&S/W&P/W ASSY-(M6x20)" },
+                { "PART_CODE": "81199-33000", "PART_NAME": "CLIP MTG HOSE,MS U/G W/S 니프코" }
+                ];
+</script>

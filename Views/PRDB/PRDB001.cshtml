@@ -1,0 +1,70 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.MON
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<PRDB001A_LIST>()
+                  .ID("grdItemMaster")
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.LOGID);
+                      columns.AddFor(m => m.EQUIPMENTCODE)
+                          .Lookup(l=>l.ValueExpr("EquipmentCode").DisplayExpr("EquipmentName")
+                              .DataSource(d=>d.WebApi().Controller("COMA001WebApi").LoadAction("EQUIPMENT_LIST")
+                                  .LoadParams(new
+                                  {
+                                      Culture = new JS("function() { return locale; }")
+                                  }).Key("EquipmentCode")));
+                      columns.AddFor(m => m.TRIGGERCODE)
+                          .Lookup(l=>l.ValueExpr("TriggerCode").DisplayExpr("TriggerName")
+                              .DataSource(d=>d.WebApi().Controller("COMA001WebApi").LoadAction("TRIGGER_LIST")
+                                  .LoadParams(new
+                                  {
+                                      Culture = new JS("function() { return locale; }")
+                                  }).Key("TriggerCode")));
+                      columns.AddFor(m => m.STARTTIME).Format(Format.ShortDateShortTime);
+                      columns.AddFor(m => m.ENDTIME).Format(Format.ShortDateShortTime);
+                      columns.AddFor(m => m.BEFOREVALUE);
+                      columns.AddFor(m => m.CURRENTVALUE);
+                      columns.AddFor(m => m.STATUS);
+                      columns.AddFor(m => m.CREATEDATE).DataType(GridColumnDataType.DateTime).SelectedFilterOperation(FilterOperations.Between);
+                  })
+                  .DataSource(d => d.WebApi().Controller("PRDB001WebApi")
+                      .LoadAction("PRDB001A_LIST")
+                      .Key("LOGID"))
+                  .ColumnMinWidth(50)
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .FilterRow(f => f.Visible(true))
+                  .Paging(p=>p.PageSize(25).Enabled(true))
+                  .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{25, 50, 100, 1000}))
+                  .Scrolling(s=>s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(240)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .Selection(s=>s.AllowSelectAll(true)
+                      .SelectAllMode(SelectAllMode.AllPages)
+                      .ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick)
+                      .Mode(SelectionMode.Multiple	)
+                  )
+                  .ShowBorders(true)
+                  .RowAlternationEnabled(true)
+                  .Export(e=>e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                  .FilterRow(f => f.Visible(true))
+            )
+        </div>
+    </div>
+</div>

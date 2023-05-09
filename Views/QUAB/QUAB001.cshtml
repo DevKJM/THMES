@@ -1,0 +1,444 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAB;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row mt-2">
+        <div class="col-lg-4 col-sm-12">
+            <div id="form-container">
+                <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @LabelText.IMPORTINSPECTINPUTINFORMATION</i></span></h4>
+                @using (Html.BeginForm())
+                {
+                    @(Html.DevExtreme().Form<InboundInspectionHistory>()
+                            .ID("form")
+                            .ColCount(2)
+                            .OnEditorEnterKey("form_OnEditorEnterKey")
+                            .Items(items =>
+                            {
+                                items.AddSimpleFor(m => m.VENDORCODE)
+                                        .Editor(e => e
+                                            .DropDownBox().ValueExpr("VENDORCODE")
+                                            .DisplayExpr("VENDORNAME")
+                                            .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("VENDOR_PURCHASE_LIST").Key("VENDORCODE"))
+                                            .Placeholder("Select a value...")
+                                            .ShowClearButton(true)
+                                            .ContentTemplate(new TemplateName("EmbeddedVendorDataGridSingle"))
+                                        ).ColSpan(2);
+
+                                items.AddSimpleFor(m => m.PRODUCTTYPE)
+                                    .Editor(e => e
+                                        .RadioGroup()
+                                        .Layout(Orientation.Horizontal)
+                                        .DisplayExpr("SYSCODENAME")
+                                        .ValueExpr("SYSCODE")
+                                        .DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                    .LoadAction("INSPECTION_PRODUCTTYPE_LIST")
+                                                                    .Key("SYSCODE"))
+                                        .Value("M")
+                                        .OnValueChanged("form_PRODUCTTYPE_OnValueChanged")
+                                    ).ColSpan(2);
+
+                                items.AddSimpleFor(m => m.VIEWPARTNUMBER).Editor(e =>e.TextBox().Disabled(true)).ColSpan(2);
+
+                                items.AddSimpleFor(m => m.PARTNUMBER)
+                                    .Editor(e => e
+                                        .DropDownBox()
+                                        .ValueExpr("PARTCODE")
+                                        .DisplayExpr("PARTNAME")
+                                        .DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                                                    .LoadAction("PART_LIST")
+                                                                    .LoadParams(new {
+                                                                        PARTTYPE = new JS("function() { return $('#form').dxForm('instance').option('formData.PRODUCTTYPE'); }")
+                                                                    })
+                                                                    .Key("PARTCODE")
+                                                                    )
+                                        .Placeholder("Select a value...")
+                                        .ShowClearButton(true)
+                                        .ContentTemplate(new TemplateName("EmbeddedPartDataGridSingle"))
+                                    ).ColSpan(2);
+
+                                items.AddSimpleFor(m => m.RECEIVINGQUANTITY)
+                                    .Editor(e => e
+                                        .NumberBox()
+                                            .ShowSpinButtons(true)
+                                            .ShowClearButton(true)
+                                            .Min(1)
+                                            .Format(f => f.Type(Format.FixedPoint).Precision(0))
+                                    ).ColSpan(1);
+
+                                items.AddSimpleFor(m => m.BOXPERQUANTITY)
+                                    .Editor(e => e
+                                        .NumberBox()
+                                            .ShowSpinButtons(true)
+                                            .ShowClearButton(true)
+                                            .Min(1)
+                                            .Format(f => f.Type(Format.FixedPoint).Precision(0))
+                                    ).ColSpan(1);
+
+                                items.AddSimpleFor(m => m.INSPECTIONRESULT)
+                                    .Editor(e => e
+                                        .RadioGroup()
+                                        .Layout(Orientation.Horizontal)
+                                        .DisplayExpr("SYSCODENAME")
+                                        .ValueExpr("SYSCODE")
+                                        .DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                    .LoadAction("INSPECTIONRESULT_INPUT_LIST")
+                                                                    .Key("SYSCODE"))
+                                        .Value("OK")
+                                    ).ColSpan(2);
+
+                                items.AddSimpleFor(m => m.MEMO)
+                                    .Editor(e => e
+                                        .TextArea()
+                                            .StylingMode(EditorStylingMode.Filled)
+                                            .Height(90)
+                                    ).ColSpan(2);
+
+                                items.AddButton()
+                                    .HorizontalAlignment(HorizontalAlignment.Left)
+                                    .ButtonOptions(b => b.Text(LabelText.INSERTION)
+                                        .OnClick("form_save_onClick")
+                                        .Type(ButtonType.Success)
+                                        .Icon("check")
+                                        .Width("100%")
+                                        .Disabled(new JS("!iudAuth()"))
+                                );
+
+                                items.AddButton()
+                                    .HorizontalAlignment(HorizontalAlignment.Left)
+                                    .ButtonOptions(b => b.Text(LabelText.REMOVE)
+                                        .Icon("refresh")
+                                        .OnClick("form_cancel_onClick")
+                                        .Type(ButtonType.Normal)
+                                        .Width("100%")
+                                        .Disabled(new JS("!iudAuth()"))
+                                );
+                            })
+                            .FormData(Model)
+                    )
+                }
+            </div>
+        </div>
+        <div class="col-lg-8 col-sm-12">
+            <h4><span class="dx-fieldset-header bottom-gradient"><i class="fa fa-angle-right"> @LabelText.TODAYIMPORTINSPECTLIST</i></span></h4>
+             @(Html.DevExtreme().DataGrid<QUAB001_LIST>()
+                .ID("grdTodayInbondList")
+                .DataSource(d => d.WebApi().Controller("QUAB001WebApi").Key("INSPECTIONSEQUENCE"))
+                .FilterRow(f=>f.Visible(true))
+                .ShowRowLines(true)
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.INSPECTIONSEQUENCE).SortOrder(SortOrder.Desc).Visible(false);
+                    columns.AddFor(m => m.CREATEDATE).Format(f=>f.Type(Format.ShortTime));
+                    columns.AddFor(m => m.CANCELYN).Lookup(l=>l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                                                    .LoadAction("CANCEL_LIST")
+                                                                                                    .Key("SYSCODE"))
+                                                                .DisplayExpr("SYSCODENAME")
+                                                                .ValueExpr("SYSCODE")
+                                                        );
+                    columns.AddFor(m => m.INSPECTIONRESULT).Lookup(l=>l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                                                    .LoadAction("INSPECTIONRESULT_LIST")
+                                                                                                    .Key("SYSCODE"))
+                                                                .DisplayExpr("SYSCODENAME")
+                                                                .ValueExpr("SYSCODE")
+                                                        );
+
+                    columns.AddFor(m => m.VENDORCODE).Lookup(l=>l.DataSource(d => d.WebApi().Controller("MSTI001WebApi").Key("VENDORCODE"))
+                                                                .DisplayExpr("VENDORNAME")
+                                                                .ValueExpr("VENDORCODE")
+                                                        );
+                    columns.AddFor(m => m.PRODUCTTYPE).Lookup(l=>l.DataSource(d => d.WebApi().Controller("COMA003WebApi")
+                                                                    .LoadAction("INSPECTION_PRODUCTTYPE_LIST")
+                                                                    .Key("SYSCODE"))
+                                                                .DisplayExpr("SYSCODENAME")
+                                                                .ValueExpr("SYSCODE"));
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME).Lookup(l=>l.DataSource(d => d.WebApi().Controller("COMA001WebApi")
+                                                                    .LoadAction("PART_LIST")
+                                                                    .LoadParams(new { PARTTYPE = new JS("function() { return '' }")
+                                                                    })
+                                                                    .Key("PARTCODE"))
+                                                                .DisplayExpr("PARTNAME")
+                                                                .ValueExpr("PARTCODE")
+                                                        );
+                    columns.AddFor(m => m.RECEIVINGQUANTITY).Format(f=>f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.BOXPERQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                    columns.AddFor(m => m.MEMO);
+                    columns.AddFor(m => m.CREATEUSER);
+                })
+                .ColumnHidingEnabled(true)
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{ 10, 25, 50, 100, 1000}))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .OnToolbarPreparing("grdTodayInbondList_OnToolbarPreparing")
+                .OnInitialized("grdTodayInbondList_OnInitialized")
+                .Scrolling(s=>s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+                .Selection(s=>s.SelectAllMode(SelectAllMode.AllPages)
+                                .ShowCheckBoxesMode(GridSelectionShowCheckBoxesMode.OnClick)
+                                .Mode( SelectionMode.Multiple))
+                .Option("CANCEL_FIELD", new string[] { "CANCELYN" })
+            )
+        </div>
+    </div>
+</div>
+
+@using(Html.DevExtreme().NamedTemplate("EmbeddedPartDataGridSingle")) {
+    @(Html.DevExtreme().DataGrid<COMA001A_LIST>()
+        .ID("embedded-part-datagrid")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns => {
+            columns.AddFor(m => m.PARTCODE);
+            columns.AddFor(m => m.PARTNAME);
+            columns.AddFor(m => m.BOXPERQUANTITY);
+        })
+        .ColumnAutoWidth(true)
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Height(345)
+        .Scrolling(s=>s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Infinite))
+        .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var haskey;
+                var keys = selectedItems.selectedRowKeys;
+                console.log(selectedItems);
+
+                if(typeof keys !== undefined && keys.length > 0)
+                {
+                    haskey = true;
+                }
+    
+                if (haskey != undefined)
+                    component.option("value", haskey ? keys[0] : null);
+
+                if(typeof keys !== 'undefined' && keys.length > 0){
+                    $('#form').dxForm('instance').updateData('VIEWPARTNUMBER', keys[0]);
+                    $('#form').dxForm('instance').updateData('BOXPERQUANTITY', selectedItems.selectedRowsData[0].BOXPERQUANTITY);
+                    component.close();
+                }
+            }
+        </text>)
+    )
+}
+
+@using(Html.DevExtreme().NamedTemplate("EmbeddedVendorDataGridSingle")) {
+    @(Html.DevExtreme().DataGrid<VendorMaster>()
+        .ID("embedded-vendor-datagrid")
+        .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns => {
+            columns.AddFor(m => m.VENDORNAME);
+            columns.AddFor(m => m.TELEPHONE);
+            columns.AddFor(m => m.ADDRESS);
+        })
+        .ColumnAutoWidth(true)
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+        .Height(345)
+        .Scrolling(s=>s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+        .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var keys = selectedItems.selectedRowKeys;
+                var haskey;
+                if(typeof keys != 'undefined' && keys.length > 0)
+                {
+                    haskey = true;
+                }
+                
+                if (haskey != undefined)
+                    component.option("value", haskey ? keys[0] : null);
+                if(typeof keys != 'undefined' && keys.length > 0){
+                    component.close();
+                }
+            }
+        </text>)
+    )
+}
+
+<script>
+
+    function grdTodayInbondList_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function form_OnEditorEnterKey (e) {
+        var inputFrom = e.component;
+
+        var currentFied = e.dataField;
+        var formItemList = inputFrom.option('items');
+        var findItem = false;
+
+        for (itemIndex = 0; formItemList.length > itemIndex; itemIndex++) {
+            if (findItem) {
+                inputFrom.getEditor(formItemList[itemIndex].dataField).focus();
+                inputFrom.getEditor(formItemList[itemIndex].dataField).element().find('input').select();
+                break;
+            }
+
+            if (formItemList[itemIndex].dataField == currentFied) {
+                findItem = true;
+            }
+        }
+    }
+
+    function form_PRODUCTTYPE_OnValueChanged(e) {
+        var partNumberEditor = $('#form').dxForm('instance').getEditor('PARTNUMBER');
+        partNumberEditor.reset();
+        if ($('#embedded-part-datagrid').dxDataGrid('instance') != undefined) {
+            $('#embedded-part-datagrid').dxDataGrid('instance').refresh();
+        }
+    }
+
+    function grdTodayInbondList_OnToolbarPreparing(e) {
+        e.toolbarOptions.items.unshift(
+            {
+                location: "after",
+                widget: "dxButton",
+                options: {
+                    icon: "fa fa-reply",
+                    stylingMode: "outlined",
+                    text: "@LabelText.INBONDINSPECTCANCEL",
+                    type: "danger",
+                    disabled: !iudAuth(),
+                    onClick: function() {
+                        var grid = $("#grdTodayInbondList").dxDataGrid('instance');
+
+                        if (grid.getSelectedRowKeys().length > 0) {
+                            var rowData = grid.getSelectedRowsData();
+                            if (rowData.length > 0) {
+                                var result = DevExpress.ui.dialog.confirm("@LabelText.QUESTIONINBONDINSPECTCANCEL",
+                                    "@LabelText.PROCESS_ACCEPT");
+
+                                result.done(function(dialogResult) {
+                                    if (!dialogResult) {
+                                        grid.refresh();
+                                        return;
+                                    } else {
+                                        var aJsonArray = new Array();
+
+                                        grid.getSelectedRowsData().forEach(function(e) {
+                                            var aJson = new Object();
+                                            aJson.INSPECTIONSEQUENCE = e.INSPECTIONSEQUENCE;
+                                            aJson.CANCELYN = e.CANCELYN;
+                                            aJson.INSPECTDATE = e.INSPECTDATE;
+                                            aJson.VENDORCODE = e.VENDORCODE;
+                                            aJson.PRODUCTTYPE = e.PRODUCTTYPE;
+                                            aJson.PARTNUMBER = e.PARTNUMBER;
+                                            aJson.RECEIVINGDATE = e.RECEIVINGDATE;
+                                            aJson.INSPECTIONRESULT = e.INSPECTIONRESULT;
+                                            aJson.BOXPERQUANTITY = e.BOXPERQUANTITY;
+                                            aJson.MEM = e.MEM;
+                                            aJson.RECEIVINGQUANTITY = e.RECEIVINGQUANTITY;
+                                            aJsonArray.push(aJson);
+                                        });
+
+                                        var data = new Object();
+                                        data.values = JSON.stringify(aJsonArray);
+
+                                        $.ajax({
+                                            url:
+                                                '@Url.Action("InspectionCancel", "QUAB001WebApi", new { httproute = "DefaultApi", })',
+                                            type: 'POST',
+                                            data: data,
+                                            success: function() {
+                                                grid.refresh();
+                                                DevExpress.ui.notify('@LabelText.ANSWERCANCEL',
+                                                    'success',
+                                                    globalNotificationSuccessTime);
+                                            },
+
+                                            error: function(e) {
+                                                grid.refresh();
+                                                showError(this, e);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        } else {
+                            DevExpress.ui.notify('@LabelText.ANSWERNOTSELECTEDINBONDINSP',
+                                'error',
+                                globalNotificationErrorTime);
+                        }
+                    }
+                }
+            });
+    }
+
+    function form_save_onClick(e) {
+        var form = $('#form').dxForm('instance');
+        var result = form.validate();
+
+        if (result.isValid == true) {
+            var data = {};
+            data.values = JSON.stringify(form.option('formData'));
+
+            $.ajax({
+                url: '@Url.Action("post", "QUAB001WebApi", new { httproute = "DefaultApi", })',
+                type: 'POST',
+                data: data,
+                success: function () {
+                    $('#grdTodayInbondList').dxDataGrid('instance').refresh();
+                    clearform();
+                    DevExpress.ui.notify('@LabelText.ANSWERTRANPROCESS', 'success', globalNotificationSuccessTime);
+                },
+                error: function (e) {
+                    showError(this, e);
+                }
+            });
+        }
+    }
+
+    function form_cancel_onClick(e) {
+        clearform();
+    }
+
+    function clearform() {
+        var form = $('#form').dxForm('instance');
+
+        form.beginUpdate();
+
+        form.updateData('VENDORCODE', null);
+        form.updateData('PRODUCTTYPE', 'M');
+        form.updateData('VIEWPARTNUMBER', '');
+        form.updateData('PARTNUMBER', null);
+        form.updateData('RECEIVINGQUANTITY', 0);
+        form.updateData('BOXPERQUANTITY', 0);
+        form.updateData('INSPECTIONRESULT', 'OK');
+        form.updateData('MEMO', null);
+
+        if ($('#embedded-vendor-datagrid').dxDataGrid('instance') != undefined) {
+            $('#embedded-vendor-datagrid').dxDataGrid('instance').clearSelection();
+        }
+
+        if ($('#embedded-part-datagrid').dxDataGrid('instance') != undefined) {
+            $('#embedded-part-datagrid').dxDataGrid('instance').clearSelection();
+        }
+
+        var validate = form.validate();
+
+        if (validate.brokenRules.length > 0) {
+            validate.brokenRules.forEach(function (e) {
+                e.validator.reset();
+            });
+        }
+
+        form.endUpdate();
+    }
+</script>

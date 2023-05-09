@@ -1,0 +1,155 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTJ
+
+@{
+    ViewBag.Title = "Main";
+}
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-5 col-md-5">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> 공정 목록</i></span></h4>
+            @(Html.DevExtreme().DataGrid<ProcessMaster>()
+                  .ID("grdProcessMaster")
+                  .DataSource(d => d.WebApi()
+                      .Controller("COMA001WebApi")
+                      .LoadAction("PROCESS_LIST")
+                      .Key("PROCESSID")
+                      .LoadParams(new
+                      {
+                          Culture = new JS("function() { return locale; }")
+                      }))
+                  .Columns(columns =>
+                  {
+                      //columns.AddFor(m => m.PROCESSCODE);
+                      columns.AddFor(m => m.PROCESSNAME);
+                  })
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  //.StateStoring(s => s.Enabled(true).StorageKey("MSTJ002_grdProcessMaster").Type(StateStoringType.LocalStorage))
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .RowAlternationEnabled(true)
+                  .Selection(s => s.Mode(SelectionMode.Single))
+                  .OnRowClick("grdProcessMaster_OnRowClick")
+                  //.Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                  .ShowRowLines(true)
+                  )
+        </div>
+        <div class="col-xl-7 col-md-7 mt-md-0 mt-lg-0 mt-sm-2">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> 불량코드 목록</i></span></h4>
+            @(Html.DevExtreme().DataGrid<MSTJ002_LIST>()
+                  .ID("grdProcessDefectMaster")
+                  .DataSource(d => d.WebApi()
+                      .Controller("MSTJ002WebApi")
+                      .Key("DEFECTID")
+                      .OnBeforeSend("grdProcessDefectMaster_OnBeforeSend"))
+                  .Columns(columns =>
+                  {
+                      columns.AddFor(m => m.USEYN).SortOrder(SortOrder.Desc).Width(100);
+                      columns.AddFor(m => m.DEFECTCODE).AllowEditing(false)
+                          .Lookup(lookup => lookup
+                              .DataSource(d => d.WebApi()
+                                  .Controller("COMA001WebApi").Key("DEFECTCODE")
+                                  .LoadAction("DEFECTCODE_LIST")
+                              )
+                              .DisplayExpr("DEFECTNAME")
+                              .ValueExpr("DEFECTCODE")
+                          );
+                      columns.AddFor(m => m.MEMO).AllowEditing(false).Visible(false);
+                  })
+                  .RemoteOperations(true)
+                  .FilterPanel(f => f.Visible(true))
+                  .ColumnAutoWidth(true)
+                  .Paging(p => p.PageSize(25).Enabled(true))
+                  .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                  .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                  //.OnFocusedCellChanged()
+                  .SearchPanel(searchPanel => searchPanel
+                      .Visible(true)
+                      .Width(180)
+                      .Placeholder("Search...")
+                  )
+                  .FilterRow(filterRow => filterRow
+                      .Visible(true)
+                      .ApplyFilter(GridApplyFilterMode.Auto)
+                  )
+                  .Editing(e =>
+                      e.Mode(GridEditMode.Batch)
+                          .AllowUpdating(new JS("iudAuth()"))
+                  )
+                  //.StateStoring(s => s.Enabled(true).StorageKey("MSTJ002_grdProcessDefectMaster").Type(StateStoringType.LocalStorage))
+                  .OnCellClick("grdProcessDefectMaster_OnCellClick")
+                  .ShowBorders(true)
+                  .AllowColumnResizing(true)
+                  .RowAlternationEnabled(true)
+                  //.Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                  .ShowRowLines(true)
+                  )
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function grdProcessDefectMaster_OnCellClick(e) {
+        if (e.rowType == "data" && e.column.dataField == "USEYN") {
+            if (e.data.USEYN == false)//e.value == false || e.row.oldData.USEYN == false || e.USEYN)
+                $('#grdProcessDefectMaster').dxDataGrid('instance').cellValue(e.rowIndex, "USEYN", true);
+            else
+                $('#grdProcessDefectMaster').dxDataGrid('instance').cellValue(e.rowIndex, "USEYN", false);
+        }
+    }
+
+    function grdProcessDefectMaster_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var processRow = $('#grdProcessMaster').dxDataGrid('instance').getSelectedRowsData();
+
+            if (processRow.length > 0) {
+                ajaxOptions.data.ProcessCode = processRow[0].PROCESSCODE;
+            } else {
+                ajaxOptions.data.ProcessCode = "";
+            }
+        } else if (method == "update") {
+            var processRow = $('#grdProcessMaster').dxDataGrid('instance').getSelectedRowsData();
+
+            var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+
+            var index = $('#grdProcessDefectMaster').dxDataGrid('instance').getRowIndexByKey(ajaxOptions.data.key);
+            var defectCode = $('#grdProcessDefectMaster').dxDataGrid('instance').cellValue(index, 'DEFECTCODE');
+
+            if (processRow.length > 0) {
+                //parseJson.PLANTCODE = processRow[0].PLANTCODE;
+                parseJson.PROCESSCODE = processRow[0].PROCESSCODE;
+                parseJson.DEFECTCODE = defectCode;
+                ajaxOptions.data.values = JSON.stringify(parseJson);
+            } 
+        }
+    }
+
+    function grdProcessMaster_OnRowClick(e) {
+        this.selectedValue = e.key;
+        e.component.selectRows([e.key], false);
+
+        if (e.rowType == "data") {
+            $('#grdProcessDefectMaster').dxDataGrid('instance').refresh();
+            $('#grdProcessDefectMaster').dxDataGrid('instance').cancelEditData();
+        }
+    }
+
+</script>

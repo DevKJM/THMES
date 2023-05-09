@@ -1,0 +1,351 @@
+﻿@using Microsoft.AspNet.Identity;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTG;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-4">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.PRODUCTLIST</i></span></h4>
+            @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                        .ID("grdProductList")
+                        .DataSource(d => d.WebApi()
+                            .Controller("MSTG011WebApi")
+                            .LoadAction("PRODUCT_LIST")
+                            .Key("PARTNUMBERID")
+                        )
+                        .Columns(columns =>
+                        {
+                            columns.AddFor(m => m.PARTNUMBERID).Visible(false);
+                            columns.AddFor(m => m.PARTNUMBER).SortOrder(SortOrder.Asc);
+                            columns.AddFor(m => m.PRODUCTNAME);
+                            columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+                            columns.AddFor(m => m.UDNF6);
+                            columns.AddFor(m => m.MEMO);
+                        })
+                        .FilterPanel(f => f.Visible(true)) //하단 필터 만들기 표시 여부
+                        .ColumnAutoWidth(true)
+                        .ShowRowLines(true)
+                        .Paging(p => p.PageSize(10).Enabled(true))
+                        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                        .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                        .SearchPanel(searchPanel => searchPanel
+                            .Visible(true)
+                            .Width(180)
+                            .Placeholder("Search...")
+                        )
+                        .FilterRow(filterRow => filterRow
+                            .Visible(true)
+                            .ApplyFilter(GridApplyFilterMode.Auto)
+                        )
+                        .ShowBorders(true)
+                        .AllowColumnResizing(true)
+                        .RowAlternationEnabled(true)
+                        .Export(e => e.Enabled(true).ExcelFilterEnabled(true).AllowExportSelectedData(true))
+                        .Selection(s => s.Mode(SelectionMode.Single)) // Row 선택 모드 (단일선택)
+                        .Option("KEY_FIELD", new object[] { "PARTNUMBER", "PRODUCTNAME" })
+                        .OnRowClick("grdProductList_OnRowClick")
+            )
+        </div>
+        <div class="col-lg-8">
+            <h4><span class="bottom-gradient"><i class="fa fa-angle-right"> @LabelText.BOMINFORMATION</i></span></h4>
+            @(Html.DevExtreme().TreeList<MSTG011_LIST>()
+                .ID("trBOMMaster")
+                .ParentIdExpr("UPPERPARTNUMBER")
+                .KeyExpr("BOMID")
+                .RootValue("00000000-0000-0000-0000-000000000000")
+                .DataSource(d => d.WebApi().Controller("MSTG011WebApi").Key("BOMID")
+                .OnBeforeSend("trBOMMaster_OnBeforeSend"))
+                .DataStructure(TreeListDataStructure.Plain)
+                .AllowColumnReordering(true)
+                .AutoExpandAll(true)
+                .Selection(s => s.Mode(SelectionMode.None).Recursive(true))
+                .Scrolling(s => s.Mode(TreeListScrollingMode.Standard))
+                .AutoExpandAll(true)
+                .Columns(columns =>
+                {
+                columns.AddFor(m => m.BOMID).Visible(false);
+                columns.AddFor(m => m.PRODUCTNAME).CalculateCellValue("function(rowdata){ return rowdata.PARTNUMBER;}").AllowEditing(false);
+                columns.AddFor(m => m.PARTNUMBER).AllowEditing(true)
+                                                .Lookup(l => l.DataSource(d => d.WebApi()
+                                                        .Controller("COMA001WebApi")
+                                                        .LoadAction("PART_METERIAL_LIST")
+                                                        .LoadParams(new {PARTTYPE  = new JS("function() { return null; }")})
+                                                        .Key("PARTNUMBER"))
+                                                        .ValueExpr("PARTNUMBER")
+                                                        .DataSourceOptions(o=>o.Filter("console.log(1)"))
+                                                        .DisplayExpr("PRODUCTNAME").AllowClearing(true))
+                                                        .EditCellTemplate(new TemplateName("EmbeddedPART")).SetCellValue("AA");
+                columns.AddFor(m => m.LEVELNO).Visible(false).AllowEditing(false);
+                columns.AddFor(m => m.UPPERPARTNUMBER).Visible(false);
+                    //columns.AddFor(m => m.USAGEVALUE).Format(f => f.Type(Format.FixedPoint).Precision(3)).AllowEditing(true);
+                    columns.AddFor(m => m.USAGE).Format(f => f.Type(Format.FixedPoint).Precision(3)).AllowEditing(true);
+                columns.AddFor(m => m.UNITCODE)
+                              .Lookup(lookup => lookup
+                                  .DataSource(d => d.WebApi()
+                                      .Controller("COMA003WebApi").Key("SYSCODE")
+                                      .LoadAction("UNITCODE_LIST"))
+                                  .DisplayExpr("SYSCODENAME")
+                                  .ValueExpr("SYSCODE")
+                              ).AllowEditing(false);
+                columns.Add().Type(TreeListCommandColumnType.Buttons)
+                                    .Buttons(b =>
+                                    {
+                                    b.Add().Name(TreeListColumnButtonName.Add);
+                                    b.Add().Name(TreeListColumnButtonName.Delete).OnClick(@<text>
+                                                function(e){
+                                                if(e.row.node.hasChildren){
+                                                DevExpress.ui.notify("@LabelText.DONTDELETESUBMATERIAL", "error", globalNotificationErrorTime);
+                                                } else {
+                                                e.component.deleteRow(e.row.dataIndex);
+                                                }
+                                                }
+                                            </text>);
+                                        });
+                    })
+                        .FilterPanel(f => f.Visible(false))
+                        .ColumnAutoWidth(true)
+                        .Paging(p => p.PageSize(25).Enabled(true))
+                        .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                        .SearchPanel(searchPanel => searchPanel
+                            .Visible(true)
+                            .Width(180)
+                            .Placeholder("Search...")
+                        )
+                        .Sorting(c => c.Mode(GridSortingMode.None))
+                        .ShowBorders(true)
+                        .ShowColumnLines(false)
+                        //.ShowRowLines(true)
+                        .ShowColumnHeaders(true)
+                        .AllowColumnResizing(true)
+                        .Editing(e =>
+                            e.Mode(GridEditMode.Batch)
+                                .AllowUpdating(new JS("iudAuth()"))
+                                .AllowAdding(new JS("iudAuth()"))
+                                .AllowDeleting(new JS("trBOMMaster_AllowDeleting"))
+                        )
+                        .Selection(s => s.Mode(SelectionMode.Single))
+                        .OnEditingStart("trBOMMaster_OnEditingStart")
+                        .OnContentReady("trBOMMaster_onContentReady")
+                        .OnCellPrepared("trBOMMaster_OnCellPrepared")
+                        .OnToolbarPreparing("trBOMMaster_onToolbarPreparing")
+            )
+        </div>
+    </div>
+</div>
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPART"))
+{
+    @(Html.DevExtreme().DropDownBox()
+                .ID("ddbPart")
+                .Value(new JS("data.PARTNUMBER"))
+                .ValueExpr("PARTNUMBER")
+                .DisplayExpr("PRODUCTNAME")
+                .DataSource(d => d.WebApi().Controller("COMA001WebApi").LoadAction("PART_METERIAL_LIST").Key("PARTNUMBER").OnBeforeSend("function ddbPart_OnBeforeSend(method, ajaxOptions){ if (method == 'load') { ajaxOptions.data.PARTTYPE = data.PARTTYPE; } }"))
+                .AcceptCustomValue(true)
+                .OnValueChanged(@<text>
+                    function(e){
+                    setValue(e.value[0]);
+                    }
+                </text>)
+                            .OnOpened(@<text>
+                                function (e) {
+                                e.component.content().parent().width(350);
+
+                                var trans = e.component.content().parent().css('transform');
+                                var matrix = trans.replace(/[^0-9\-.,]/g, '').split(',');
+                                var vLeft = 350 - (window.innerWidth - matrix[4]);
+                                if (vLeft > 0) {
+                                e.component.content().parent().css('left', -(vLeft + 5));
+                                }
+                                }
+                            </text>)
+                                        .ContentTemplate(new TemplateName("EmbeddedPARTSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPARTSingle"))
+{
+    @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                .ID("grdPartSingle")
+                .DataSource(new JS(@"component.option(""dataSource"")"))
+                .Columns(columns =>
+                {
+                    columns.AddFor(m => m.PARTNUMBER);
+                    columns.AddFor(m => m.PRODUCTNAME);
+                    columns.AddFor(m => m.UNITCODE).Visible(false);
+                })
+                .HoverStateEnabled(true)
+                .Paging(p => p.PageSize(10))
+                .FilterRow(f => f.Visible(true))
+                .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                .Height(345)
+                .Selection(s => s.Mode(SelectionMode.Single))
+                .SelectedRowKeys(new JS(@"component.option(""value"")"))
+                  .OnSelectionChanged(@<text>
+                    function(selectedItems) {
+                    var keys = selectedItems.selectedRowKeys;
+                    component.option("value", keys);
+                    if(typeof keys !== 'undefined' && keys.length > 0){
+                    component.close();
+                    }
+                    }
+                </text>)
+    )
+}
+
+<script>
+    var confirmDialog;
+    var deferredArray = [], deferredIndex = 0;
+
+    var treeLevel = [];
+
+    treeLevel[2] = 'rgba(142,194,194,1)';
+    treeLevel[3] = 'rgba(142,194,194,0.7)';
+    treeLevel[4] = 'rgba(142,194,194,0.3)';
+    treeLevel[5] = 'rgba(142,194,194,0.0)';    
+
+
+
+    function AA(row, value, current) {
+        var grid = $('#grdPartSingle').dxDataGrid('instance');
+        if (grid != undefined) {
+            var wdw = grid.getSelectedRowsData();
+            row.PARTNUMBER = value;
+            row.UNITCODE = wdw[0].UNITCODE;
+
+            if (wdw[0].PRODUCTTYPE == 'M01') {
+
+                var selectedPartinfo = $('#grdProductList').dxDataGrid('instance').getSelectedRowsData();
+
+                row.USAGE = selectedPartinfo[0].UDNF6;
+
+                $('#grdPartSingle').dxDataGrid('instance').closeEditCell();
+            }
+        }
+    }
+
+
+
+    function trBOMMaster_OnCellPrepared(e) {
+        if (e.rowType === "data" && e.column.dataField === "PARTNUMBER") {
+            if (e.data.LEVELNO > 1)
+                e.cellElement.css("background-color", treeLevel[e.data.LEVELNO]);
+        }
+    }
+
+    function trBOMMaster_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var productList = $('#grdProductList').dxDataGrid('instance');
+
+            var productListRow = productList.getSelectedRowsData();
+
+            if (productListRow.length > 0) {
+                ajaxOptions.data.ROOTPARTNUMBER = productListRow[0].PARTNUMBER;
+            } else {
+                ajaxOptions.data.ROOTPARTNUMBER = "";
+            }
+        } else if (method == "insert") {
+            var productList = $('#grdProductList').dxDataGrid('instance');
+
+            var productListRow = productList.getSelectedRowsData();
+
+            var tmp = JSON.parse(ajaxOptions.data.values);
+
+            //if (tmp.UNITCODE == "U02") {
+            //    tmp.USAGE = Math.round(tmp.USAGE * 1000);
+            //} else {
+            //    tmp.USAGE = Math.round(tmp.USAGE);
+            //}
+            tmp.USAGE = tmp.USAGE;
+
+            ajaxOptions.data.values = JSON.stringify(tmp);
+
+            if (productListRow.length > 0) {
+                ajaxOptions.data.ROOTPARTNUMBER = productListRow[0].PARTNUMBER;
+            } else {
+                ajaxOptions.data.ROOTPARTNUMBER = "";
+            }
+
+        } else if (method == "update")
+        {
+            var index = $('#trBOMMaster').dxTreeList('instance').getRowIndexByKey(ajaxOptions.data.key);
+            var unitcode = $('#trBOMMaster').dxTreeList('instance').cellValue(index, 'UNITCODE');
+            //var partnumber = $('#trBOMMaster').dxTreeList('instance').cellValue(index, 'PARTNUMBER');
+
+            var tmp = JSON.parse(ajaxOptions.data.values);
+            //tmp.PARTNUMBER = partnumber;
+
+            if (unitcode == "U02") {
+                if (tmp.USAGE != undefined)
+                    tmp.USAGE = Math.round(tmp.USAGE * 1000);
+                //ajaxOptions.data.values = JSON.stringify(tmp);
+            } else {
+                if (tmp.USAGE != undefined)
+                    tmp.USAGE = Math.round(tmp.USAGE);
+            }
+            
+            ajaxOptions.data.values = JSON.stringify(tmp);
+            //ajaxOptions.data.UNITCODE = unitcode;
+        }
+    }
+
+    function trBOMMaster_OnEditingStart(e) {
+        if (e.data.LEVELNO == 1) {
+            e.cancel = true;
+        }
+    }
+
+    function trBOMMaster_onContentReady(e) {
+        e.component.columnOption("command:add", "visible", false);
+    }
+
+    function trBOMMaster_onToolbarPreparing(e) {
+        var toolbarItems = e.toolbarOptions.items;
+        // Modifies an existing item
+        $.each(toolbarItems, function (_, item) {
+            if (item.name == "addRowButton") {
+                // Change the item options here
+                item.visible = false;
+            }
+        });
+    }
+
+    function trBOMMaster_AllowDeleting(e) {
+        if (e.row.rowType == "data") {
+            if (e.row.data.LEVELNO == 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function grdProductList_OnRowClick(e) {
+        var list = $('#trBOMMaster').dxTreeList('instance');
+        list.refresh();
+
+        window.setTimeout(function () {
+            var keys = getNodeKeys(list.getRootNode());
+            list.beginUpdate();
+            keys.forEach(function (key) {
+                list.expandRow(key);
+            });
+            list.endUpdate();
+        }, 500);
+
+    };
+
+    var getNodeKeys = function (node) {
+        var keys = [];
+        keys.push(node.key);
+        node.children.forEach(function (item) {
+            keys = keys.concat(getNodeKeys(item));
+        });
+        return keys;
+    }
+</script>

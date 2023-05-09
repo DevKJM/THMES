@@ -1,0 +1,79 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<DailyCheckItemMaster>()
+                      .ID("grdDailyCheckItemMaster")
+                      .DataSource(d => d.WebApi().Controller("MSTM012WebApi").Key("CHECKITEMID"))
+                      .Columns(columns =>
+                      {
+                          columns.AddFor(m => m.CHECKITEMCODE).SortOrder(SortOrder.Asc).SortIndex(0);
+                          columns.AddFor(m => m.CHECKITEMNAME).SortOrder(SortOrder.Asc).SortIndex(1);
+                          columns.AddFor(m => m.CHECKITEMDETAIL).EditCellTemplate(@<text>@(Html.DevExtreme().TextArea().Height(100).Value(new JS("data.CHECKITEMDETAIL")).OnValueChanged("function(e){setValue(e.value);}"))</text>);
+                          columns.AddFor(m => m.NORMALSTATE).EditCellTemplate(@<text>@(Html.DevExtreme().TextArea().Height(100).Value(new JS("data.NORMALSTATE")).OnValueChanged("function(e){setValue(e.value);}"))</text>);
+                          columns.AddFor(m => m.MEMO).Visible(false);
+                          columns.AddFor(m => m.USEYN);
+                          columns.AddFor(m => m.CREATEUSER);
+                          columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                          columns.AddFor(m => m.RECENTUSER);
+                          columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                      })
+                      .RemoteOperations(true)
+                      .OnInitialized("grdDailyCheckItemMaster_OnInitialized")
+                      .FilterPanel(f => f.Visible(true))
+                      .ColumnAutoWidth(true)
+                      .Paging(p => p.PageSize(25).Enabled(true))
+                      .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                      .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                      .ShowRowLines(true)
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                      .SearchPanel(searchPanel => searchPanel
+                          .Visible(true)
+                          .Width(180)
+                          .Placeholder("Search...")
+                      )
+                      .FilterRow(filterRow => filterRow
+                          .Visible(true)
+                          .ApplyFilter(GridApplyFilterMode.Auto)
+                      )
+                      .ShowBorders(true)
+                      .AllowColumnResizing(true)
+                      .Editing(e =>
+                          e.Mode(GridEditMode.Batch)
+                              .AllowUpdating(new JS("iudAuth()"))
+                              .AllowAdding(new JS("iudAuth()"))
+                              .AllowDeleting(new JS("iudAuth()"))
+                      )
+                      .RowAlternationEnabled(true)
+                      .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                      .Option("KEY_FIELD", new object[] { "PLANTCODE", "CHECKITEMCODE" })
+                      .Option("INIT_FIELD", new object[] { "USEYN", "PLANTCODE" })
+                  )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdDailyCheckItemMaster_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+</script>
+
+
+@Html.Partial("_DropdownPartial")

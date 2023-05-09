@@ -1,0 +1,184 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<PartNumberMaster>()
+                          .DataSource(d => d.WebApi().Controller("MSTD001WebApi").Key("PARTNUMBERID"))
+                          .ID("grdPartNumber")
+                          .Columns(columns =>
+                          {
+                              //columns.AddFor(m => m.UDCF1)
+                              //    .Lookup(lookup => lookup
+                              //        .DataSource(d => d.WebApi()
+                              //            .Controller("MSTD001WebApi").Key("MATERIALID")
+                              //            .LoadAction("getMaterial"))
+                              //        .DisplayExpr("MATERIALNAME")
+                              //        .ValueExpr("MATERIALCODE")
+                              //    );//원자재코드
+
+                              //columns.AddFor(m => m.PARTNUMBER);
+                              //columns.AddFor(m => m.PRODUCTNAME);
+
+                              ////columns.AddFor(m => m.PRODUCTGROUP)
+                              ////    .Lookup(lookup => lookup
+                              ////        .DataSource(d => d.WebApi()
+                              ////            .Controller("COMA003WebApi").Key("SYSCODE")
+                              ////            .LoadAction("PRODUCTGROUP_LIST"))
+                              ////        .DisplayExpr("SYSCODENAME")
+                              ////        .ValueExpr("SYSCODE")
+                              ////    );
+                              ////columns.AddFor(m => m.PRODUCTTYPE)
+                              ////    .Lookup(lookup => lookup
+                              ////        .DataSource(d => d.WebApi()
+                              ////            .Controller("COMA003WebApi").Key("SYSCODE")
+                              ////            .LoadAction("PRODUCTTYPE_LIST"))
+                              ////        .DisplayExpr("SYSCODENAME")
+                              ////        .ValueExpr("SYSCODE")
+                              ////    );
+                              //columns.Add().Caption(LabelText.SPEC)
+                              //    .Columns(a =>
+                              //    {
+                              //        a.AddFor(m => m.UDNF1);//규격_외경
+                              //        a.AddFor(m => m.UDNF2);//규격_내경
+                              //        a.AddFor(m => m.UDNF3);//규격_두께
+                              //        a.AddFor(m => m.UDNF4);//규격_길이
+                              //    });
+                              //columns.AddFor(m => m.UDNF9);//중량
+                              //columns.Add().Caption(LabelText.INSPECTERRORRANGE)
+                              //    .Columns(a =>
+                              //    {
+                              //        a.AddFor(m => m.UDNF5);//검사공차범위_외경
+                              //        a.AddFor(m => m.UDNF6);//검사공차범위_내경
+                              //        a.AddFor(m => m.UDNF7);//검사공차범위_두께
+                              //        a.AddFor(m => m.UDNF8);//검사공차범위_길이
+                              //    });
+                              //columns.AddFor(m => m.SAFETYINVENTQUANTITY);
+                              //columns.AddFor(m => m.BOXPERQUANTITY);
+                              //columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+                              //columns.AddFor(m => m.UDCF3);//식별테이프여부
+                              //columns.AddFor(m => m.UDCF4);//식별테이프색상
+                              //columns.AddFor(m => m.UDCF5);//테이프위치
+                              ////columns.AddFor(m => m.DRAWINGNO);
+                              ////columns.AddFor(m => m.SPEC);
+                              ////columns.AddFor(m => m.UNITCODE)
+                              ////    .Lookup(lookup => lookup
+                              ////        .DataSource(d => d.WebApi()
+                              ////            .Controller("COMA003WebApi").Key("SYSCODE")
+                              ////            .LoadAction("UNITCODE_LIST"))
+                              ////        .DisplayExpr("SYSCODENAME")
+                              ////        .ValueExpr("SYSCODE")
+                              ////    );
+                              //columns.AddFor(m => m.MEMO);
+                              //columns.AddFor(m => m.USEYN);
+                              //columns.AddFor(m => m.CREATEUSER);
+                              //columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                              //columns.AddFor(m => m.RECENTUSER);
+                              //columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+
+                              columns.AddFor(m => m.PARTNUMBER);
+                              columns.AddFor(m => m.PRODUCTGROUP)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                          .LoadAction("PRODUCTGROUP_LIST"))
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  );
+                              columns.AddFor(m => m.PRODUCTTYPE)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                          .LoadAction("PRODUCTTYPE_LIST"))
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  );
+                              columns.AddFor(m => m.PRODUCTNAME);
+                              columns.AddFor(m => m.DRAWINGNO);
+                              columns.AddFor(m => m.SPEC);
+                              columns.AddFor(m => m.SAFETYINVENTQUANTITY);
+                              columns.AddFor(m => m.BOXPERQUANTITY);
+                              columns.AddFor(m => m.UNITCODE)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                          .LoadAction("UNITCODE_LIST"))
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  );
+                              columns.Add().EditCellTemplate(new TemplateName("EmbeddedColor")).Visible(true).Caption("색상");
+                              columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+                              columns.AddFor(m => m.MEMO);
+                              columns.AddFor(m => m.USEYN);
+                              columns.AddFor(m => m.CREATEUSER);
+                              columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                              columns.AddFor(m => m.RECENTUSER);
+                              columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                          })
+                          .AllowColumnResizing(true)
+                          .RemoteOperations(true)
+                          .FilterPanel(f => f.Visible(true))
+                          .ColumnAutoWidth(true)
+                          .Paging(p => p.PageSize(25).Enabled(true))
+                          .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                          //.StateStoring(s => s.Enabled(true).StorageKey("MSTD001_grdPartNumber").Type(StateStoringType.LocalStorage))
+                          .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                          .ShowRowLines(true)
+                  .KeyboardNavigation(options =>
+                  {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                  })
+                          .SearchPanel(searchPanel => searchPanel
+                              .Visible(true)
+                              .Width(180)
+                              .Placeholder("Search...")
+                          )
+                          .FilterRow(filterRow => filterRow
+                              .Visible(true)
+                              .ApplyFilter(GridApplyFilterMode.Auto)
+                          )
+                          .ShowBorders(true)
+                          .AllowColumnResizing(true)
+                          .Editing(e =>
+                              e.Mode(GridEditMode.Batch)
+                                  .AllowUpdating(new JS("iudAuth()"))
+                                  .AllowAdding(new JS("iudAuth()"))
+                                  .AllowDeleting(new JS("iudAuth()"))
+                          )
+                          .RowAlternationEnabled(true)
+                  .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                  .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                  //.OnInitialized("grdPartNumber_OnInitialized")
+                  //.Option("KEY_FIELD", new object[] { "PARTNUMBER" })
+                  //.Option("INIT_FIELD", new object[] { "USEYN", "PARTNUMBER" })
+                  .OnInitNewRow("grdPartNumber_OnInitNewRow")
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdPartNumber_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdPartNumber_OnInitNewRow(e) {
+        e.data.SAFETYINVENTQUANTITY = 0;
+    }
+
+</script>
+
+
+@Html.Partial("_DropdownPartial")

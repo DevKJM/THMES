@@ -1,0 +1,487 @@
+﻿@using JSMES.WebUI.Alpha.Models.LogStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.RPT.RPTA;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().Form<RPTA045B_LIST>()
+                .ID("form")
+                .ColCount(20)
+                .Items(items =>
+                {
+                    items.AddSimpleFor(m => m.SEARCHTYPE)
+                        .Editor(e => e.RadioGroup()
+                            .DataSource(
+                                new JS("[{ text: '일자/업체별', value: '1' }, { text: '원단 LOT', value: '2' }]")
+                            )
+                            .Value("1")
+                            .ValueExpr("value")
+                            .DisplayExpr("text")
+                            .Layout(Orientation.Horizontal)
+                            .OnValueChanged("form_Lottype_OnValueChanged")
+                        )
+                    .ColSpan(20).Label(m => m.Text("LOT 구분"));
+                    items.AddSimpleFor(m => m.WORKDATE).ColSpan(2)
+                        .Editor(e => e.DateBox()
+                            .DisplayFormat("yyyy-MM-dd")
+                            .Value(DateTime.Today)
+                        );
+                    items.AddSimpleFor(m => m.VENDORCODE).ColSpan(3)
+                        .Editor(e => e.DropDownBox()
+                            .ValueExpr("VENDORCODE")
+                            .DisplayExpr("VENDORNAME")
+                            .DataSource(d => d.WebApi().Controller("COMA001WebApi").Key("VENDORCODE").LoadAction("VENDOR_SELLYN_LIST")
+                        )
+                        .Placeholder("Select a value...")
+                        .ShowClearButton(true)
+                        .ContentTemplate(new TemplateName("EmbeddedVendorDataGridSingle"))
+                    );
+                    items.AddSimpleFor(m => m.CARTYPE).ColSpan(2)
+                        .Editor(e => e.Lookup()
+                                .DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("CARTYPE_LIST")
+                            )
+                            .DisplayExpr("SYSCODENAME")
+                            .ValueExpr("SYSCODE")
+                            .OnValueChanged("form_cartype_OnValueChanged")
+                        );
+
+                    items.AddSimpleFor(m => m.COLOR).ColSpan(2)
+                        .Editor(e => e.Lookup()
+                        .DataSource(d => d.WebApi()
+                            .Controller("COMA001WebApi").Key("COLOR")
+                            .LoadParams(new
+                            {
+                                cartype = new JS("function() { return $('#form').dxForm('instance').getEditor('CARTYPE').option('value'); }")
+                            })
+                            .LoadAction("CARTYPE_COLOR_LIST")
+                            .OnBeforeSend("form_color_OnBeforeSend")
+                        )
+                        .CloseOnOutsideClick(true)
+                        .DisplayExpr("COLOR")
+                        .ValueExpr("COLOR")
+                        .OnOpened("form_color_OnOpened")
+                        .OnValueChanged("form_color_OnValueChanged")
+                    ).Name("COLOR");
+                    items.AddSimpleFor(m => m.PARTNUMBER).ColSpan(4)
+                        .Editor(e => e.Lookup()
+                            .DataSource(d => d.WebApi().Controller("RPTA045WebApi").Key("PARTNUMBER")
+                                .LoadParams(new
+                                {
+                                    searchType = new JS("function() { return $('#form').dxForm('instance').option('formData.SEARCHTYPE'); }"),
+                                    cartype = new JS("function() { return $('#form').dxForm('instance').option('formData.CARTYPE'); }"),
+                                    color = new JS("function() { return $('#form').dxForm('instance').option('formData.COLOR'); }"),
+                                })
+                                .LoadAction("getPartList")
+                                .OnBeforeSend("form_partnumber_OnBeforeSend")
+                            )
+                            .Placeholder("Select a value...")
+                            .ValueExpr("PARTNUMBER")
+                            .DisplayExpr("PRODUCTNAME")
+                            .ShowClearButton(true)
+                            .OnOpened("form_partnumber_OnOpened")
+                        );
+                    items.AddSimpleFor(m => m.WONDANLOTNUMBER).ColSpan(3)
+                        .Editor(e => e.TextBox().Disabled(true));
+                    items.AddButton()
+                        .ButtonOptions(b => b.ID("btnSearch")
+                            .Icon("search")
+                            .Text(LabelText.SELECT)
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .OnClick("btnSearch_OnClick")
+                            .Width("100%")
+                            .FocusStateEnabled(false)
+                            .HoverStateEnabled(true)
+                            .Disabled(new JS("!iudAuth()"))
+                        ).ColSpan(2);
+                    items.AddButton()
+                        .ButtonOptions(b => b.ID("btnRefresh")
+                            .Icon("refresh")
+                            .Text(LabelText.REMOVE)
+                            .StylingMode(ButtonStylingMode.Contained)
+                            .OnClick("btnRefresh_OnClick")
+                            .Width("100%")
+                            .FocusStateEnabled(false)
+                            .HoverStateEnabled(true)
+                            .Disabled(new JS("!iudAuth()"))
+                        ).ColSpan(2);
+                    items.AddSimple().ColSpan(20)
+                        .Template(@<text>
+                            @(Html.DevExtreme()
+                                .TreeList<RPTA045_LIST>()
+                                .ID("trlLotTrace")
+                                .KeyExpr("SERIALUNIQUEID")
+                                .ParentIdExpr("ROOTFIELD")
+                                .RootValue("-")
+                                .AutoExpandAll(false)
+                                .DataSource(d => d.WebApi().Controller("RPTA045WebApi").OnBeforeSend("formLotTrace_trlLotTrace_onBeforeSend").LoadAction("getLotTrace").Key("SERIALUNIQUEID").OnLoaded("formLotTrace_trlLotTrace_onLoaded"))
+                                .Columns(columns =>
+                                {
+                                    columns.AddFor(m => m.SERIALUNIQUEID).Visible(false);
+                                    columns.AddFor(m => m.ROOTFIELD).Visible(false);
+                                    columns.AddFor(m => m.NEXTSERIALNUMBER).Visible(false);
+                                    columns.AddFor(m => m.SERIALNUMBER).Visible(false); 
+                                    columns.AddFor(m => m.VIEWSERIALNUMBER);
+                                    columns.AddFor(m => m.LOTNUMBER);
+                                    columns.AddFor(m => m.WONDANLOTNUMBER).Visible(false);
+                                    columns.AddFor(m => m.LAMILOTNUMBER);
+                                    columns.AddFor(m => m.SEQ).SortOrder(SortOrder.Asc).SortIndex(0).Visible(false);
+                                    columns.AddFor(m => m.WORKDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                                    columns.AddFor(m => m.PROCESSCODE).SortOrder(SortOrder.Desc).SortIndex(1)
+                                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("PROCESSCODE")
+                                            .LoadAction("PROCESS_LIST")
+                                            )
+                                        .DisplayExpr("PROCESSNAME")
+                                        .ValueExpr("PROCESSCODE"));
+                                    columns.AddFor(m => m.TRANSCODE)//.SortOrder(SortOrder.Asc).SortIndex(2)
+                                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("TRANSCODE")
+                                            .LoadAction("TRANSACTION_LIST")
+                                            )
+                                        .DisplayExpr("TRANSNAME")
+                                        .ValueExpr("TRANSCODE"));
+                                    columns.AddFor(m => m.LOTNUMBER).Visible(false);
+                                    columns.AddFor(m => m.CARTYPE).Visible(false);
+                                    columns.AddFor(m => m.COLOR).Visible(false);
+                                    columns.AddFor(m => m.PARTNUMBER).Visible(false);
+                                    columns.AddFor(m => m.PRODUCTNAME).Visible(false);
+                                    columns.AddFor(m => m.PRODUCTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(2)).Width(80);
+                                    columns.AddFor(m => m.GOODQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(2)).Width(80);
+                                    columns.AddFor(m => m.DEFECTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(2)).Width(80);
+                                    columns.AddFor(m => m.UNITCODE)
+                                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                            .Controller("COMA003WebApi").Key("SYSCODE")
+                                            .LoadAction("UNITCODE_LIST")
+                                            )
+                                        .DisplayExpr("SYSCODENAME")
+                                        .ValueExpr("SYSCODE"));
+                                    columns.AddFor(m => m.WORKSTARTTIME).Format(f => f.Type(Format.ShortDateShortTime));
+                                    columns.AddFor(m => m.WORKENDTIME).Format(f => f.Type(Format.ShortDateShortTime));
+                                    columns.AddFor(m => m.WORKER);
+                                    columns.AddFor(m => m.WAREHOUSECODE)
+                                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("WAREHOUSECODE")
+                                            .LoadAction("WAREHOUSE_LIST")
+                                            )
+                                        .DisplayExpr("WAREHOUSENAME")
+                                        .ValueExpr("WAREHOUSECODE"));
+                                    columns.AddFor(m => m.VENDORCODE)
+                                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("VENDORCODE")
+                                            .LoadAction("VENDOR_LIST")
+                                            )
+                                        .DisplayExpr("VENDORNAME")
+                                        .ValueExpr("VENDORCODE"));
+                                })
+                                .ColumnMinWidth(50)
+                                .ColumnAutoWidth(true)
+                                .AllowColumnResizing(true)
+                                .RowAlternationEnabled(true)
+                                .Sorting(s=> s.Mode(GridSortingMode.None))
+                                .NoDataText("")
+                                .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                            )
+                        </text>);
+                    items.AddSimple().ColSpan(20).Visible(false)
+                        .Template(@<text>
+                            @(Html.DevExtreme()
+                                .DataGrid<RPTA045_LIST>()
+                                .ID("grdLotTrace")
+                                .DataSource(d => d.WebApi().Controller("RPTA045WebApi").OnBeforeSend("formLotTrace_grdLotTrace_onBeforeSend").LoadAction("getLotTrace"))
+                                .Columns(columns =>
+                                {
+                                    columns.AddFor(m => m.ROOTFIELD);
+                                    columns.AddFor(m => m.SERIALUNIQUEID);
+                                    columns.AddFor(m => m.NEXTSERIALNUMBER);
+                                    columns.AddFor(m => m.SERIALNUMBER);
+                                    columns.AddFor(m => m.SEQ).SortOrder(SortOrder.Asc).SortIndex(0);
+                                    columns.AddFor(m => m.WORKDATE);
+                                    columns.AddFor(m => m.LOTNUMBER);
+                                    columns.AddFor(m => m.WONDANLOTNUMBER);
+                                    columns.AddFor(m => m.LAMILOTNUMBER);
+                                    columns.AddFor(m => m.CARTYPE);
+                                    columns.AddFor(m => m.COLOR);
+                                    columns.AddFor(m => m.PARTNUMBER);
+                                    columns.AddFor(m => m.PRODUCTNAME);
+                                    columns.AddFor(m => m.PROCESSCODE)
+                                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("PROCESSCODE")
+                                            .LoadAction("PROCESS_LIST")
+                                            )
+                                        .DisplayExpr("PROCESSNAME")
+                                        .ValueExpr("PROCESSCODE"));
+                                    columns.AddFor(m => m.TRANSCODE)
+                                        .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                            .Controller("COMA001WebApi").Key("TRANSCODE")
+                                            .LoadAction("TRANSACTION_LIST")
+                                            )
+                                        .DisplayExpr("TRANSNAME")
+                                        .ValueExpr("TRANSCODE"));
+                                    columns.AddFor(m => m.PRODUCTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0)).Width(80);
+                                    columns.AddFor(m => m.GOODQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0)).Width(80);
+                                    columns.AddFor(m => m.DEFECTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0)).Width(80);
+                                    columns.AddFor(m => m.WORKSTARTTIME);
+                                    columns.AddFor(m => m.WORKENDTIME);
+                                    columns.AddFor(m => m.WORKER);
+                                    columns.AddFor(m => m.WAREHOUSECODE);
+                                    columns.AddFor(m => m.VENDORCODE);
+                                })
+                                .ColumnMinWidth(50)
+                                .ColumnAutoWidth(true)
+                                .AllowColumnResizing(true)
+                                .RowAlternationEnabled(true)
+                                .NoDataText("")
+                                .Paging(paging => paging.PageSize(500))
+                                .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true))
+                            )
+                        </text>);
+                })
+            )
+        </div>
+    </div>
+</div>
+
+@*업체 리스트*@
+@using (Html.DevExtreme().NamedTemplate("EmbeddedVendorDataGridSingle"))
+{
+    @(Html.DevExtreme().DataGrid<VendorMaster>()
+        .ID("embedded-vendor-datagrid")
+            .DataSource(new JS(@"component.option(""dataSource"")"))
+        .Columns(columns =>
+        {
+            columns.AddFor(m => m.VENDORNAME);
+            columns.AddFor(m => m.TELEPHONE);
+            columns.AddFor(m => m.ADDRESS);
+        })
+        .ColumnAutoWidth(true)
+            .HoverStateEnabled(true)
+            .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+            .Height(345)
+            .Scrolling(s => s.ScrollByThumb(true).ScrollByContent(true).Mode(GridScrollingMode.Standard))
+        .Selection(s => s.Mode(SelectionMode.Single).AllowSelectAll(false))
+        .SelectedRowKeys(new JS(@"[component.option(""value"")]"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var haskey = false;
+                var keys = selectedItems.selectedRowKeys;
+                if(typeof keys !== 'undefined' && keys.length > 0)
+                {
+                    haskey = true;
+                }
+
+                component.option("value", haskey ? keys[0] : null);
+                if(typeof keys !== 'undefined' && keys.length > 0){
+                component.close();
+                }
+            }
+        </text>)
+    )
+}
+
+
+<script>
+    
+
+    function form_Lottype_OnValueChanged(e) {
+        var form = $('#form').dxForm('instance');
+        if (e.value == "1") {
+            form.getEditor("WORKDATE").option('disabled', false);
+            form.getEditor("VENDORCODE").option('disabled', false);
+            form.getEditor("WONDANLOTNUMBER").option('value', null);
+            form.getEditor("WONDANLOTNUMBER").option('disabled', true);
+        }
+        else {
+            form.getEditor("WORKDATE").option('disabled', true);
+            form.getEditor("VENDORCODE").option('value', null);
+            form.getEditor("VENDORCODE").option('disabled', true);
+            form.getEditor("WONDANLOTNUMBER").option('disabled', false);
+        }
+    }
+
+    function formLotTrace_trlLotTrace_onLoaded(e) {
+        if (e.length > 0) {
+            window.setTimeout(function () {
+                var keys = getNodeKeys($('#trlLotTrace').dxTreeList('instance').getRootNode());
+                $('#trlLotTrace').dxTreeList('instance').beginUpdate();
+                keys.forEach(function (key) {
+                    $('#trlLotTrace').dxTreeList('instance').expandRow(key);
+                });
+                $('#trlLotTrace').dxTreeList('instance').endUpdate();
+            }, 10);
+        }
+    }
+
+    function form_color_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            var form = $('#form').dxForm('instance');
+            var cartype = form.getEditor("CARTYPE").option('value');
+            if (cartype != null && cartype != '') {
+                ajaxOptions.data.cartype = cartype;
+            }
+        }
+    }
+
+    function form_color_OnOpened(e) {
+        if (!e.component.isFirstLoadFlag) {
+            e.component.getDataSource().reload();
+        }
+    }
+
+    function form_partnumber_OnBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            var form = $('#form').dxForm('instance');
+            var cartype = (form.getEditor("CARTYPE").option('value') != null && form.getEditor("CARTYPE").option('value') != '') ? form.getEditor("CARTYPE").option('value') : "";
+            var color = (form.getEditor("COLOR").option('value') != null && form.getEditor("COLOR").option('value') != '') ? form.getEditor("COLOR").option('value') : "";
+            ajaxOptions.data.cartype = cartype;
+            ajaxOptions.data.color = color;
+        }
+    }
+
+    function form_partnumber_OnOpened(e) {
+        e.component.getDataSource().reload();
+        //if (!e.component.isFirstLoadFlag) {
+        //    e.component.getDataSource().reload();
+        //}
+    }
+
+    function form_cartype_OnValueChanged(e) {
+        $('#form').dxForm('instance').updateData('COLOR', null);
+    }
+
+    function form_color_OnValueChanged(e) {
+    }
+
+    function btnSearch_OnClick(e) {
+        var form = $('#form').dxForm('instance');
+        var searchType = form.getEditor('SEARCHTYPE').option('value');
+
+        if (searchType == '1') {
+            if (form.getEditor('VENDORCODE').option('value') == null || form.getEditor('VENDORCODE').option('value') == "") {
+                DevExpress.ui.notify('업체를 입력해주세요', 'error', globalNotificationErrorTime);
+                return;
+            }
+            if (form.getEditor('CARTYPE').option('value') == null || form.getEditor('CARTYPE').option('value') == "") {
+                DevExpress.ui.notify('차종을 입력해주세요', 'error', globalNotificationErrorTime);
+                return;
+            }
+            if (form.getEditor('COLOR').option('value') == null || form.getEditor('COLOR').option('value') == "") {
+                DevExpress.ui.notify('색상을 입력해주세요', 'error', globalNotificationErrorTime);
+                return;
+            }
+            if (form.getEditor('PARTNUMBER').option('value') == null || form.getEditor('PARTNUMBER').option('value') == "") {
+                DevExpress.ui.notify('품번을 입력해주세요', 'error', globalNotificationErrorTime);
+                return;
+            }
+
+            $('#trlLotTrace').dxTreeList('instance').refresh();
+
+
+
+        }
+        else if (searchType == '2') {
+            if (form.getEditor('CARTYPE').option('value') == null || form.getEditor('CARTYPE').option('value') == "") {
+                DevExpress.ui.notify('차종을 입력해주세요', 'error', globalNotificationErrorTime);
+                return;
+            }
+            if (form.getEditor('COLOR').option('value') == null || form.getEditor('COLOR').option('value') == "") {
+                DevExpress.ui.notify('색상을 입력해주세요', 'error', globalNotificationErrorTime);
+                return;
+            }
+            if (form.getEditor('PARTNUMBER').option('value') == null || form.getEditor('PARTNUMBER').option('value') == "") {
+                DevExpress.ui.notify('품번을 입력해주세요', 'error', globalNotificationErrorTime);
+                return;
+            }
+            if (form.getEditor('WONDANLOTNUMBER').option('value') == null || form.getEditor('WONDANLOTNUMBER').option('value') == "") {
+                DevExpress.ui.notify('원단 LOT를 입력해주세요', 'error', globalNotificationErrorTime);
+                return;
+            }
+            $('#trlLotTrace').dxTreeList('instance').refresh();
+        }
+        //$('#trlLotTrace').dxTreeList('instance').refresh();
+        //$('#grdLotTrace').dxDataGrid('instance').refresh();
+    }
+
+
+    var getNodeKeys = function (node) {
+        var keys = [];
+        keys.push(node.key);
+        node.children.forEach(function (item) {
+            keys = keys.concat(getNodeKeys(item));
+        });
+        return keys;
+    }
+
+    function btnRefresh_OnClick(e) {
+        var form = $('#form').dxForm('instance');
+
+        form.updateData('VENDORCODE', null);
+        form.updateData('CARTYPE', null);
+        form.updateData('COLOR', null);
+        form.updateData('PARTNUMBER', null);
+        form.updateData('WONDANLOTNUMBER', "");
+    }
+    
+    function formLotTrace_trlLotTrace_onBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            var form = $('#form').dxForm('instance');
+            var searchType = form.getEditor('SEARCHTYPE').option('value');
+            var date = form.getEditor('WORKDATE').option('value').getFullYear() + "-" + (Number(form.getEditor('WORKDATE').option('value').getMonth()) + 1).toString() + "-" + form.getEditor('WORKDATE').option('value').getDate();
+            if (searchType == '1') {
+                ajaxOptions.data.searchtype = searchType;
+                ajaxOptions.data.workdate = date;
+                ajaxOptions.data.vendorcode = form.getEditor('VENDORCODE').option('value');
+                ajaxOptions.data.cartype = form.getEditor('CARTYPE').option('value');
+                ajaxOptions.data.color = form.getEditor('COLOR').option('value');
+                ajaxOptions.data.partnumber = form.getEditor('PARTNUMBER').option('value');
+                ajaxOptions.data.wondanlotnumber = '';
+            }
+            else {
+                ajaxOptions.data.searchtype = searchType;
+                ajaxOptions.data.workdate = date;
+                ajaxOptions.data.vendorcode = '';
+                ajaxOptions.data.cartype = form.getEditor('CARTYPE').option('value');
+                ajaxOptions.data.color = form.getEditor('COLOR').option('value');
+                ajaxOptions.data.partnumber = form.getEditor('PARTNUMBER').option('value');
+                ajaxOptions.data.wondanlotnumber = form.getEditor('WONDANLOTNUMBER').option('value');
+            }
+        }
+    }
+    function formLotTrace_grdLotTrace_onBeforeSend(method, ajaxOptions) {
+        if (method == 'load') {
+            var form = $('#form').dxForm('instance');
+            var searchType = form.getEditor('SEARCHTYPE').option('value');
+            var date = form.getEditor('WORKDATE').option('value').getFullYear() + "-" + (Number(form.getEditor('WORKDATE').option('value').getMonth()) + 1).toString() + "-" + form.getEditor('WORKDATE').option('value').getDate();
+            if (searchType == '1') {
+                ajaxOptions.data.searchtype = searchType;
+                ajaxOptions.data.workdate = date;
+                ajaxOptions.data.vendorcode = form.getEditor('VENDORCODE').option('value');
+                ajaxOptions.data.cartype = form.getEditor('CARTYPE').option('value');
+                ajaxOptions.data.color = form.getEditor('COLOR').option('value');
+                ajaxOptions.data.partnumber = form.getEditor('PARTNUMBER').option('value');
+                ajaxOptions.data.wondanlotnumber = '';
+            }
+            else {
+                ajaxOptions.data.searchtype = searchType;
+                ajaxOptions.data.workdate = date;
+                ajaxOptions.data.vendorcode = '';
+                ajaxOptions.data.cartype = form.getEditor('CARTYPE').option('value');
+                ajaxOptions.data.color = form.getEditor('COLOR').option('value');
+                ajaxOptions.data.partnumber = form.getEditor('PARTNUMBER').option('value');
+                ajaxOptions.data.wondanlotnumber = form.getEditor('WONDANLOTNUMBER').option('value');
+            }
+        }
+    }
+</script>
+
+
+@Html.Partial("_DropdownPartial")

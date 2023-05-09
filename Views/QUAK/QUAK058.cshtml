@@ -1,0 +1,193 @@
+﻿@using Microsoft.AspNet.Identity;
+
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.QUA.QUAK;
+@using JSMES.WebUI.Alpha.ViewModels.COM;
+@using JSMES.WebUI.Alpha.Models.LogStruct;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="options">
+                <div class="option">
+                    <span>@LabelText.SELECT @LabelText.DATE</span>
+                    @(Html.DevExtreme().DateBox()
+                        .ID("searchFrom")
+                        .Type(DateBoxType.Date)
+                        .DisplayFormat(Format.Year)
+                        .CalendarOptions(c=>c.ZoomLevel(CalendarZoomLevel.Century).MinZoomLevel(CalendarZoomLevel.Decade).MaxZoomLevel(CalendarZoomLevel.Decade))
+                        .OnValueChanged("function(e){ $('#grdDefectHis').dxDataGrid('instance').refresh(); }")
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            @(Html.DevExtreme().Chart()
+                .ID("chtDefectSum")
+                .Palette(VizPalette.GreenMist)
+                .DataSource(new JS("chartData"))
+                .Title("월별 불량율 (PPM)")                
+                .SeriesTemplate(s=>s.NameField("NAME"))
+                .Tooltip(t => t
+                    .Enabled(true)
+                    .Shared(true)
+                    .Format(f=>f.Type(Format.FixedPoint).Precision(0))
+                )
+                .CommonSeriesSettings(s => s
+                    .ArgumentField("WORKDATE")
+                    .ValueField("VALUE")         
+                    .Label(l => l
+                        .Visible(true)
+                        .Format(f => f
+                            .Type(Format.FixedPoint)
+                            .Precision(0)
+                        )
+                    )
+                )
+                .ValueAxis(v=>v.Add().AutoBreaksEnabled(true))
+                .ResolveLabelOverlapping(ChartResolveLabelOverlapping.Hide)
+                .Legend(l => l
+                    .VerticalAlignment(VerticalEdge.Top)
+                    .HorizontalAlignment(HorizontalAlignment.Center)
+                ))
+        </div>
+    </div>
+     <div class="row mt-2"">
+        <div class="col-lg-12">
+            @(Html.DevExtreme().DataGrid<QUAK058_LIST>()
+                .ID("grdDefectHis")
+                .DataSource(d => d.WebApi()
+                    .Controller("QUAK058WebApi")
+                    .Key("DEFECTCODE")
+                    .OnBeforeSend("grdDefectHis_OnBeforeSend")
+                    .OnLoaded("grdDefectHis_OnLoaded")
+                )
+                .FilterRow(f=>f.Visible(true))
+                .ShowRowLines(true)
+                .Columns(columns =>
+                {
+                    columns.AddFor(m=>m.SORT).SortOrder(SortOrder.Asc).Visible(false);
+                    columns.AddFor(m=>m.DEFECTCODE).Visible(false);
+                    columns.AddFor(m=>m.DEFECTNAME).Width(130);
+                    columns.AddFor(m=>m.DEF1).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF2).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF3).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF4).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF5).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF6).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF7).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF8).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF9).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF10).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF11).Format(f=>f.Type(Format.FixedPoint)).Width(80);
+                    columns.AddFor(m=>m.DEF12).Format(f=>f.Type(Format.FixedPoint)).Width(80);                  
+                })
+                .ColumnHidingEnabled(false)
+                .SearchPanel(c=>c.Visible(true))
+                .RemoteOperations(true)
+                .Paging(p=>p.PageSize(25).Enabled(true))
+                .WordWrapEnabled(true)
+                .Pager(p=>p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[]{ 10, 25, 50, 100, 1000}))
+                .AllowColumnResizing(true)
+                .RowAlternationEnabled(true)
+                .OnRowPrepared("grdDefectHis_OnRowPrepared")
+            )
+        </div>
+     </div>
+</div>
+
+<script>
+
+    function grdDefectHis_OnRowPrepared(e) {
+        if (e.rowType == 'data') { 
+            if (e.data.DEFECTCODE == "DEFECTPPM") {
+                e.rowElement.css('background', 'rgba(60,186,178,0.5)'); 
+            } else if (e.data.DEFECTCODE == "SUMDEFECT") {
+                e.rowElement.css('background', 'rgba(60,186,178,0.3)'); 
+            } else if (e.data.DEFECTCODE == "WORKQUANTITY"){
+                e.rowElement.css('background', 'rgba(60,186,178,0.1)'); 
+            } else if (e.data.DEFECTCODE == "DEFECTPPMTARGET") {
+                e.rowElement.css('background', 'rgba(60,186,178,0.7)'); 
+			}
+        }
+    }
+    
+    function grdDefectHis_OnLoaded(e) {
+        chartData = [];        
+        var grid = $('#grdDefectHis').dxDataGrid('instance');
+        var searchFrom = $('#searchFrom').dxDateBox('instance').option("value");
+        searchFrom = new Date(searchFrom);
+        var maxDate = (new Date(searchFrom.getFullYear(), searchFrom.getMonth() + 1, 0)).getDate();
+        var startDate = (new Date(searchFrom.getFullYear(), searchFrom.getMonth(), 1));
+        //var weekDay = Globalize.dateFormatter({raw: "EEE"});
+        
+        for (var colIndex = 1; 12 >= colIndex; colIndex++) {
+            var field = "DEF" + colIndex;
+            grid.columnOption(field, "caption", Globalize.cldr.main("dates/calendars/gregorian/months/format/wide/" + colIndex));
+        }
+
+        var defectPpm = e.find(function(e){ 
+                                if(e.DEFECTCODE == "DEFECTPPM") { 
+                                        return e; 
+                                    }   
+                                });
+
+        var defectPpmTarget = e.find(function(e){ 
+                        if(e.DEFECTCODE == "DEFECTPPMTARGET") { 
+                                return e; 
+                            }   
+                        });        
+
+        if (defectPpm != undefined) {
+             var dataIndex = 1;
+
+            do {
+                if (defectPpm['DEF' + dataIndex] == undefined) {
+                    break;
+                }
+
+                if(maxDate < dataIndex ){
+                    break;
+                }
+
+                chartData.push({NAME: "불량률(PPM)", WORKDATE:  Globalize.cldr.main("dates/calendars/gregorian/months/format/wide/" + dataIndex), VALUE: defectPpm['DEF' + dataIndex]});            
+                chartData.push({NAME: "불량률 목표(PPM)", WORKDATE:  Globalize.cldr.main("dates/calendars/gregorian/months/format/wide/" + dataIndex), VALUE: defectPpmTarget['DEF' + dataIndex]});
+                
+                dataIndex++;
+            }
+            while(true);
+
+        }
+
+        $("#chtDefectSum").dxChart("instance").option("dataSource", chartData);
+    }
+
+    function grdDefectHis_OnBeforeSend(method, ajaxOptions) {
+        if (method == "load") {
+            var searchFrom = $('#searchFrom').dxDateBox('instance').option("value");
+            ajaxOptions.data.searchDate = Globalize.formatDate((searchFrom),{dateTime:'short'});
+        }
+    }
+
+    var chartData = [];
+
+    $(function(){
+        $("#searchFrom").dxDateBox("instance").option("value", new Date());
+    })
+
+    function searchFrom_OnValueChanged(e) {
+        $('#pie').dxPieChart('instance').refresh();
+        $('#chtDefectSum').dxChart('instance').refresh();
+    }
+
+    function searchTo_OnValueChanged(e) {
+        $('#chtDefectSum').dxChart('instance').refresh();
+    }
+</script>

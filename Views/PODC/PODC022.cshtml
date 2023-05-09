@@ -1,0 +1,143 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.ViewModels.POD.PODC;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<PODC002_LIST>()
+                    .ID("grdProductAdjust")
+                    .DataSource(d => d.WebApi()
+                        .Controller("PODC002WebApi")
+                        .Key("SERIALNUMBER")
+                        .OnBeforeSend("grdProductAdjust_OnBeforeSend")
+                    )
+                    .Columns(columns =>
+                    {
+                        columns.AddFor(m => m.PLANTCODE).Visible(false);
+                        columns.AddFor(m => m.WAREHOUSECODE).Visible(false);
+                        columns.AddFor(m => m.PARTNUMBER);
+                        columns.AddFor(m => m.PRODUCTNAME);
+                        columns.AddFor(m => m.PRODUCTTYPE)
+                            .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                .LoadAction("PRODUCTTYPE_LIST"))
+                                .DisplayExpr("SYSCODENAME")
+                                .ValueExpr("SYSCODE")
+                                );
+                        columns.AddFor(m => m.LOTNUMBER);
+                        columns.AddFor(m => m.SERIALNUMBER);
+                        columns.AddFor(m => m.UNITCODE);
+                        columns.AddFor(m => m.SURVEYDATE).Format(Format.ShortDate).SelectedFilterOperation(FilterOperations.Equal).FilterValue(new JS("new Date()"));
+                        columns.AddFor(m => m.SAFETYINVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0)).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                        columns.AddFor(m => m.QUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                        columns.AddFor(m => m.SURVEYQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                        columns.AddFor(m => m.ADJUSTEDQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                        columns.AddFor(m => m.REFLECTIONYN).AllowFiltering(false).AllowSorting(false);
+                        columns.AddFor(m => m.CREATEUSER).Visible(false);
+                    })
+                    .RemoteOperations(true)
+                    .FilterPanel(f => f.Visible(true))
+                    .ColumnAutoWidth(true)
+                    .Paging(p => p.PageSize(25).Enabled(true))
+                    .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                    .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                    .SearchPanel(searchPanel => searchPanel
+                        .Visible(true)
+                        .Width(180)
+                        .Placeholder("Search...")
+                    )
+                    .FilterRow(filterRow => filterRow
+                        .Visible(true)
+                        .ApplyFilter(GridApplyFilterMode.Auto)
+                    )
+                    .FilterPanel(f => f.Visible(false))
+                    .ShowRowLines(true)
+                    .ShowBorders(true)
+                    .AllowColumnResizing(true)
+                    .Editing(e =>
+                        e.Mode(GridEditMode.Batch)
+                            .AllowUpdating(new JS("iudAuth()"))
+                    )
+                    .RowAlternationEnabled(true)
+                    .OnCellClick("grdProductAdjust_OnCellClick")
+                    .Option("USE_REQUIRED_HEADER", true)
+                    .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                    .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                    .OnInitialized("grdProductAdjust_OnInitialized")
+                    .Option("KEY_FIELD", new object[]
+                    {
+                        "PLANTCODE", "WAREHOUSECODE", "PARTNUMBER", "PRODUCTNAME", "PRODUCTTYPE",
+                        "LOTNUMBER", "SERIALNUMBER", "UNITCODE", "SAFETYINVENTQUANTITY",
+                        "QUANTITY", "SURVEYDATE", "SURVEYQUANTITY", "CREATEUSER"
+                    })
+            )
+        </div>
+    </div>
+</div>
+
+<script>
+    function grdProductAdjust_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdProductAdjust_OnBeforeSend(method, ajaxOptions) {
+        if (method == "update") {
+            var jsonResult = ajaxOptions.data.values;
+            var parseJson = JSON.parse(jsonResult);
+            var grid = $('#grdProductAdjust').dxDataGrid('instance');
+
+            var index = grid.getRowIndexByKey(ajaxOptions.data.key);
+            var reflectionYN = grid.cellValue(index, 'REFLECTIONYN');
+            var adjustedQuantity = grid.cellValue(index, 'ADJUSTEDQUANTITY');
+            var surveyDate = grid.cellValue(index, 'SURVEYDATE');
+
+            parseJson.INVENTQUANTITY = adjustedQuantity;
+            parseJson.SURVEYDATE = surveyDate;
+
+            if (reflectionYN == true) {
+                parseJson.REFLECTIONYN = "Y";
+            } else {
+                parseJson.REFLECTIONYN = "N";
+            }
+
+            ajaxOptions.data.values = JSON.stringify(parseJson);
+        }
+    }
+
+    function grdProductAdjust_OnCellClick(e) {
+        if (e.rowType == "header" && e.column.dataField == "REFLECTIONYN") {
+            var grid = $('#grdProductAdjust').dxDataGrid('instance');
+            var cnt = grid.totalCount();
+
+            if (cnt > grid.pageSize()) {
+                cnt = grid.pageSize();
+            }
+
+            var truecnt = 0;
+            var falsecnt = 0;
+            var chk = true;
+
+            for (var i = 0; i < cnt; i++) {
+                if (grid.cellValue(i, "REFLECTIONYN"))
+                    truecnt++;
+                else
+                    falsecnt++;
+            }
+
+            if (truecnt >= falsecnt)
+                chk = false;
+            else
+                chk = true;
+
+            for (var i = 0; i < cnt; i++) {
+                grid.cellValue(i, "REFLECTIONYN", chk);
+            }
+        }
+    }
+
+</script>

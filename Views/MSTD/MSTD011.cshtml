@@ -1,0 +1,389 @@
+﻿@using JSMES.WebUI.Alpha.Models.MasterStruct;
+@using JSMES.WebUI.Alpha.App_GlobalResources;
+@using JSMES.WebUI.Alpha.ViewModels.MST.MSTD;
+
+@{
+    ViewBag.Title = "Main";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @(Html.DevExtreme().DataGrid<MSTD011_LIST>()
+                                  .DataSource(d => d.WebApi().Controller("MSTD011WebApi").Key("PARTNUMBERID"))
+                                  .ID("grdPartNumber")
+                                  .Columns(columns =>
+                                  {
+                                  columns.AddFor(m => m.PARTNUMBER);
+                                  columns.AddFor(m => m.PRODUCTNAME);
+                                  columns.AddFor(m => m.PRODUCTGROUP)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                          .LoadAction("PRODUCTGROUP_LIST"))
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  );
+                                  columns.AddFor(m => m.PRODUCTTYPE)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                          .LoadAction("PRODUCTTYPE_LIST"))
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  );
+                                  columns.AddFor(m => m.CUSTOMER)
+                                  .Lookup(lookup => lookup.DataSource(d => d.WebApi()
+                                      .Controller("COMA001WebApi").Key("VENDORCODE")
+                                      .LoadAction("VENDOR_SELLYN_LIST"))
+                                      .DisplayExpr("VENDORNAME")
+                                      .ValueExpr("VENDORCODE")
+                                  );
+                                  columns.AddFor(m => m.CUSTOMERPARTNUMBER);
+                                  columns.AddFor(m => m.DRAWINGNO);
+
+                                  //columns.AddFor(m => m.STANDARDWEIGHTID).Visible(false);
+
+                                      //columns.Add().Name("STANDARDWEIGHTID").Visible(true);
+
+                                  columns.AddFor(m => m.UDNF6).Visible(false);
+
+                                  columns.AddFor(m => m.UDNF1).Width(250)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("MSTN001WebApi").Key("STANDARDWEIGHTID")
+                                          .LoadAction("get"))
+                                      .ValueExpr("EXTERNALDIAMETER")
+                                      .DisplayExpr("EXTERNALDIAMETER").AllowClearing(true)
+                                      .DataSourceOptions(d=>d.Sort("PRODUCTSPECTYPE",false))
+                                  )
+                                  .EditCellTemplate(new TemplateName("EmbeddedPART1"))
+                                  .SetCellValue("UDNF_SetCellValue");
+
+                                  columns.AddFor(m => m.UDNF2).Width(250)
+                                      .Lookup(lookup => lookup
+                                          .DataSource(d => d.WebApi()
+                                              .Controller("MSTN001WebApi").Key("STANDARDWEIGHTID")
+                                              .LoadAction("get"))
+                                          .ValueExpr("INTERNALDIAMETER")
+                                          .DisplayExpr("INTERNALDIAMETER").AllowClearing(true)
+                                          .DataSourceOptions(d=>d.Sort("PRODUCTSPECTYPE",false))
+                                      )
+                                      .EditCellTemplate(new TemplateName("EmbeddedPART2"))
+                                      .SetCellValue("UDNF_SetCellValue");
+
+                                  columns.AddFor(m => m.UDNF3).Width(250)
+                                      .Lookup(lookup => lookup
+                                          .DataSource(d => d.WebApi()
+                                              .Controller("MSTN001WebApi").Key("STANDARDWEIGHTID")
+                                              .LoadAction("get"))
+                                          .ValueExpr("THICKNESS")
+                                          .DisplayExpr("THICKNESS").AllowClearing(true)
+                                          .DataSourceOptions(d=>d.Sort("PRODUCTSPECTYPE",false))
+                                      )
+                                      .EditCellTemplate(new TemplateName("EmbeddedPART3"))
+                                      .SetCellValue("UDNF_SetCellValue");
+
+                                  //columns.AddFor(m => m.UDNF1).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                  //columns.AddFor(m => m.UDNF2).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                  //columns.AddFor(m => m.UDNF3).Format(f => f.Type(Format.FixedPoint).Precision(0));
+
+                                  columns.AddFor(m => m.UDNF4).Format(f => f.Type(Format.FixedPoint).Precision(2)).Caption("길이(mm)").SetCellValue("UDNF4_SetCellValue");
+                                  columns.AddFor(m => m.UDNF5).Format(f => f.Type(Format.FixedPoint).Precision(2)).Caption("중량(g)");
+                                  columns.AddFor(m => m.SPEC);
+                                  columns.AddFor(m => m.SAFETYINVENTQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                  columns.AddFor(m => m.BOXPERQUANTITY).Format(f => f.Type(Format.FixedPoint).Precision(0));
+                                  columns.AddFor(m => m.UNITCODE)
+                                  .Lookup(lookup => lookup
+                                      .DataSource(d => d.WebApi()
+                                          .Controller("COMA003WebApi").Key("SYSCODE")
+                                          .LoadAction("UNITCODE_LIST"))
+                                      .DisplayExpr("SYSCODENAME")
+                                      .ValueExpr("SYSCODE")
+                                  );
+                                  //columns.AddFor(m => m.UDCF3);
+                                  columns.AddFor(m => m.UDCF4).EditCellTemplate(@<text>@(Html.DevExtreme().ColorBox().Value(new JS("data.UDCF4")).OnValueChanged("function(e){setValue(e.value);}"))</text>);
+                                columns.AddFor(m => m.MEMO);
+                                columns.AddFor(m => m.USEYN);
+                                columns.AddFor(m => m.CREATEUSER);
+                                columns.AddFor(m => m.CREATEDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                                columns.AddFor(m => m.RECENTUSER);
+                                columns.AddFor(m => m.RECENTDATE).Format(f => f.Type(Format.ShortDateShortTime));
+                            })
+                  .DataSourceOptions(d=>d.Sort("PARTNUMBER",false))
+                      .AllowColumnResizing(true)
+                      .RemoteOperations(true)
+                      .FilterPanel(f => f.Visible(true))
+                      .ColumnAutoWidth(true)
+                      .Paging(p => p.PageSize(25).Enabled(true))
+                      .Pager(p => p.ShowPageSizeSelector(true).ShowNavigationButtons(true).AllowedPageSizes(new int[] { 10, 25, 50, 100, 1000 }))
+                      //.StateStoring(s => s.Enabled(true).StorageKey("MSTD001_grdPartNumber").Type(StateStoringType.LocalStorage))
+                      .Scrolling(s => s.Mode(GridScrollingMode.Standard))
+                      .ShowRowLines(true)
+                      .KeyboardNavigation(options =>
+                      {
+                      // MoveFocus : 엔터시 이동
+                      // startEdit : 엔터시 EditMode 다시 엔터시 이동
+                      options.EnterKeyAction(GridEnterKeyAction.MoveFocus);
+                      // 엔터 이외 키 입력시 EditMode 여부
+                      options.EditOnKeyPress(true);
+                      // Row : 엔터시 열 단위 이동 →
+                      // Column : 엔터시 행 단위 이동 ↓
+                      options.EnterKeyDirection(GridEnterKeyDirection.Column);
+                      })
+                      .OnCellPrepared("OnCellPrepared")
+                      .SearchPanel(searchPanel => searchPanel
+                          .Visible(true)
+                          .Width(180)
+                          .Placeholder("Search...")
+                      )
+                      .FilterRow(filterRow => filterRow
+                          .Visible(true)
+                          .ApplyFilter(GridApplyFilterMode.Auto)
+                      )
+                      .ShowBorders(true)
+                      .AllowColumnResizing(true)
+                      .Editing(e =>
+                          e.Mode(GridEditMode.Batch)
+                              .AllowUpdating(new JS("iudAuth()"))
+                              .AllowAdding(new JS("iudAuth()"))
+                              .AllowDeleting(new JS("iudAuth()"))
+                      )
+                      .RowAlternationEnabled(true)
+                      .Export(e => e.Enabled(true).ExcelFilterEnabled(true))
+                      .OnFileSaving("function(e) {e.fileName = getExportFileName(this, fullScreenName, '" + "" + "') ;}")
+                      .OnInitialized("grdPartNumber_OnInitialized")
+                      .Option("KEY_FIELD", new object[] { "PARTNUMBER" })
+                      .Option("INIT_FIELD", new object[] { "USEYN", "PARTNUMBER" })
+                      .OnInitNewRow("grdPartNumber_OnInitNewRow")
+              //.OnContentReady("grdPartNumber_OnContentReady")
+
+            )
+        </div>
+    </div>
+</div>
+
+@*제품규격별 표준중량*@
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPART1"))
+{
+    @(Html.DevExtreme().DropDownBox()
+                                .ID("ddbPart")
+                                .Value(new JS("data.UDNF1"))
+                                .ValueExpr("UDNF1")
+                                .DisplayExpr("UDNF1")
+                                .DropDownOptions(d => d.Width(500))
+                                .DataSource(d => d.WebApi().Controller("MSTN001WebApi").LoadAction("get").Key("STANDARDWEIGHTID")
+                                .OnBeforeSend(@<text>
+                                    function(method, ajaxOptions){
+                                    if(data.VENDORCODE != null || data.VENDORCODE == ""){
+                                    ajaxOptions.data.customer = data.VENDORCODE;
+                                    }
+                                    else{
+                                    ajaxOptions.data.customer = "";
+                                    }
+                                    }
+                                </text>))
+                                                                    .AcceptCustomValue(true)
+                                                                    .OnValueChanged(@<text>
+                                                                        function(e){
+                                                                        setValue(e.value);
+                                                                        }
+                                                                    </text>)
+                                                                                .ContentTemplate(new TemplateName("EmbeddedPARTSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPART2"))
+{
+    @(Html.DevExtreme().DropDownBox()
+                  .ID("ddbPart")
+                  .Value(new JS("data.UDNF2"))
+                  .ValueExpr("UDNF2")
+                  .DisplayExpr("UDNF2")
+                  .DropDownOptions(d => d.Width(500))
+                  .DataSource(d => d.WebApi().Controller("MSTN001WebApi").LoadAction("get").Key("STANDARDWEIGHTID")
+                      .OnBeforeSend(@<text>
+                        function(method, ajaxOptions){
+                        if(data.VENDORCODE != null || data.VENDORCODE == ""){
+                        ajaxOptions.data.customer = data.VENDORCODE;
+                        }
+                        else{
+                        ajaxOptions.data.customer = "";
+                        }
+                        }
+                    </text>))
+                            .AcceptCustomValue(true)
+                            .OnValueChanged(@<text>
+                                function(e){
+                                setValue(e.value);
+                                }
+                            </text>)
+                                        .ContentTemplate(new TemplateName("EmbeddedPARTSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPART3"))
+{
+    @(Html.DevExtreme().DropDownBox()
+                  .ID("ddbPart")
+                  .Value(new JS("data.UDNF3"))
+                  .ValueExpr("UDNF3")
+                  .DisplayExpr("UDNF3")
+                  .DropDownOptions(d => d.Width(500))
+                  .DataSource(d => d.WebApi().Controller("MSTN001WebApi").LoadAction("get").Key("STANDARDWEIGHTID")
+                      .OnBeforeSend(@<text>
+                        function(method, ajaxOptions){
+                        if(data.VENDORCODE != null || data.VENDORCODE == ""){
+                        ajaxOptions.data.customer = data.VENDORCODE;
+                        }
+                        else{
+                        ajaxOptions.data.customer = "";
+                        }
+                        }
+                    </text>))
+                            .AcceptCustomValue(true)
+                            .OnValueChanged(@<text>
+                                function(e){
+                                setValue(e.value);
+                                }
+                            </text>)
+                                        .ContentTemplate(new TemplateName("EmbeddedPARTSingle"))
+    )
+}
+
+@using (Html.DevExtreme().NamedTemplate("EmbeddedPARTSingle"))
+{
+    @(Html.DevExtreme().DataGrid<StandardWeightMaster>()
+                                .ID("grdPartSingle")
+                                .DataSource(new JS(@"component.option(""dataSource"")"))
+                                .Columns(columns =>
+                                {
+
+                                    columns.AddFor(m => m.PRODUCTSPECTYPE)
+                                        .Lookup(lookup => lookup
+                                            .DataSource(d => d.WebApi()
+                                                .Controller("COMA003WebApi").Key("SYSCODE")
+                                                .LoadAction("PRODUCTSPECTYPE_LIST"))
+                                            .DisplayExpr("SYSCODENAME")
+                                            .ValueExpr("SYSCODE")
+                                        ).SortOrder(SortOrder.Asc);
+                                    columns.AddFor(m => m.EXTERNALDIAMETER).Format(f => f.Type(Format.FixedPoint).Precision(2));
+                                    columns.AddFor(m => m.INTERNALDIAMETER).Format(f => f.Type(Format.FixedPoint).Precision(2));
+                                    columns.AddFor(m => m.THICKNESS).Format(f => f.Type(Format.FixedPoint).Precision(2));
+                                })
+                            //.DataSourceOptions(d=>d.Sort("PRODUCTSPECTYPE",false))
+                                .HoverStateEnabled(true)
+                                .Paging(p => p.PageSize(10))
+                                .FilterRow(f => f.Visible(true))
+                                .Scrolling(s => s.Mode(GridScrollingMode.Infinite))
+                                .Height(345)
+                                .Selection(s => s.Mode(SelectionMode.Single))
+                                .SelectedRowKeys(new JS(@"component.option(""value"")"))
+                                .OnSelectionChanged(@<text>
+                                    function(selectedItems) {
+                                    var haskey;
+                                    var keys = selectedItems.selectedRowKeys;
+
+                                    if(typeof keys !== undefined && keys.length > 0)
+                                    {
+                                    haskey = true;
+                                    }
+
+                                    if(typeof keys !== 'undefined' && keys.length > 0){
+                                    if(!(selectedItems.currentDeselectedRowKeys.length > 1)){
+                                    component.close();
+                                    }
+                                    }
+
+                                    if (haskey != undefined){
+                                    component.option("value", selectedItems.selectedRowsData[0])
+                                    }
+                                    }
+                                </text>)
+    )
+}
+
+<script>
+    function grdPartNumber_OnInitialized(e) {
+        userCustomGrid(e);
+    }
+
+    function grdPartNumber_OnInitNewRow(e) {
+        e.data.SAFETYINVENTQUANTITY = 0;
+    }
+
+    function OnCellPrepared(e) {
+
+        if (e.rowType === "data" && e.column.dataField === "UDCF4") {
+            e.cellElement.css("background-color", e.value);
+        }
+    }
+
+    var updating = false;
+
+    function grdPartNumber_OnInserting(e) {
+        if(!updating)
+            updating = true;
+    }
+
+    function grdPartNumber_OnUpdating(e) {
+        if(!updating)
+            updating = true;
+    }
+
+    function grdPartNumber_OnRemoving(e) {
+        if(!updating)
+            updating = true;
+    }
+
+    function grdPartNumber_OnContentReady(e) {
+        if(updating && !e.component.hasEditData()){  // updates finished successfully
+            //console.log("onContentReady");
+            updating = false;
+            DevExpress.ui.notify('@LabelText.JOBSUCCESS', "success", globalNotificationSuccessTime);
+        }
+    }
+
+    function UDNF_SetCellValue(newData, value, currentRowData) {
+        newData.STANDARDWEIGHTID = value.STANDARDWEIGHTID;
+        newData.UDNF6 = value.METERPERWEIGHT;
+        newData.UDNF1 = value.EXTERNALDIAMETER;
+        newData.UDNF2 = value.INTERNALDIAMETER;
+        newData.UDNF3 = value.THICKNESS;
+
+        newData.UDNF4 = currentRowData.UDNF4;
+
+        //길이(m)을 길이(mm)으로 환산한다.
+        var LengtValue = value.METERPERWEIGHT / 1000;
+
+        var WEIGHT = (LengtValue * currentRowData.UDNF4);
+
+        newData.UDNF5 = WEIGHT;
+
+        if (value.PARTNUMBER != currentRowData.PARTNUMBER) {
+            $('#grdPartNumber').dxDataGrid('instance').closeEditCell();
+        }
+    }
+
+    function UDNF4_SetCellValue(newData, value, currentRowData) {
+        var dd = "";
+
+        if (currentRowData.UDNF6 == null) {
+            DevExpress.ui.dialog.alert("외경/내경/부께 정보를 먼저 선택해주세요.", "warning");
+            return;
+        }
+
+        //길이(m)을 길이(mm)으로 환산한다.
+        var LengtValue = currentRowData.UDNF6  / 1000;
+
+        var WEIGHT = (LengtValue * value);
+
+        newData.UDNF4 = value;
+
+        newData.UDNF5 = WEIGHT;
+    }
+
+</script>
+
+
+@Html.Partial("_DropdownPartial")
